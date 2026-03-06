@@ -8,6 +8,8 @@ jest.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Route: ({ element }: { element: React.ReactNode }) => <div>{element}</div>,
+  Navigate: () => <div>Navigate</div>,
+  Outlet: () => <div>Outlet</div>,
   useNavigate: () => jest.fn(),
 }));
 
