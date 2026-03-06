@@ -1,0 +1,66 @@
+# Dependency directories
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+.nyc_output
+
+# Production build (handled by multi-stage build)
+build/
+dist/
+
+# Development and configuration
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and scripts
+*.md
+!README.md
+*.ps1
+*.bat
+deploy-manual.ps1
+setup-gcp.ps1
+start-dev.ps1
+start-dev.bat
+quick-test.ps1
+run-tests-fresh.ps1
+
+# CI/CD
+.github/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Playwright
+playwright.config.ts
+tests/
