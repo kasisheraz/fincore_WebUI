@@ -79,7 +79,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.IMAGE_REGISTRY }}/${{ env.FULL_REPOSITORY }}:latest -t ${{ env.IMAGE_REGISTRY }}/${{ env.FULL_REPOSITORY }}:${{ github.sha }} .
+          docker build \
+            -t ${{ env.IMAGE_REGISTRY }}/${{ env.FULL_REPOSITORY }}:latest \
+            -t ${{ env.IMAGE_REGISTRY }}/${{ env.FULL_REPOSITORY }}:${{ github.sha }} \
+            .
 
       - name: Push Docker image to Artifact Registry
         run: |
