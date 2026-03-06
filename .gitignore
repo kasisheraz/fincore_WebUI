@@ -31,3 +31,36 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# Playwright Test Results
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Test authentication storage
+tests/e2e/.auth/
+
+# Test artifacts
+*.mp4
+*.webm
+trace.zip
+
+# Temporary logs and debug files
+*.log
+results.txt
+test-output.txt
+debug-output/
+
+# Session-specific tracking documents
+ACTION_PLAN_*.md
+FINAL_*.md
+TEST_STATUS_*.md
+TEST_EXECUTION_*.md
+TEST_FIX_*.md
+TEST_RESULTS_*.md
+*_PROGRESS.md
+*_COMPLETE.md
+*_SUMMARY.md
+PHASE_*.md
+PUSH_TO_*.md
+*_SETUP_SUMMARY.md

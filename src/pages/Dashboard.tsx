@@ -223,6 +223,7 @@ const Dashboard: React.FC = () => {
               </Box>
               <Button 
                 variant="outlined" 
+                onClick={() => navigate('/applications')}
                 sx={{ 
                   mt: 2,
                   borderColor: '#1F7A5C',

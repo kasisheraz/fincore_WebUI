@@ -24,11 +24,20 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       pl: 0,
       pr: 4,
       py: 3,
+      mb: 3,
       position: 'relative',
       left: '-220px',
       width: 'calc(100% + 220px)',
     }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pl: '240px', pr: 0 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        pl: '240px', 
+        pr: 2,
+        flexWrap: 'wrap',
+        gap: 2
+      }}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: '#003D2A' }}>
           {title}
         </Typography>

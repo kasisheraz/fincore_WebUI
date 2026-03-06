@@ -41,32 +41,41 @@ class ApiService {
         if (error.response?.status === 401) {
           // Handle unauthorized access
           localStorage.removeItem('authToken');
-          window.location.href = '/login';
+          localStorage.removeItem('user');
+          // Only redirect if not already on login page
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
     );
   }
 
-  public async get<T>(url: string, params?: any): Promise<T> {
-    const response = await this.api.get<T>(url, { params });
-    return response.data;
+  public get<T = any>(url: string, config?: any): Promise<AxiosResponse<T>> {
+    return this.api.get<T>(url, config);
   }
 
-  public async post<T>(url: string, data?: any): Promise<T> {
-    const response = await this.api.post<T>(url, data);
-    return response.data;
+  public post<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
+    return this.api.post<T>(url, data);
   }
 
-  public async put<T>(url: string, data?: any): Promise<T> {
-    const response = await this.api.put<T>(url, data);
-    return response.data;
+  public put<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
+    return this.api.put<T>(url, data);
   }
 
-  public async delete<T>(url: string): Promise<T> {
-    const response = await this.api.delete<T>(url);
-    return response.data;
+  public patch<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
+    return this.api.patch<T>(url, data);
+  }
+
+  public delete<T = any>(url: string): Promise<AxiosResponse<T>> {
+    return this.api.delete<T>(url);
+  }
+
+  public getAxiosInstance(): AxiosInstance {
+    return this.api;
   }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;

@@ -9,6 +9,8 @@ export const APP_CONFIG = {
   NAME: 'FinCore',
   VERSION: '1.0.0',
   ENVIRONMENT: process.env.NODE_ENV || 'development',
+  // Enable mock authentication for development (bypasses OTP)
+  MOCK_AUTH: process.env.REACT_APP_MOCK_AUTH === 'true' || true, // Set to false when API is ready
 };
 
 // Theme Configuration
@@ -17,8 +19,10 @@ export const THEME_CONFIG = {
   HEADER_HEIGHT: 64,
 };
 
-export default {
+const config = {
   API_CONFIG,
   APP_CONFIG,
   THEME_CONFIG,
 };
+
+export default config;

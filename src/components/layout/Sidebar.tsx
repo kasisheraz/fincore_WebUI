@@ -15,9 +15,14 @@ import ThemeSwitcher from '../common/ThemeSwitcher';
 import {
   Dashboard,
   Person,
-  Description,
   Assessment,
   Settings,
+  People,
+  Business,
+  VerifiedUser,
+  Quiz,
+  Description,
+  QuestionAnswer,
 } from '@mui/icons-material';
 
 interface SidebarProps {
@@ -27,9 +32,13 @@ interface SidebarProps {
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Clients', icon: <Person />, path: '/applications' },
-  { text: 'Onboarding', icon: <Description />, path: '/profile' },
-  { text: 'Analytics', icon: <Assessment />, path: '/reports' },
+  { text: 'Users', icon: <People />, path: '/users' },
+  { text: 'Organizations', icon: <Business />, path: '/organizations' },
+  { text: 'KYC Documents', icon: <Description />, path: '/kyc-documents' },
+  { text: 'KYC Verification', icon: <VerifiedUser />, path: '/kyc-verification' },
+  { text: 'Questionnaire', icon: <Quiz />, path: '/questionnaire' },
+  { text: 'Customer Answers', icon: <QuestionAnswer />, path: '/customer-answers' },
+  { text: 'Profile', icon: <Person />, path: '/profile' },
   { text: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
@@ -170,9 +179,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             </ListItem>
           ))}
         </List>
-      </Box>
-      <Box sx={{ mt: 'auto' }}>
-        <ThemeSwitcher />
       </Box>
     </Drawer>
   );
