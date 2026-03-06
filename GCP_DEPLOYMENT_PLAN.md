@@ -59,61 +59,63 @@ Deploy React-based FinCore WebUI to Google Cloud Platform with full CI/CD automa
 ## Prerequisites
 
 ### GCP Project Setup
-1. **Create GCP Project**
+
+✅ **Using Existing GCP Project** (Same as Backend API)
+
+**Project Details:**
+- **Project ID**: `project-07a61357-b791-4255-a9e`
+- **Region**: `europe-west2` (London)
+- **APIs**: Already enabled (Cloud Run, Cloud Build, Secret Manager)
+
+1. **Set Active Project**
    ```bash
-   gcloud projects create fincore-webui --name="FinCore WebUI"
-   gcloud config set project fincore-webui
+   gcloud config set project project-07a61357-b791-4255-a9e
    ```
 
-2. **Enable Required APIs**
+2. **Create Artifact Registry for WebUI**
    ```bash
-   gcloud services enable run.googleapis.com
-   gcloud services enable artifactregistry.googleapis.com
-   gcloud services enable cloudbuild.googleapis.com
-   gcloud services enable secretmanager.googleapis.com
-   ```
-
-3. **Create Artifact Registry**
-   ```bash
+   # Create new repository for UI images (backend uses GCR)
    gcloud artifacts repositories create fincore-webui \
      --repository-format=docker \
-     --location=us-central1 \
-     --description="FinCore WebUI Docker images"
+     --location=europe-west2 \
+     --description="FinCore WebUI Docker images" \
+     --project=project-07a61357-b791-4255-a9e
    ```
 
+   **Note**: Backend API uses GCR (`gcr.io`), we'll use Artifact Registry for WebUI.
+
 ### Service Account Setup
+
+✅ **Reuse Existing Service Account** (Backend API service account)
+
 ```bash
-# Create service account for GitHub Actions
-gcloud iam service-accounts create github-actions \
-  --display-name="GitHub Actions Deployment"
+# Service account already exists: fincore-npe-cloudrun@project-07a61357-b791-4255-a9e.iam.gserviceaccount.com
+# Already has required roles from backend setup
 
-# Grant necessary roles
-gcloud projects add-iam-policy-binding fincore-webui \
-  --member="serviceAccount:github-actions@fincore-webui.iam.gserviceaccount.com" \
-  --role="roles/run.admin"
+# Verify service account
+gcloud iam service-accounts describe fincore-npe-cloudrun@project-07a61357-b791-4255-a9e.iam.gserviceaccount.com
 
-gcloud projects add-iam-policy-binding fincore-webui \
-  --member="serviceAccount:github-actions@fincore-webui.iam.gserviceaccount.com" \
+# Grant Artifact Registry access (if not already granted)
+gcloud projects add-iam-policy-binding project-07a61357-b791-4255-a9e \
+  --member="serviceAccount:fincore-npe-cloudrun@project-07a61357-b791-4255-a9e.iam.gserviceaccount.com" \
   --role="roles/artifactregistry.writer"
 
-gcloud projects add-iam-policy-binding fincore-webui \
-  --member="serviceAccount:github-actions@fincore-webui.iam.gserviceaccount.com" \
-  --role="roles/iam.serviceAccountUser"
-
-# Create and download key
-gcloud iam service-accounts keys create key.json \
-  --iam-account=github-actions@fincore-webui.iam.gserviceaccount.com
+# If you need a new key for GitHub Actions:
+gcloud iam service-accounts keys create webui-github-key.json \
+  --iam-account=fincore-npe-cloudrun@project-07a61357-b791-4255-a9e.iam.gserviceaccount.com
 ```
+
+**Note**: If using the same GitHub secrets as backend, you can skip key creation.
 
 ### GitHub Repository Secrets
 Add these secrets in GitHub Settings → Secrets and variables → Actions:
 
-| Secret Name | Description | How to Get |
-|-------------|-------------|------------|
-| `GCP_PROJECT_ID` | GCP Project ID | `fincore-webui` |
-| `GCP_SA_KEY` | Service Account JSON Key | Content of `key.json` |
-| `GCP_REGION` | Deployment region | `us-central1` |
-| `API_BASE_URL` | Backend API URL | Production API endpoint |
+| Secret Name | Description | Value |
+|-------------|-------------|-------|
+| `GCP_PROJECT_ID` | GCP Project ID | `project-07a61357-b791-4255-a9e` |
+| `GCP_SA_KEY` | Service Account JSON Key | Content of service account key (reuse backend key) |
+| `GCP_REGION` | Deployment region | `europe-west2` |
+| `API_BASE_URL` | Backend API URL | `https://fincore-npe-api-994490239798.europe-west2.run.app` |
 
 Optional secrets:
 | Secret Name | Description |
@@ -220,7 +222,7 @@ Update `public/index.html`:
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: fincore-webui
+  name: fincore-webui-npe
   annotations:
     run.googleapis.com/ingress: all
 spec:
@@ -228,20 +230,18 @@ spec:
     metadata:
       annotations:
         autoscaling.knative.dev/minScale: '0'
-        autoscaling.knative.dev/maxScale: '100'
+        autoscaling.knative.dev/maxScale: '10'
     spec:
+      serviceAccountName: fincore-npe-cloudrun@project-07a61357-b791-4255-a9e.iam.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/fincore-webui/fincore-webui/app:latest
+      - image: europe-west2-docker.pkg.dev/project-07a61357-b791-4255-a9e/fincore-webui/app:latest
         ports:
         - containerPort: 8080
         env:
         - name: API_BASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: api-base-url
-              key: latest
+          value: https://fincore-npe-api-994490239798.europe-west2.run.app
         - name: ENVIRONMENT
-          value: production
+          value: npe
         resources:
           limits:
             memory: 512Mi
