@@ -71,27 +71,36 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+        run: |
+          REGION="${{ secrets.GCP_REGION }}"
+          gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
       - name: Build Docker image
         run: |
-          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fincore-webui/app"
-          docker build -t ${IMAGE_TAG}:latest -t ${IMAGE_TAG}:${{ github.sha }} .
+          REGION="${{ secrets.GCP_REGION }}"
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          docker build -t "${IMAGE}:latest" -t "${IMAGE}:${{ github.sha }}" .
 
       - name: Push Docker image to Artifact Registry
         run: |
-          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fincore-webui/app"
-          docker push ${IMAGE_TAG}:latest
-          docker push ${IMAGE_TAG}:${{ github.sha }}
+          REGION="${{ secrets.GCP_REGION }}"
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:${{ github.sha }}"
 
       - name: Deploy to Cloud Run
         run: |
+          REGION="${{ secrets.GCP_REGION }}"
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
           gcloud run deploy fincore-webui-npe \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fincore-webui/app:latest \
-            --region=${{ secrets.GCP_REGION }} \
+            --image="${IMAGE}:latest" \
+            --region="${REGION}" \
             --platform=managed \
             --allow-unauthenticated \
-            --service-account=fincore-github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --service-account="fincore-github-actions@${PROJECT}.iam.gserviceaccount.com" \
             --memory=512Mi \
             --cpu=1 \
             --timeout=60 \
@@ -133,11 +142,14 @@ jobs:
       - name: Deployment Summary
         if: success()
         run: |
+          REGION="${{ secrets.GCP_REGION }}"
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
           echo "🚀 Deployment Successful!"
           echo "Service: fincore-webui-npe"
-          echo "Region: ${{ secrets.GCP_REGION }}"
+          echo "Region: ${REGION}"
           echo "URL: ${{ steps.get-url.outputs.url }}"
-          echo "Image: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/fincore-webui/app:${{ github.sha }}"
+          echo "Image: ${IMAGE}:${{ github.sha }}"
 
       - name: Notify on failure
         if: failure()
