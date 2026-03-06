@@ -88,7 +88,7 @@ jobs:
             --region=${{ env.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --service-account=fincore-npe-cloudrun@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --service-account=fincore-github-actions@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --memory=512Mi \
             --cpu=1 \
             --timeout=60 \

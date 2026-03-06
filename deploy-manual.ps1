@@ -11,7 +11,6 @@ param(
 )
 
 $IMAGE_NAME = "app"
-$SERVICE_ACCOUNT = "fincore-npe-cloudrun@$ProjectId.iam.gserviceaccount.com"
 
 Write-Host "`n==================================" -ForegroundColor Cyan
 Write-Host "FinCore WebUI - Manual Deployment" -ForegroundColor Cyan
@@ -83,7 +82,7 @@ gcloud run deploy $ServiceName `
     --region=$Region `
     --platform=managed `
     --allow-unauthenticated `
-    --service-account=$SERVICE_ACCOUNT `
+    --service-account=$ServiceAccount `
     --memory=512Mi `
     --cpu=1 `
     --timeout=60 `
