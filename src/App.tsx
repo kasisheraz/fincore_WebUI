@@ -18,6 +18,7 @@ import KYCDocumentsPage from './pages/kyc/KYCDocumentsPage';
 import KYCVerificationPage from './pages/kyc/KYCVerificationPage';
 import QuestionnairePage from './pages/questionnaire/QuestionnairePage';
 import CustomerAnswersPage from './pages/answers/CustomerAnswersPage';
+import Diagnostics from './pages/Diagnostics';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
@@ -80,6 +81,7 @@ const AppContent: React.FC = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/diagnostics" element={<Diagnostics />} />
       </Route>
     </Routes>
   );
