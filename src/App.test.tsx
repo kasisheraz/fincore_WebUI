@@ -19,6 +19,6 @@ test('renders FinCore application', () => {
       <App />
     </AuthProvider>
   );
-  const linkElement = screen.getByText(/FinCore/i);
-  expect(linkElement).toBeInTheDocument();
+  const headingElement = screen.getByRole('heading', { name: /FinCore/i });
+  expect(headingElement).toBeInTheDocument();
 });
