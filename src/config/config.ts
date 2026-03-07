@@ -10,7 +10,8 @@ export const APP_CONFIG = {
   VERSION: '1.0.0',
   ENVIRONMENT: process.env.NODE_ENV || 'development',
   // Enable mock authentication for development (bypasses OTP)
-  MOCK_AUTH: process.env.REACT_APP_MOCK_AUTH === 'true' || true, // Set to false when API is ready
+  // In production, this will be false, using real backend authentication
+  MOCK_AUTH: process.env.REACT_APP_MOCK_AUTH === 'true',
 };
 
 // Theme Configuration
