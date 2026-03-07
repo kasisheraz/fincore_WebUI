@@ -78,7 +78,8 @@ const DiagnosticsPage: React.FC = () => {
     // Test 3: Test Users API
     updateResult('Users API', 'pending', 'Fetching users...');
     try {
-      const users = await userService.getUsers();
+      const response = await userService.getAll();
+      const users = response.content;
       updateResult('Users API', 'success', `Found ${users.length} users`, {
         count: users.length,
         sample: users.slice(0, 3)
@@ -93,7 +94,8 @@ const DiagnosticsPage: React.FC = () => {
     // Test 4: Test Organizations API
     updateResult('Organizations API', 'pending', 'Fetching organizations...');
     try {
-      const orgs = await organizationService.getOrganizations();
+      const response = await organizationService.getAll();
+      const orgs = response.content;
       updateResult('Organizations API', 'success', `Found ${orgs.length} organizations`, {
         count: orgs.length,
         sample: orgs.slice(0, 3)
