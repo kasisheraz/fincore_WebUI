@@ -27,6 +27,7 @@ import PageHeader from '../components/common/PageHeader';
 const IndividualApplication: React.FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -46,22 +47,88 @@ const IndividualApplication: React.FC = () => {
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    console.log(`Field updated: ${name} = ${value}`);
+  };
+
+  const handleSelectChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    console.log(`Select updated: ${name} = ${value}`);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setUploadedFiles([...uploadedFiles, ...fileArray]);
+      console.log('Files uploaded:', fileArray.map(f => f.name));
+    }
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        if (!formData.firstName || !formData.lastName || !formData.phone || !formData.dateOfBirth) {
+          alert('Please fill all required fields in Contact Information');
+          return false;
+        }
+        return true;
+      case 2:
+        if (!formData.monthlyTurnover || !formData.transactionCount) {
+          alert('Please select both Monthly Turnover and Transaction Count');
+          return false;
+        }
+        return true;
+      case 3:
+        if (uploadedFiles.length === 0) {
+          alert('Please upload at least one document');
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
   };
 
   const handleNext = () => {
+    console.log(`Attempting to move from step ${currentStep} to ${currentStep + 1}`);
+    
+    if (!validateStep(currentStep)) {
+      return;
+    }
+
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
+      console.log(`Moved to step ${currentStep + 1}`);
+    } else if (currentStep === 4) {
+      handleSubmit();
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      console.log(`Moved back to step ${currentStep - 1}`);
     }
+  };
+
+  const handleSubmit = () => {
+    console.log('Submitting application with data:', formData);
+    console.log('Uploaded files:', uploadedFiles.map(f => f.name));
+    
+    // Simulate API call
+    alert(`Application submitted successfully!\n\nData:\n${JSON.stringify(formData, null, 2)}\n\nFiles: ${uploadedFiles.length}`);
+    
+    // Navigate back to applications
+    navigate('/applications');
   };
 
   return (
@@ -240,6 +307,7 @@ const IndividualApplication: React.FC = () => {
                       <Select
                         name="nationality"
                         value={formData.nationality}
+                        onChange={handleSelectChange}
                         label="Nationality"
                       >
                         <MenuItem value="United Kingdom">United Kingdom</MenuItem>
@@ -269,6 +337,7 @@ const IndividualApplication: React.FC = () => {
                         <Select
                           name="monthlyTurnover"
                           value={formData.monthlyTurnover}
+                          onChange={handleSelectChange}
                           displayEmpty
                         >
                           <MenuItem value="">Select Range</MenuItem>
@@ -288,6 +357,7 @@ const IndividualApplication: React.FC = () => {
                         <Select
                           name="transactionCount"
                           value={formData.transactionCount}
+                          onChange={handleSelectChange}
                           displayEmpty
                         >
                           <MenuItem value="">Select Range</MenuItem>
@@ -321,10 +391,52 @@ const IndividualApplication: React.FC = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     or click to browse files
                   </Typography>
-                  <Button variant="outlined" sx={{ borderColor: '#2D8A6A', color: '#2D8A6A' }}>
-                    Upload Documents
-                  </Button>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    style={{ display: 'none' }}
+                    id="file-upload"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                  <label htmlFor="file-upload">
+                    <Button 
+                      variant="outlined" 
+                      component="span"
+                      sx={{ borderColor: '#2D8A6A', color: '#2D8A6A' }}
+                    >
+                      Upload Documents
+                    </Button>
+                  </label>
                 </Box>
+                
+                {/* Display uploaded files */}
+                {uploadedFiles.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                      Uploaded Files ({uploadedFiles.length}):
+                    </Typography>
+                    {uploadedFiles.map((file, index) => (
+                      <Box 
+                        key={index}
+                        sx={{ 
+                          p: 2, 
+                          mb: 1, 
+                          backgroundColor: '#E6F4F0', 
+                          borderRadius: 1,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Typography variant="body2">{file.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {(file.size / 1024).toFixed(2)} KB
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
               </Box>
             )}
 
@@ -334,7 +446,7 @@ const IndividualApplication: React.FC = () => {
                 <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#002A1A' }}>
                   Review Application
                 </Typography>
-                <Box sx={{ p: 3, backgroundColor: '#E6F4F0', borderRadius: 2, border: '1px solid #2D8A6A' }}>
+                <Box sx={{ p: 3, backgroundColor: '#E6F4F0', borderRadius: 2, border: '1px solid #2D8A6A', mb: 3 }}>
                   <CheckCircle sx={{ fontSize: 48, color: '#2D8A6A', mb: 2 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                     Application Ready for Submission
@@ -343,6 +455,50 @@ const IndividualApplication: React.FC = () => {
                     Review all details before submitting the application.
                   </Typography>
                 </Box>
+
+                {/* Display form data */}
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Contact Information:</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Name:</Typography>
+                    <Typography variant="body1">{formData.firstName} {formData.lastName}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Phone:</Typography>
+                    <Typography variant="body1">{formData.phone}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Email:</Typography>
+                    <Typography variant="body1">{formData.email || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Date of Birth:</Typography>
+                    <Typography variant="body1">{formData.dateOfBirth}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Nationality:</Typography>
+                    <Typography variant="body1">{formData.nationality}</Typography>
+                  </Grid>
+
+                  <Grid item xs={12} sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Volume Information:</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Monthly Turnover:</Typography>
+                    <Typography variant="body1">{formData.monthlyTurnover}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="text.secondary">Transaction Count:</Typography>
+                    <Typography variant="body1">{formData.transactionCount}</Typography>
+                  </Grid>
+
+                  <Grid item xs={12} sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Documents:</Typography>
+                    <Typography variant="body1">{uploadedFiles.length} file(s) uploaded</Typography>
+                  </Grid>
+                </Grid>
               </Box>
             )}
 
@@ -368,7 +524,6 @@ const IndividualApplication: React.FC = () => {
                 variant="contained"
                 endIcon={<ArrowForward />}
                 onClick={handleNext}
-                disabled={currentStep === 4}
                 sx={{
                   backgroundColor: '#2D8A6A',
                   '&:hover': {
@@ -379,7 +534,7 @@ const IndividualApplication: React.FC = () => {
                   px: 4,
                 }}
               >
-                {currentStep === 4 ? 'Submit' : 'Next Step'}
+                {currentStep === 4 ? 'Submit Application' : 'Next Step'}
               </Button>
             </Box>
           </CardContent>
