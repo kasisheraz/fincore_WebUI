@@ -86,7 +86,7 @@ const Reports: React.FC = () => {
         onButtonClick={() => console.log('Generate new report')}
       />
       
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ pt: 2, pr: 3, pb: 3, pl: 0 }}>
         {/* Quick Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>

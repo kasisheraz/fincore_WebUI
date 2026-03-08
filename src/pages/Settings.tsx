@@ -119,7 +119,7 @@ const Settings: React.FC = () => {
         onButtonClick={() => console.log('Settings saved')}
       />
       
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ pt: 2, pr: 3, pb: 3, pl: 0 }}>
         <Grid container spacing={3}>
           {/* Notifications */}
         <Grid item xs={12} md={6}>

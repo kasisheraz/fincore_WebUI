@@ -306,7 +306,7 @@ const UsersPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ pt: 2, pr: 3, pb: 3, pl: 0 }}>
       <PageHeader title="User Management" />
 
       <Box sx={{ 

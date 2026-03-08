@@ -21,11 +21,13 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     <Box sx={{ 
       backgroundColor: '#ffffff', 
       borderBottom: '1px solid #E5E7EB',
-      px: 4,
       py: 3,
+      pl: 2,
+      pr: 4,
       mb: 3,
-      mx: -3,
-      width: 'calc(100% + 48px)',
+      ml: -1,
+      mr: -3,
+      width: 'calc(100% + 32px)',
     }}>
       <Box sx={{ 
         display: 'flex', 
