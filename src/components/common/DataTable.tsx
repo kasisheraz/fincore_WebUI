@@ -93,8 +93,8 @@ function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <TableContainer>
+    <Paper sx={{ width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
+      <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)', overflowX: 'auto' }}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>

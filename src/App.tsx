@@ -30,7 +30,7 @@ const AppLayout: React.FC = () => {
 
   return (
     <ProtectedRoute>
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <Box
           component="main"
@@ -41,6 +41,10 @@ const AppLayout: React.FC = () => {
             transition: 'margin-left 0.3s ease',
             backgroundColor: '#F8F9FA',
             minHeight: '100vh',
+            width: 'calc(100% - 220px)',
+            maxWidth: 'calc(100vw - 220px)',
+            overflow: 'auto',
+            boxSizing: 'border-box',
           }}
         >
           <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} title="FinCore" />

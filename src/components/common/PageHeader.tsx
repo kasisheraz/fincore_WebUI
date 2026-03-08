@@ -21,22 +21,19 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     <Box sx={{ 
       backgroundColor: '#ffffff', 
       borderBottom: '1px solid #E5E7EB',
-      pl: 0,
-      pr: 4,
+      px: 4,
       py: 3,
       mb: 3,
-      position: 'relative',
-      left: '-220px',
-      width: 'calc(100% + 220px)',
+      mx: -3,
+      width: 'calc(100% + 48px)',
     }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'center', 
-        pl: '240px', 
-        pr: 2,
+        alignItems: 'center',
         flexWrap: 'wrap',
-        gap: 2
+        gap: 2,
+        maxWidth: '100%',
       }}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: '#003D2A' }}>
           {title}
