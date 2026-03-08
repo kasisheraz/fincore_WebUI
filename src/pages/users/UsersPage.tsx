@@ -155,15 +155,19 @@ const UsersPage: React.FC = () => {
   const handleFormSubmit = async (data: CreateUserDTO | UpdateUserDTO) => {
     setFormLoading(true);
     try {
+      console.log(`${formMode} user with data:`, data);
+      
       if (formMode === 'create') {
-        await userService.create(data as CreateUserDTO);
+        const result = await userService.create(data as CreateUserDTO);
+        console.log('User created:', result);
         setSnackbar({
           open: true,
           message: 'User created successfully',
           severity: 'success',
         });
       } else if (selectedUser) {
-        await userService.update(selectedUser.id, data as UpdateUserDTO);
+        const result = await userService.update(selectedUser.id, data as UpdateUserDTO);
+        console.log('User updated:', result);
         setSnackbar({
           open: true,
           message: 'User updated successfully',
@@ -173,9 +177,14 @@ const UsersPage: React.FC = () => {
       setFormOpen(false);
       fetchUsers();
     } catch (error: any) {
+      console.error(`Failed to ${formMode} user:`, error);
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error
+        || error.message 
+        || `Failed to ${formMode} user`;
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || `Failed to ${formMode} user`,
+        message: errorMessage,
         severity: 'error',
       });
     } finally {
@@ -306,7 +315,7 @@ const UsersPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ pt: 2, pr: 3, pb: 3, pl: 0 }}>
+    <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
       <PageHeader title="User Management" />
 
       <Box sx={{ 

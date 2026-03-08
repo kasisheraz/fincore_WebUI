@@ -37,9 +37,9 @@ const AppLayout: React.FC = () => {
           sx={{
             flexGrow: 1,
             pt: 0,
-            pr: 3,
-            pb: 3,
-            pl: 1,
+            pr: 2,
+            pb: 2,
+            pl: 0,
             ml: '220px',
             transition: 'margin-left 0.3s ease',
             backgroundColor: '#F8F9FA',

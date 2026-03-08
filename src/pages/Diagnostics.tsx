@@ -147,7 +147,7 @@ const DiagnosticsPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ pt: 2, pr: 3, pb: 3, pl: 0 }}>
+    <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
       <Typography variant="h4" gutterBottom>
         System Diagnostics
       </Typography>

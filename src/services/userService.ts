@@ -11,7 +11,7 @@ class UserService {
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<User>> {
     const response = await apiService.get<PaginatedResponse<User>>(
       this.BASE_PATH,
-      params
+      { params }
     );
     return response.data;
   }
@@ -67,7 +67,7 @@ class UserService {
   async search(searchParams: UserSearchParams, paginationParams?: PaginationParams): Promise<PaginatedResponse<User>> {
     const response = await apiService.get<PaginatedResponse<User>>(
       `${this.BASE_PATH}/search`,
-      { ...searchParams, ...paginationParams }
+      { params: { ...searchParams, ...paginationParams } }
     );
     return response.data;
   }
