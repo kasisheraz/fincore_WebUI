@@ -96,6 +96,9 @@ const UsersPage: React.FC = () => {
       setUsers(response.content);
       setTotalElements(response.totalElements);
     } catch (error: any) {
+      // Ensure users is set to empty array on error to prevent undefined crashes
+      setUsers([]);
+      setTotalElements(0);
       setSnackbar({
         open: true,
         message: error.response?.data?.message || 'Failed to fetch users',

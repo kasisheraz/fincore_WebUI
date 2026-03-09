@@ -38,8 +38,8 @@ class ApiService {
         return response;
       },
       (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Handle unauthorized access
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          // Handle unauthorized/forbidden access
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           // Only redirect if not already on login page

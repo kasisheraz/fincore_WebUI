@@ -139,7 +139,7 @@ function DataTable<T extends Record<string, any>>({
                   </Typography>
                 </TableCell>
               </TableRow>
-            ) : data.length === 0 ? (
+            ) : (!data || data.length === 0) ? (
               <TableRow>
                 <TableCell colSpan={columns.length + (selectable ? 1 : 0)} align="center">
                   <Typography variant="body2" color="text.secondary" py={4}>
