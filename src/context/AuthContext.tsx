@@ -48,8 +48,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (phoneNumber: string, otp: string): Promise<void> => {
     const authResponse = await authService.verifyOTP(phoneNumber, otp);
-    setToken(authResponse.token);
+    setToken(authResponse.accessToken);
     setUser(authResponse.user);
+    console.log('[AuthContext] User logged in with role:', authResponse.user.role || 'N/A');
   };
 
   const logout = () => {

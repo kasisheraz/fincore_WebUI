@@ -15,7 +15,9 @@ export interface OTPVerification {
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
   user: User;
 }
 
@@ -28,6 +30,7 @@ export interface User {
   dateOfBirth: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+  role?: string; // User role from backend (e.g., SYSTEM_ADMINISTRATOR)
   createdAt: string;
   updatedAt: string;
 }

@@ -86,7 +86,9 @@ class AuthService {
 
       const mockToken = `mock-jwt-token-${Date.now()}`;
       const authResponse: AuthResponse = {
-        token: mockToken,
+        accessToken: mockToken,
+        tokenType: 'Bearer',
+        expiresIn: 900,
         user: user
       };
 
@@ -100,10 +102,13 @@ class AuthService {
     const payload: OTPVerification = { phoneNumber, otp };
     const response = await apiService.post<AuthResponse>(`${this.BASE_PATH}/verify-otp`, payload);
     
-    // Store token in localStorage
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
+    // Store token in localStorage (backend returns accessToken, not token)
+    if (response.data.accessToken) {
+      localStorage.setItem('authToken', response.data.accessToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      console.log('[AuthService] Token stored successfully, role:', response.data.user.role || 'N/A');
+    } else {
+      console.error('[AuthService] No accessToken in response:', response.data);
     }
     
     return response.data;
