@@ -246,13 +246,13 @@ const UsersPage: React.FC = () => {
       minWidth: 100,
     },
     {
-      id: 'status',
+      id: 'statusDescription',
       label: 'Status',
       minWidth: 120,
       format: (value) => <StatusChip status={value as Status} />,
     },
     {
-      id: 'createdAt',
+      id: 'createdDatetime',
       label: 'Created',
       minWidth: 140,
       format: (value) => formatDate(value),

@@ -24,15 +24,18 @@ export interface AuthResponse {
 export interface User {
   id: number;
   firstName: string;
+  middleName?: string;
   lastName: string;
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
-  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+  statusDescription: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
   role?: string; // User role from backend (e.g., SYSTEM_ADMINISTRATOR)
-  createdAt: string;
-  updatedAt: string;
+  residentialAddressIdentifier?: number;
+  postalAddressIdentifier?: number;
+  createdDatetime: string;
+  lastModifiedDatetime: string;
 }
 
 export interface AuthContextType {

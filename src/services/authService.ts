@@ -17,9 +17,9 @@ class AuthService {
       phoneNumber: '1234567890',
       dateOfBirth: '1990-01-01',
       gender: 'MALE',
-      status: 'ACTIVE',
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      statusDescription: 'ACTIVE',
+      createdDatetime: '2024-01-01T00:00:00Z',
+      lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
     {
       id: 2,
@@ -29,9 +29,9 @@ class AuthService {
       phoneNumber: '9876543210',
       dateOfBirth: '1992-05-15',
       gender: 'FEMALE',
-      status: 'ACTIVE',
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      statusDescription: 'ACTIVE',
+      createdDatetime: '2024-01-01T00:00:00Z',
+      lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
     {
       id: 3,
@@ -41,9 +41,9 @@ class AuthService {
       phoneNumber: '5555555555',
       dateOfBirth: '1985-03-20',
       gender: 'OTHER',
-      status: 'ACTIVE',
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      statusDescription: 'ACTIVE',
+      createdDatetime: '2024-01-01T00:00:00Z',
+      lastModifiedDatetime: '2024-01-01T00:00:00Z'
     }
   ];
 

@@ -25,7 +25,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     phoneNumber: user?.phoneNumber || '',
     dateOfBirth: user?.dateOfBirth || '',
     gender: user?.gender || 'MALE',
-    ...(mode === 'edit' && user ? { status: user.status } : {}),
+    ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,7 +39,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         phoneNumber: user.phoneNumber,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
-        ...(mode === 'edit' ? { status: user.status } : {}),
+        ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
     }
   }, [user, mode]);
@@ -206,8 +206,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
             fullWidth
             select
             label="Status"
-            value={(formData as UpdateUserDTO).status || 'ACTIVE'}
-            onChange={(e) => handleChange('status', e.target.value)}
+            value={(formData as UpdateUserDTO).statusDescription || 'ACTIVE'}
+            onChange={(e) => handleChange('statusDescription', e.target.value)}
           >
             {STATUS_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
