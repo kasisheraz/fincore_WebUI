@@ -36,7 +36,7 @@ const OrganizationsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<OrganizationFilters>({});
-  const [sortBy, setSortBy] = useState<keyof Organization>('createdAt');
+  const [sortBy, setSortBy] = useState<keyof Organization>('createdDatetime');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Dialog states
@@ -75,7 +75,7 @@ const OrganizationsPage: React.FC = () => {
       };
 
       const response = searchQuery
-        ? await organizationService.search({ name: searchQuery, ...filters }, params)
+        ? await organizationService.search({ legalName: searchQuery, ...filters }, params)
         : await organizationService.getAll(params);
 
       setOrganizations(response.content);
@@ -108,13 +108,13 @@ const OrganizationsPage: React.FC = () => {
   // Table columns
   const columns: Column<Organization>[] = [
     {
-      id: 'name',
+      id: 'legalName',
       label: 'Organization Name',
       sortable: true,
       minWidth: 200
     },
     {
-      id: 'type',
+      id: 'organisationType',
       label: 'Type',
       sortable: true,
       minWidth: 120,
@@ -143,14 +143,14 @@ const OrganizationsPage: React.FC = () => {
       format: (value) => formatPhoneNumber(value as string)
     },
     {
-      id: 'status',
+      id: 'statusDescription',
       label: 'Status',
       sortable: true,
       minWidth: 100,
       format: (value) => <StatusChip status={value as any} />
     },
     {
-      id: 'createdAt',
+      id: 'createdDatetime',
       label: 'Created At',
       sortable: true,
       minWidth: 120,
@@ -181,13 +181,13 @@ const OrganizationsPage: React.FC = () => {
   // Filter fields
   const filterFields: FilterField[] = [
     {
-      name: 'type',
+      name: 'organisationType',
       label: 'Type',
       type: 'select',
       options: ORGANIZATION_TYPE_OPTIONS
     },
     {
-      name: 'status',
+      name: 'statusDescription',
       label: 'Status',
       type: 'select',
       options: STATUS_OPTIONS
@@ -382,7 +382,7 @@ const OrganizationsPage: React.FC = () => {
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete Organization"
-        message={`Are you sure you want to delete ${selectedOrganization?.name}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${selectedOrganization?.legalName}? This action cannot be undone.`}
         onConfirm={handleDelete}
         onCancel={() => {
           setDeleteDialogOpen(false);

@@ -9,6 +9,7 @@ import {
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationStatus, OrganizationType } from '../../types/organization.types';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidURL } from '../../utils/validators';
 import { ORGANIZATION_TYPE_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
+import { useAuth } from '../../context/AuthContext';
 
 interface OrganizationFormProps {
   organization: Organization | null;
@@ -25,16 +26,18 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   onValidationChange,
   onDataChange
 }) => {
+  const { user } = useAuth(); // Get current user for ownerId
   const [formData, setFormData] = useState({
-    name: '',
-    type: '' as OrganizationType | '',
+    legalName: '',
+    organisationType: '' as OrganizationType | '',
     registrationNumber: '',
     taxId: '',
     email: '',
     phoneNumber: '',
     website: '',
     description: '',
-    status: 'ACTIVE' as OrganizationStatus
+    statusDescription: 'ACTIVE' as OrganizationStatus,
+    ownerId: user?.id || 0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,31 +46,40 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   useEffect(() => {
     if (mode === 'edit' && organization) {
       setFormData({
-        name: organization.name || '',
-        type: organization.type || '',
+        legalName: organization.legalName || '',
+        organisationType: organization.organisationType || '',
         registrationNumber: organization.registrationNumber || '',
         taxId: organization.taxId || '',
         email: organization.email || '',
         phoneNumber: organization.phoneNumber || '',
         website: organization.website || '',
         description: organization.description || '',
-        status: organization.status || 'ACTIVE'
+        statusDescription: organization.statusDescription || 'ACTIVE',
+        ownerId: organization.ownerId || user?.id || 0
       });
+    } else if (user) {
+      // Set ownerId for create mode
+      setFormData(prev => ({ ...prev, ownerId: user.id }));
     }
-  }, [organization, mode]);
+  }, [organization, mode, user]);
 
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     // Name validation
-    if (!isRequired(formData.name)) {
-      newErrors.name = 'Organization name is required';
+    if (!isRequired(formData.legalName)) {
+      newErrors.legalName = 'Organization name is required';
     }
 
     // Type validation
-    if (!isRequired(formData.type)) {
-      newErrors.type = 'Organization type is required';
+    if (!isRequired(formData.organisationType)) {
+      newErrors.organisationType = 'Organization type is required';
+    }
+
+    // Owner ID validation
+    if (!formData.ownerId || formData.ownerId === 0) {
+      newErrors.ownerId = 'Owner ID is required. Please ensure you are logged in.';
     }
 
     // Registration number validation
@@ -75,10 +87,10 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
       newErrors.registrationNumber = 'Registration number is required';
     }
 
-    // Tax ID validation
-    if (!isRequired(formData.taxId)) {
-      newErrors.taxId = 'Tax ID is required';
-    }
+    // Tax ID validation (optional)
+    // if (!isRequired(formData.taxId)) {
+    //   newErrors.taxId = 'Tax ID is required';
+    // }
 
     // Email validation
     if (!isRequired(formData.email)) {
@@ -132,10 +144,10 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         <TextField
           fullWidth
           label="Organization Name"
-          value={formData.name}
-          onChange={handleChange('name')}
-          error={!!errors.name}
-          helperText={errors.name}
+          value={formData.legalName}
+          onChange={handleChange('legalName')}
+          error={!!errors.legalName}
+          helperText={errors.legalName}
           required
         />
       </Grid>
@@ -146,10 +158,10 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           fullWidth
           select
           label="Organization Type"
-          value={formData.type}
-          onChange={handleChange('type')}
-          error={!!errors.type}
-          helperText={errors.type}
+          value={formData.organisationType}
+          onChange={handleChange('organisationType')}
+          error={!!errors.organisationType}
+          helperText={errors.organisationType}
           required
         >
           {ORGANIZATION_TYPE_OPTIONS.map((option) => (
@@ -232,8 +244,8 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
             fullWidth
             select
             label="Status"
-            value={formData.status}
-            onChange={handleChange('status')}
+            value={formData.statusDescription}
+            onChange={handleChange('statusDescription')}
           >
             {STATUS_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>

@@ -17,41 +17,44 @@ export interface Address {
 
 export interface Organization {
   id: number;
-  name: string;
-  type: OrganizationType;
+  legalName: string; // Backend uses legalName
+  organisationType: OrganizationType; // Backend uses organisationType
   registrationNumber: string;
-  taxId: string;
+  taxId?: string;
   email: string;
   phoneNumber: string;
   website?: string;
   description?: string;
-  status: OrganizationStatus;
-  addresses: Address[];
-  createdAt: string;
-  updatedAt: string;
+  statusDescription: OrganizationStatus; // Backend uses statusDescription
+  ownerId: number; // Owner user ID
+  addresses?: Address[];
+  createdDatetime: string; // Backend uses createdDatetime
+  lastModifiedDatetime: string; // Backend uses lastModifiedDatetime
 }
 
 export interface CreateOrganizationDTO {
-  name: string;
-  type: OrganizationType;
+  legalName: string; // Backend requires legalName
+  organisationType: OrganizationType; // Backend requires organisationType
   registrationNumber: string;
-  taxId: string;
+  taxId?: string;
   email: string;
   phoneNumber: string;
   website?: string;
   description?: string;
+  ownerId: number; // Backend requires ownerId
 }
 
 export interface UpdateOrganizationDTO {
-  name?: string;
-  type?: OrganizationType;
+  legalName?: string;
+  organisationType?: OrganizationType;
   registrationNumber?: string;
   taxId?: string;
   email?: string;
   phoneNumber?: string;
   website?: string;
   description?: string;
-  status?: OrganizationStatus;
+  statusDescription?: OrganizationStatus;
+  ownerId?: number;
 }
 
 export interface CreateAddressDTO {
@@ -72,16 +75,16 @@ export interface UpdateAddressDTO {
 }
 
 export interface OrganizationSearchParams {
-  name?: string;
-  type?: OrganizationType;
-  status?: OrganizationStatus;
+  legalName?: string;
+  organisationType?: OrganizationType;
+  statusDescription?: OrganizationStatus;
   email?: string;
   phoneNumber?: string;
 }
 
 export interface OrganizationFilters {
-  type?: OrganizationType;
-  status?: OrganizationStatus;
+  organisationType?: OrganizationType;
+  statusDescription?: OrganizationStatus;
   registrationDateFrom?: string;
   registrationDateTo?: string;
 }
