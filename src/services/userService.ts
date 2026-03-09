@@ -65,8 +65,9 @@ class UserService {
    * Search users
    */
   async search(searchParams: UserSearchParams, paginationParams?: PaginationParams): Promise<PaginatedResponse<User>> {
+    // Backend doesn't have /search endpoint, use regular GET with params
     const response = await apiService.get<PaginatedResponse<User>>(
-      `${this.BASE_PATH}/search`,
+      this.BASE_PATH,
       { params: { ...searchParams, ...paginationParams } }
     );
     return response.data;

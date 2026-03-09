@@ -66,7 +66,8 @@ class OrganizationService {
    * Search organizations with filters
    */
   async search(searchParams: OrganizationSearchParams, paginationParams?: PaginationParams): Promise<PaginatedResponse<Organization>> {
-    const response = await apiService.get<PaginatedResponse<Organization>>(`${this.BASE_PATH}/search`, {
+    // Backend doesn't have /search endpoint, use regular GET with params
+    const response = await apiService.get<PaginatedResponse<Organization>>(this.BASE_PATH, {
       params: { ...searchParams, ...paginationParams }
     });
     return response.data;

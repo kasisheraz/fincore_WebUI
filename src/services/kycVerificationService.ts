@@ -88,7 +88,7 @@ class KYCVerificationService {
    * Search verifications with filters
    */
   async search(filters: KYCVerificationFilters, params?: PaginationParams): Promise<PaginatedResponse<KYCVerification>> {
-    const response = await apiService.get<PaginatedResponse<KYCVerification>>(`${this.BASE_PATH}/search`, {
+    const response = await apiService.get<PaginatedResponse<KYCVerification>>(`${this.BASE_PATH}`, {
       params: { ...filters, ...params }
     });
     return response.data;

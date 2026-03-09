@@ -70,7 +70,7 @@ class QuestionnaireService {
    * Search questions with filters
    */
   async search(filters: QuestionFilters, params?: PaginationParams): Promise<PaginatedResponse<Question>> {
-    const response = await apiService.get<PaginatedResponse<Question>>(`${this.BASE_PATH}/search`, {
+    const response = await apiService.get<PaginatedResponse<Question>>(`${this.BASE_PATH}`, {
       params: { ...filters, ...params }
     });
     return response.data;

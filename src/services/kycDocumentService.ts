@@ -93,7 +93,7 @@ class KYCDocumentService {
    * Search documents with filters
    */
   async search(filters: KYCDocumentFilters, params?: PaginationParams): Promise<PaginatedResponse<KYCDocument>> {
-    const response = await apiService.get<PaginatedResponse<KYCDocument>>(`${this.BASE_PATH}/search`, {
+    const response = await apiService.get<PaginatedResponse<KYCDocument>>(`${this.BASE_PATH}`, {
       params: { ...filters, ...params }
     });
     return response.data;

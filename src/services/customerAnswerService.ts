@@ -84,7 +84,7 @@ class CustomerAnswerService {
    * Search answers with filters
    */
   async search(filters: CustomerAnswerFilters, params?: PaginationParams): Promise<PaginatedResponse<CustomerAnswer>> {
-    const response = await apiService.get<PaginatedResponse<CustomerAnswer>>(`${this.BASE_PATH}/search`, {
+    const response = await apiService.get<PaginatedResponse<CustomerAnswer>>(`${this.BASE_PATH}`, {
       params: { ...filters, ...params }
     });
     return response.data;
