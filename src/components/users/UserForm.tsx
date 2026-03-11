@@ -20,11 +20,13 @@ interface UserFormProps {
 const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationChange, onDataChange }) => {
   const [formData, setFormData] = useState<CreateUserDTO | UpdateUserDTO>({
     firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
+    middleName: user?.middleName || '',
+    lastName: user?.lastName ||'',
     email: user?.email || '',
     phoneNumber: user?.phoneNumber || '',
     dateOfBirth: user?.dateOfBirth || '',
     gender: user?.gender || 'MALE',
+    ...(mode === 'create' ? { role: 'ADMIN' } : {}), // Default role for new users
     ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
 
@@ -34,11 +36,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     if (user) {
       setFormData({
         firstName: user.firstName,
+        middleName: user.middleName || '',
         lastName: user.lastName,
         email: user.email,
         phoneNumber: user.phoneNumber,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
+        ...(mode === 'create' ? { role: 'ADMIN' } : {}),
         ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
     }

@@ -21,11 +21,14 @@ export interface User {
 
 export interface CreateUserDTO {
   firstName: string;
+  middleName?: string;
   lastName: string;
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
   gender: Gender;
+  role?: string; // Backend requires role - use 'ADMIN' as default
+  statusDescription?: Status;
 }
 
 export interface UpdateUserDTO {

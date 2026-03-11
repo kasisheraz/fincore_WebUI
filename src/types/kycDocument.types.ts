@@ -25,11 +25,15 @@ export interface KYCDocument {
 
 export interface CreateKYCDocumentDTO {
   userId: number;
+  organisationId: number; // Required by backend (British spelling!)
   documentType: DocumentType;
   documentNumber: string;
-  file: File;
+  file?: File;
+  issuingCountry?: string;
+  issueDate?: string;
   expiryDate?: string;
   notes?: string;
+  status?: string; // PENDING, VERIFIED, REJECTED
 }
 
 export interface UpdateKYCDocumentDTO {

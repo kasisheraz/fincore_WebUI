@@ -41,11 +41,15 @@ class KYCDocumentService {
   async upload(data: CreateKYCDocumentDTO): Promise<KYCDocument> {
     const formData = new FormData();
     formData.append('userId', data.userId.toString());
+    formData.append('organisationId', data.organisationId.toString());
     formData.append('documentType', data.documentType);
     formData.append('documentNumber', data.documentNumber);
-    formData.append('file', data.file);
+    if (data.file) formData.append('file', data.file);
+    if (data.issuingCountry) formData.append('issuingCountry', data.issuingCountry);
+    if (data.issueDate) formData.append('issueDate', data.issueDate);
     if (data.expiryDate) formData.append('expiryDate', data.expiryDate);
     if (data.notes) formData.append('notes', data.notes);
+    if (data.status) formData.append('status', data.status);
 
     const response = await apiService.getAxiosInstance().post<KYCDocument>(this.BASE_PATH, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

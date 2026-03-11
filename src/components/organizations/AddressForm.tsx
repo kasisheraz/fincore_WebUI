@@ -2,32 +2,46 @@ import React, { useState, useEffect } from 'react';
 import {
   Grid,
   TextField,
-  Alert
+  Alert,
+  MenuItem,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { Address, CreateAddressDTO, UpdateAddressDTO } from '../../types/organization.types';
 import { isRequired, isValidPostalCode } from '../../utils/validators';
 
 interface AddressFormProps {
   address: Address | null;
-  organizationId?: number;
+  userId?: number;
   onSubmit: (data: CreateAddressDTO | UpdateAddressDTO) => Promise<void>;
   mode: 'create' | 'edit';
   onValidationChange?: (isValid: boolean) => void;
 }
 
+const ADDRESS_TYPE_OPTIONS = [
+  { value: 1, label: 'Home' },
+  { value: 2, label: 'Work' },
+  { value: 3, label: 'Billing' },
+  { value: 4, label: 'Shipping' },
+];
+
 const AddressForm: React.FC<AddressFormProps> = ({
   address,
-  organizationId,
+  userId,
   onSubmit,
   mode,
   onValidationChange
 }) => {
   const [formData, setFormData] = useState({
-    street: '',
+    userId: userId || 0,
+    typeCode: 1,
+    addressLine1: '',
+    addressLine2: '',
     city: '',
-    state: '',
+    stateProvince: '',
     postalCode: '',
-    country: 'USA'
+    country: 'USA',
+    isPrimary: false
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -36,22 +50,28 @@ const AddressForm: React.FC<AddressFormProps> = ({
   useEffect(() => {
     if (mode === 'edit' && address) {
       setFormData({
-        street: address.street || '',
+        userId: address.userId || userId || 0,
+        typeCode: address.typeCode || 1,
+        addressLine1: address.addressLine1 || '',
+        addressLine2: address.addressLine2 || '',
         city: address.city || '',
-        state: address.state || '',
+        stateProvince: address.stateProvince || '',
         postalCode: address.postalCode || '',
-        country: address.country || 'USA'
+        country: address.country || 'USA',
+        isPrimary: address.isPrimary || false
       });
+    } else if (userId) {
+      setFormData(prev => ({ ...prev, userId }));
     }
-  }, [address, mode]);
+  }, [address, mode, userId]);
 
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Street validation
-    if (!isRequired(formData.street)) {
-      newErrors.street = 'Street address is required';
+    // Address Line 1 validation
+    if (!isRequired(formData.addressLine1)) {
+      newErrors.addressLine1 = 'Address line 1 is required';
     }
 
     // City validation
@@ -60,8 +80,8 @@ const AddressForm: React.FC<AddressFormProps> = ({
     }
 
     // State validation
-    if (!isRequired(formData.state)) {
-      newErrors.state = 'State is required';
+    if (!isRequired(formData.stateProvince)) {
+      newErrors.stateProvince = 'State/Province is required';
     }
 
     // Postal code validation
@@ -91,9 +111,12 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const handleChange = (field: keyof typeof formData) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const value = field === 'typeCode' ? Number(event.target.value) : 
+                   field === 'isPrimary' ? (event.target as HTMLInputElement).checked :
+                   event.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: value
     }));
   };
 
@@ -101,16 +124,57 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
   return (
     <Grid container spacing={2}>
-      {/* Street */}
+      {/* Address Type */}
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          select
+          label="Address Type"
+          value={formData.typeCode}
+          onChange={handleChange('typeCode')}
+          required
+        >
+          {ADDRESS_TYPE_OPTIONS.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      {/* Primary Address Checkbox */}
+      <Grid item xs={12} sm={6}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.isPrimary}
+              onChange={handleChange('isPrimary')}
+            />
+          }
+          label="Primary Address"
+        />
+      </Grid>
+
+      {/* Address Line 1 */}
       <Grid item xs={12}>
         <TextField
           fullWidth
-          label="Street Address"
-          value={formData.street}
-          onChange={handleChange('street')}
-          error={!!errors.street}
-          helperText={errors.street}
+          label="Address Line 1"
+          value={formData.addressLine1}
+          onChange={handleChange('addressLine1')}
+          error={!!errors.addressLine1}
+          helperText={errors.addressLine1}
           required
+        />
+      </Grid>
+
+      {/* Address Line 2 */}
+      <Grid item xs={12}>
+        <TextField
+          fullWidth
+          label="Address Line 2 (Optional)"
+          value={formData.addressLine2}
+          onChange={handleChange('addressLine2')}
         />
       </Grid>
 
@@ -127,15 +191,15 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* State */}
+      {/* State/Province */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="State"
-          value={formData.state}
-          onChange={handleChange('state')}
-          error={!!errors.state}
-          helperText={errors.state}
+          label="State/Province"
+          value={formData.stateProvince}
+          onChange={handleChange('stateProvince')}
+          error={!!errors.stateProvince}
+          helperText={errors.stateProvince}
           required
         />
       </Grid>
@@ -171,7 +235,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         <Grid item xs={12}>
           <Alert severity="error">
             Please fix the errors above before submitting.
-          </Alert>
+ </Alert>
         </Grid>
       )}
     </Grid>

@@ -5,12 +5,15 @@ export type OrganizationStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED'
 
 export interface Address {
   id: number;
-  street: string;
+  userId: number;
+  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
-  state: string;
+  stateProvince: string;
   postalCode: string;
   country: string;
-  organizationId: number;
+  isPrimary: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,20 +61,27 @@ export interface UpdateOrganizationDTO {
 }
 
 export interface CreateAddressDTO {
-  street: string;
+  userId: number;
+  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
-  state: string;
+  stateProvince: string;
   postalCode: string;
   country: string;
-  organizationId: number;
+  isPrimary?: boolean;
 }
 
 export interface UpdateAddressDTO {
-  street?: string;
+  userId?: number;
+  typeCode?: number;
+  addressLine1?: string;
+  addressLine2?: string;
   city?: string;
-  state?: string;
+  stateProvince?: string;
   postalCode?: string;
   country?: string;
+  isPrimary?: boolean;
 }
 
 export interface OrganizationSearchParams {
