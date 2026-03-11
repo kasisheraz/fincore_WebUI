@@ -7,6 +7,7 @@ import {
   DocumentStatus
 } from '../types/kycDocument.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class KYCDocumentService {
   private readonly BASE_PATH = '/kyc-documents';
@@ -15,8 +16,8 @@ class KYCDocumentService {
    * Get all KYC documents with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<KYCDocument>> {
-    const response = await apiService.get<PaginatedResponse<KYCDocument>>(this.BASE_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.BASE_PATH, { params });
+    return normalizePaginatedResponse<KYCDocument>(response.data);
   }
 
   /**

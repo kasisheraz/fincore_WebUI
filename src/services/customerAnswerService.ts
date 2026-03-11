@@ -7,6 +7,7 @@ import {
   AnswerProgress
 } from '../types/customerAnswer.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class CustomerAnswerService {
   private readonly BASE_PATH = '/customer-answers';
@@ -15,8 +16,8 @@ class CustomerAnswerService {
    * Get all answers with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<CustomerAnswer>> {
-    const response = await apiService.get<PaginatedResponse<CustomerAnswer>>(this.BASE_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.BASE_PATH, { params });
+    return normalizePaginatedResponse<CustomerAnswer>(response.data);
   }
 
   /**

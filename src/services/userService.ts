@@ -1,6 +1,7 @@
 import apiService from './apiService';
 import { User, CreateUserDTO, UpdateUserDTO, UserSearchParams } from '../types/user.types';
 import { PaginatedResponse, PaginationParams, Status } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class UserService {
   private readonly BASE_PATH = '/users';
@@ -9,11 +10,11 @@ class UserService {
    * Get all users with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<User>> {
-    const response = await apiService.get<PaginatedResponse<User>>(
+    const response = await apiService.get<any>(
       this.BASE_PATH,
       { params }
     );
-    return response.data;
+    return normalizePaginatedResponse<User>(response.data);
   }
 
   /**

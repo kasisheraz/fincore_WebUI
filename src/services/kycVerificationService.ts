@@ -9,6 +9,7 @@ import {
   VerificationStatus
 } from '../types/kycVerification.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class KYCVerificationService {
   private readonly BASE_PATH = '/kyc-verifications';
@@ -17,8 +18,8 @@ class KYCVerificationService {
    * Get all verifications with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<KYCVerification>> {
-    const response = await apiService.get<PaginatedResponse<KYCVerification>>(this.BASE_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.BASE_PATH, { params });
+    return normalizePaginatedResponse<KYCVerification>(response.data);
   }
 
   /**

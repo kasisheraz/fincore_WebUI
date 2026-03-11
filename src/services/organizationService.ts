@@ -10,6 +10,7 @@ import {
   OrganizationStatus
 } from '../types/organization.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class OrganizationService {
   private readonly BASE_PATH = '/organizations';
@@ -19,8 +20,8 @@ class OrganizationService {
    * Get all organizations with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<Organization>> {
-    const response = await apiService.get<PaginatedResponse<Organization>>(this.BASE_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.BASE_PATH, { params });
+    return normalizePaginatedResponse<Organization>(response.data);
   }
 
   /**

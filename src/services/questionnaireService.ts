@@ -7,6 +7,7 @@ import {
   QuestionStatus
 } from '../types/questionnaire.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
+import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class QuestionnaireService {
   private readonly BASE_PATH = '/questions';
@@ -15,8 +16,8 @@ class QuestionnaireService {
    * Get all questions with pagination
    */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<Question>> {
-    const response = await apiService.get<PaginatedResponse<Question>>(this.BASE_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.BASE_PATH, { params });
+    return normalizePaginatedResponse<Question>(response.data);
   }
 
   /**
