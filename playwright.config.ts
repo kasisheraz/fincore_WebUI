@@ -91,5 +91,11 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      // Enable mock authentication for E2E tests
+      REACT_APP_MOCK_AUTH: 'true',
+      // Use the test environment file  
+      NODE_ENV: 'test',
+    },
   },
 });
