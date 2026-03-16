@@ -36,6 +36,9 @@ foreach ($repo in $repos) {
     # Change to repo directory
     Push-Location $repo.Path
     
+    # Track whether the test push actually succeeded
+    $pushSucceeded = $false
+    
     try {
         # Make sure we're on main branch
         Write-Host "   → Checking out main branch..." -ForegroundColor Gray
@@ -65,11 +68,25 @@ foreach ($repo in $repos) {
             Write-Host "   ❌ NOT PROTECTED - Direct push succeeded!" -ForegroundColor Red
             Write-Host "      Branch protection is NOT configured." -ForegroundColor Red
             $results += @{ Repo = $repo.Name; Status = "NOT PROTECTED ❌" }
+            $pushSucceeded = $true
         }
         
-        # Clean up - reset the commit
-        Write-Host "   → Cleaning up test commit..." -ForegroundColor Gray
-        git reset --soft HEAD~1 2>&1 | Out-Null
+        if (-not $pushSucceeded) {
+            # Clean up - reset the local test commit (no remote divergence)
+            Write-Host "   → Cleaning up local test commit..." -ForegroundColor Gray
+            git reset --soft HEAD~1 2>&1 | Out-Null
+        }
+        else {
+            Write-Host "   ⚠️  NOTICE: A test commit was pushed to 'origin/main' and remains there." -ForegroundColor Yellow
+            Write-Host "      The local branch has NOT been reset to avoid diverging from the remote." -ForegroundColor Yellow
+            Write-Host "      If you want to remove this test commit, consider manually reverting it, e.g.:" -ForegroundColor Yellow
+            Write-Host "        git log --oneline   # find the test commit" -ForegroundColor Yellow
+            Write-Host "        git revert <commit> # safely revert it on main" -ForegroundColor Yellow
+            # Alternatively, you could reset and force-push, but that is risky on main and" -ForegroundColor DarkYellow
+            Write-Host "        # Alternatively, reset and force-push (RISKY, use with extreme caution):" -ForegroundColor DarkYellow
+            Write-Host "        # git reset --hard HEAD~1" -ForegroundColor DarkYellow
+            Write-Host "        # git push --force origin main" -ForegroundColor DarkYellow
+        }
         
     }
     catch {
