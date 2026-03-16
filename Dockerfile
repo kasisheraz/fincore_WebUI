@@ -28,5 +28,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Expose port 8080 for Cloud Run
 EXPOSE 8080
 
+# Run nginx in foreground mode (required for Cloud Run)
+CMD ["nginx", "-g", "daemon off;"]
+
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
