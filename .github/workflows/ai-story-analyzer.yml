@@ -1,0 +1,256 @@
+name: AI Story Analyzer
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  analyze-story:
+    # Only run on stories and bugs
+    if: contains(github.event.issue.labels.*.name, 'type:story') || contains(github.event.issue.labels.*.name, 'type:bug')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Analyze Story with AI
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const issueBody = issue.body || '';
+            
+            console.log('📖 Analyzing issue #' + issue.number);
+            
+            // Extract story components using regex
+            const extractSection = (body, sectionName) => {
+              const regex = new RegExp(`### ${sectionName}\\s*([\\s\\S]*?)(?=###|$)`, 'i');
+              const match = body.match(regex);
+              return match ? match[1].trim() : '';
+            };
+            
+            const userStory = extractSection(issueBody, 'User Story');
+            const acceptanceCriteria = extractSection(issueBody, 'Acceptance Criteria');
+            const technicalNotes = extractSection(issueBody, 'Technical Notes');
+            const bugDescription = extractSection(issueBody, 'Bug Description');
+            
+            const isBug = context.payload.issue.labels.some(label => label.name === 'type:bug');
+            
+            // Analyze complexity based on keywords
+            const complexityIndicators = {
+              high: [
+                'database schema', 'migration', 'breaking change', 'infrastructure',
+                'authentication', 'authorization', 'security', 'encryption',
+                'performance', 'scalability', 'architecture', 'refactor',
+                'critical', 'system down'
+              ],
+              medium: [
+                'api', 'endpoint', 'component', 'service', 'integration',
+                'backend', 'frontend', 'database', 'query', 'validation',
+                'error handling', 'logging', 'monitoring'
+              ],
+              low: [
+                'ui', 'styling', 'css', 'text', 'label', 'button',
+                'color', 'layout', 'display', 'format', 'message'
+              ]
+            };
+            
+            let estimatedComplexity = 'medium';
+            const lowerBody = issueBody.toLowerCase();
+            
+            if (complexityIndicators.high.some(word => lowerBody.includes(word))) {
+              estimatedComplexity = 'high';
+            } else if (complexityIndicators.low.some(word => lowerBody.includes(word))) {
+              estimatedComplexity = 'low';
+            }
+            
+            // Check which repos are affected
+            const affectedRepos = [];
+            const repoKeywords = {
+              'userManagementApi': ['backend', 'api', 'endpoint', 'server', 'database', 'service'],
+              'fincore_WebUI': ['frontend', 'ui', 'component', 'page', 'interface', 'react'],
+              'fincore_Iasc': ['infrastructure', 'terraform', 'cloud', 'deployment', 'provisioning']
+            };
+            
+            for (const [repo, keywords] of Object.entries(repoKeywords)) {
+              if (keywords.some(keyword => lowerBody.includes(keyword)) || 
+                  lowerBody.includes(repo.toLowerCase())) {
+                affectedRepos.push(repo);
+              }
+            }
+            
+            // Default to frontend if no repo detected
+            if (affectedRepos.length === 0) {
+              affectedRepos.push('fincore_WebUI');
+            }
+            
+            // Estimate effort in hours
+            const effortEstimate = {
+              'low': '4-8 hours',
+              'medium': '1-3 days',
+              'high': '3-7 days'
+            }[estimatedComplexity];
+            
+            // Create analysis comment
+            const analysisComment = `## 🤖 AI Story Analysis
+            
+**Type**: ${isBug ? '🐛 Bug' : '📖 Story'}
+**Estimated Complexity**: \`${estimatedComplexity}\`
+**Estimated Effort**: ${effortEstimate}
+**Affected Repositories**: ${affectedRepos.map(r => \`\`${r}\`\`).join(', ')}
+
+${isBug ? '### 🐛 Bug Summary' : '### 📝 Story Summary'}
+${userStory || bugDescription || '_No description provided_'}
+
+${!isBug ? \`### ✅ Acceptance Criteria
+${acceptanceCriteria || '_No acceptance criteria provided_'}\` : ''}
+
+${technicalNotes ? \`### 🔧 Technical Notes
+${technicalNotes}\` : ''}
+
+---
+
+### 🎯 Recommended Next Steps
+
+${estimatedComplexity === 'high' ? \`1. ⚠️ **High Complexity Detected**
+   - Consider breaking this down into smaller stories
+   - Architecture review recommended
+   - Add label: \\\`ai:architecture\\\`
+\` : ''}
+${isBug && estimatedComplexity === 'high' ? \`1. 🚨 **Critical Bug**
+   - Immediate attention required
+   - Consider hotfix process
+\` : ''}
+${affectedRepos.length > 1 ? \`${estimatedComplexity === 'high' ? '2' : '1'}. 🔄 **Multi-Repository Change**
+   - Coordinated PRs will be needed
+   - Deployment order: ${affectedRepos.includes('fincore_Iasc') ? 'Infrastructure → ' : ''}${affectedRepos.includes('userManagementApi') ? 'Backend → ' : ''}${affectedRepos.includes('fincore_WebUI') ? 'Frontend' : ''}
+   - Will add \\\`multi-repo\\\` label
+\` : ''}
+${estimatedComplexity !== 'high' && !isBug ? \`${affectedRepos.length > 1 ? '2' : '1'}. ✅ **Ready for Development**
+   - Complexity is manageable
+   - Will add \\\`ai:development\\\` label
+   - AI Developer Agent can start work
+\` : ''}
+
+### 📋 Implementation Checklist
+
+- [ ] Review and refine requirements
+${estimatedComplexity === 'high' ? '- [ ] Architecture design (create \`ai:architecture\` issue)' : ''}
+${affectedRepos.includes('userManagementApi') ? '- [ ] Backend implementation' : ''}
+${affectedRepos.includes('fincore_WebUI') ? '- [ ] Frontend implementation' : ''}
+${affectedRepos.includes('fincore_Iasc') ? '- [ ] Infrastructure changes' : ''}
+- [ ] Unit tests
+- [ ] Integration tests
+${affectedRepos.includes('fincore_WebUI') ? '- [ ] E2E tests' : ''}
+- [ ] Documentation updates
+- [ ] Deploy to NPE
+- [ ] Validate and close
+
+---
+
+### 🏷️ Auto-Applied Labels
+
+The following labels have been automatically applied:
+- \`complexity:${estimatedComplexity}\`
+${affectedRepos.length > 1 ? '- `multi-repo`' : ''}
+${estimatedComplexity === 'high' ? '- `ai:architecture` (requires architecture review)' : '- `ai:development` (ready for development)'}
+${isBug && estimatedComplexity === 'high' ? '- `priority:high`' : ''}
+
+---
+
+*🤖 This analysis was automatically generated by AI Story Analyzer*
+*Human review recommended for complex stories*
+`;
+            
+            // Post analysis comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: analysisComment
+            });
+            
+            console.log('✅ Posted analysis comment');
+            
+            // Add complexity label
+            const labelsToAdd = [`complexity:${estimatedComplexity}`];
+            
+            // Add multi-repo label if needed
+            if (affectedRepos.length > 1) {
+              labelsToAdd.push('multi-repo');
+            }
+            
+            // Add next action label
+            const nextLabel = estimatedComplexity === 'high' ? 'ai:architecture' : 'ai:development';
+            labelsToAdd.push(nextLabel);
+            
+            // Add high priority for critical bugs
+            if (isBug && estimatedComplexity === 'high') {
+              labelsToAdd.push('priority:high');
+            }
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: labelsToAdd
+            });
+            
+            console.log('✅ Added labels:', labelsToAdd.join(', '));
+
+      - name: Create tracking comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const today = new Date().toISOString().split('T')[0];
+            const isBug = context.payload.issue.labels.some(label => label.name === 'type:bug');
+            
+            const trackingComment = isBug ? `## 📊 Bug Tracking
+
+| Status | Step | Completed |
+|--------|------|-----------|
+| ✅ | Bug Analysis | ${today} |
+| ⏳ | Root Cause Investigation | - |
+| ⏳ | Fix Implementation | - |
+| ⏳ | Testing | - |
+| ⏳ | Deployment to NPE | - |
+| ⏳ | Validation | - |
+| ⏳ | Production Deployment | - |
+
+*This table will be updated as the bug fix progresses.*
+` : `## 📊 Story Tracking
+
+| Status | Step | Completed |
+|--------|------|-----------|
+| ✅ | Story Analysis | ${today} |
+| ⏳ | Architecture Design | - |
+| ⏳ | Development | - |
+| ⏳ | Testing | - |
+| ⏳ | Documentation | - |
+| ⏳ | Deployment to NPE | - |
+| ⏳ | Production Deployment | - |
+
+*This table will be updated automatically as the story progresses.*
+`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: trackingComment
+            });
+            
+            console.log('✅ Created tracking table');
+
+      - name: Summary
+        run: |
+          echo "✅ AI Story Analysis Complete!"
+          echo "Issue #${{ github.event.issue.number }} has been analyzed"
+          echo "Check the issue for automated analysis and tracking"
