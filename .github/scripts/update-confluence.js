@@ -14,7 +14,6 @@
  */
 
 const https = require('https');
-const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,18 +29,32 @@ if (!CONFLUENCE_URL || !CONFLUENCE_USER || !CONFLUENCE_TOKEN) {
   process.exit(1);
 }
 
-// Extract API base URL
-const apiUrl = new URL('/wiki/rest/api', CONFLUENCE_URL);
+// Construct API base URL for Atlassian Cloud
+// Remove trailing slashes and /wiki if present
+let baseUrl = CONFLUENCE_URL.replace(/\/+$/, '').replace(/\/wiki$/, '');
+// Ensure it's a valid URL
+if (!baseUrl.startsWith('http')) {
+  baseUrl = `https://${baseUrl}`;
+}
+const apiBaseUrl = `${baseUrl}/wiki/rest/api`;
 const auth = Buffer.from(`${CONFLUENCE_USER}:${CONFLUENCE_TOKEN}`).toString('base64');
+
+console.log('🔍 Debug: API Base URL:', apiBaseUrl);
 
 /**
  * Make HTTP request to Confluence API
  */
 function apiRequest(method, path, data = null) {
   return new Promise((resolve, reject) => {
-    const url = new URL(path, apiUrl);
+    // Construct full URL
+    const fullUrl = `${apiBaseUrl}${path}`;
+    const url = new URL(fullUrl);
+    
     const options = {
       method,
+      hostname: url.hostname,
+      port: url.port || 443,
+      path: url.pathname + url.search,
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
@@ -49,13 +62,22 @@ function apiRequest(method, path, data = null) {
       }
     };
 
-    const protocol = url.protocol === 'https:' ? https : http;
-    const req = protocol.request(url, options, (res) => {
+    const req = https.request(options, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
+        // Handle redirects
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          reject(new Error(`HTTP ${res.statusCode}: Redirect to ${res.headers.location}. Check your CONFLUENCE_URL format.`));
+          return;
+        }
+        
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(JSON.parse(body || '{}'));
+          try {
+            resolve(JSON.parse(body || '{}'));
+          } catch (e) {
+            resolve({});
+          }
         } else {
           reject(new Error(`HTTP ${res.statusCode}: ${body}`));
         }
@@ -63,7 +85,11 @@ function apiRequest(method, path, data = null) {
     });
 
     req.on('error', reject);
-    if (data) req.write(JSON.stringify(data));
+    if (data) {
+      const payload = JSON.stringify(data);
+      req.setHeader('Content-Length', Buffer.byteLength(payload));
+      req.write(payload);
+    }
     req.end();
   });
 }
