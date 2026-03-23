@@ -1,0 +1,53 @@
+name: Update Confluence Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'confluence/**'
+      - 'README.md'
+      - '.github/workflows/**'
+      - 'package.json'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-docs:
+    name: Update Confluence Pages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get full history
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Generate Test Report
+        run: |
+          node .github/scripts/generate-test-report.js
+
+      - name: Update Confluence
+        env:
+          CONFLUENCE_URL: ${{ secrets.CONFLUENCE_URL }}
+          CONFLUENCE_USER: ${{ secrets.CONFLUENCE_USER }}
+          CONFLUENCE_API_TOKEN: ${{ secrets.CONFLUENCE_API_TOKEN }}
+          CONFLUENCE_SPACE_KEY: ${{ secrets.CONFLUENCE_SPACE_KEY }}
+        run: |
+          node .github/scripts/update-confluence.js
+
+      - name: Notify on Success
+        if: success()
+        run: |
+          echo "✅ Documentation updated successfully"
+          echo "🔗 View at: ${{ secrets.CONFLUENCE_URL }}/spaces/${{ secrets.CONFLUENCE_SPACE_KEY }}"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "❌ Documentation update failed"
+          echo "Check logs above for details"
