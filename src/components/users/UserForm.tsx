@@ -6,7 +6,7 @@ import {
   Alert,
 } from '@mui/material';
 import { User, CreateUserDTO, UpdateUserDTO } from '../../types/user.types';
-import { GENDER_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
+import { GENDER_OPTIONS, STATUS_OPTIONS, CREATABLE_ROLES, USER_ROLES } from '../../utils/constants';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidAge } from '../../utils/validators';
 
 interface UserFormProps {
@@ -26,7 +26,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     phoneNumber: user?.phoneNumber || '',
     dateOfBirth: user?.dateOfBirth || '',
     gender: user?.gender || 'MALE',
-    ...(mode === 'create' ? { role: 'ADMIN' } : {}), // Default role for new users
+    ...(mode === 'create' ? { role: USER_ROLES.USER } : {}), // Default to USER role
     ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
 
@@ -42,7 +42,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         phoneNumber: user.phoneNumber,
         dateOfBirth: user.dateOfBirth,
         gender: user.gender,
-        ...(mode === 'create' ? { role: 'ADMIN' } : {}),
+        ...(mode === 'create' ? { role: USER_ROLES.USER } : {}),
         ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
     }
@@ -203,6 +203,26 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
           ))}
         </TextField>
       </Grid>
+
+      {mode === 'create' && (
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            select
+            label="Role"
+            value={(formData as CreateUserDTO).role || USER_ROLES.USER}
+            onChange={(e) => handleChange('role', e.target.value)}
+            helperText="User role determines access permissions"
+            required
+          >
+            {CREATABLE_ROLES.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+      )}
 
       {mode === 'edit' && (
         <Grid item xs={12} sm={6}>

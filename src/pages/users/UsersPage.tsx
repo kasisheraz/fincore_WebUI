@@ -26,9 +26,11 @@ import { PaginatedResponse, Status } from '../../types/common.types';
 import userService from '../../services/userService';
 import { usePagination } from '../../hooks/usePagination';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
-import { GENDER_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
+import { GENDER_OPTIONS, STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
+import { useAuth } from '../../context/AuthContext';
 
 const UsersPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -93,7 +95,9 @@ const UsersPage: React.FC = () => {
         response = await userService.getAll(params);
       }
 
-      setUsers(response.content);
+      // Filter out admin/protected users from the UI
+      const filteredUsers = response.content.filter(user => !isProtectedRole(user.role));
+      setUsers(filteredUsers);
       setTotalElements(response.totalElements);
     } catch (error: any) {
       // Ensure users is set to empty array on error to prevent undefined crashes
@@ -266,34 +270,46 @@ const UsersPage: React.FC = () => {
       minWidth: 120,
       align: 'center',
       sortable: false,
-      format: (_, row) => (
-        <Box>
-          <Tooltip title="Edit">
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditUser(row);
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteClick(row);
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
+      format: (_, row) => {
+        // Check if current user can manage this user
+        const userCanEdit = canManageUsers(currentUser?.role);
+        const userCanDelete = canDeleteUsers(currentUser?.role);
+        
+        return (
+          <Box>
+            <Tooltip title={userCanEdit ? "Edit" : "No permission"}>
+              <span>
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditUser(row);
+                  }}
+                  disabled={!userCanEdit}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={userCanDelete ? "Delete" : "No permission"}>
+              <span>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(row);
+                  }}
+                  disabled={!userCanDelete}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
+        );
+      },
     },
   ];
 
@@ -342,14 +358,16 @@ const UsersPage: React.FC = () => {
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateUser}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
-            Add User
-          </Button>
+          {canManageUsers(currentUser?.role) && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateUser}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Add User
+            </Button>
+          )}
         </Box>
       </Box>
 

@@ -59,6 +59,69 @@ export const DATE_FORMAT = 'YYYY-MM-DD';
 
 export const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
+/**
+ * User Roles - Hierarchy from lowest to highest privileges
+ */
+export const USER_ROLES = {
+  USER: 'USER',
+  MANAGER: 'MANAGER',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  SYSTEM_ADMINISTRATOR: 'SYSTEM_ADMINISTRATOR',
+} as const;
+
+/**
+ * Roles that should be hidden from regular user management
+ * These roles can only be managed through special admin endpoints
+ */
+export const PROTECTED_ROLES = [
+  USER_ROLES.ADMIN,
+  USER_ROLES.SUPER_ADMIN,
+  USER_ROLES.SYSTEM_ADMINISTRATOR,
+];
+
+/**
+ * Roles available for user creation in the UI
+ * Only non-admin roles can be created through the standard UI
+ */
+export const CREATABLE_ROLES = [
+  { label: 'User', value: USER_ROLES.USER },
+  { label: 'Manager', value: USER_ROLES.MANAGER },
+];
+
+/**
+ * Check if a role is protected (admin-level)
+ */
+export const isProtectedRole = (role?: string): boolean => {
+  if (!role) return false;
+  return PROTECTED_ROLES.includes(role as any);
+};
+
+/**
+ * Check if current user can manage other users
+ */
+export const canManageUsers = (userRole?: string): boolean => {
+  if (!userRole) return false;
+  return [
+    USER_ROLES.MANAGER,
+    USER_ROLES.ADMIN,
+    USER_ROLES.SUPER_ADMIN,
+    USER_ROLES.SYSTEM_ADMINISTRATOR,
+  ].includes(userRole as any);
+};
+
+/**
+ * Check if current user can delete users
+ */
+export const canDeleteUsers = (userRole?: string): boolean => {
+  if (!userRole) return false;
+  return [
+    USER_ROLES.ADMIN,
+    USER_ROLES.SUPER_ADMIN,
+    USER_ROLES.SYSTEM_ADMINISTRATOR,
+  ].includes(userRole as any);
+};
+
 export const MAX_FILE_SIZE_MB = 10;
 
 export const ALLOWED_DOCUMENT_TYPES = [
