@@ -148,9 +148,9 @@ export const test = base.extend<{
     await setupMocks(page);
     console.log('[FIXTURE] Mocks setup complete');
     
-    // Login for this test
+    // Login as MANAGER (has user management permissions)
     try {
-      await login(page, testUsers.user.phoneNumber, testUsers.user.otp);
+      await login(page, testUsers.manager.phoneNumber, testUsers.manager.otp);
       console.log('[FIXTURE] Login complete, current URL:', page.url());
       
       // Verify auth state
