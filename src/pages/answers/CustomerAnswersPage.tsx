@@ -168,6 +168,7 @@ const CustomerAnswersPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Customer Answers Management" />
+      <Box sx={{ px: 2, py: 2 }}>
       
       <Box sx={{ 
         mb: 3, 
@@ -230,6 +231,7 @@ const CustomerAnswersPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 };

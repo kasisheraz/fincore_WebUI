@@ -72,8 +72,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
         background: 'linear-gradient(135deg, #00503C 0%, #00704F 100%)',
         color: '#ffffff',
         p: 2,
-        borderRadius: 2,
-        mb: 3,
+        borderRadius: 0,
+        mb: 0,
         boxShadow: '0 4px 20px rgba(0, 80, 60, 0.15)',
       }}
     >
