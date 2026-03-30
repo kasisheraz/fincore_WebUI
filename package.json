@@ -57,6 +57,7 @@
     "@playwright/test": "^1.58.2",
     "@types/jest": "^29.4.0",
     "@types/node": "^25.3.3",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "yaml": "^2.8.3"
   }
 }
