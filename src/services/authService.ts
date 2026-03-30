@@ -18,6 +18,7 @@ class AuthService {
       dateOfBirth: '1990-01-01',
       gender: 'MALE',
       statusDescription: 'ACTIVE',
+      role: 'MANAGER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -30,6 +31,7 @@ class AuthService {
       dateOfBirth: '1992-05-15',
       gender: 'FEMALE',
       statusDescription: 'ACTIVE',
+      role: 'MANAGER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -42,6 +44,7 @@ class AuthService {
       dateOfBirth: '1985-03-20',
       gender: 'OTHER',
       statusDescription: 'ACTIVE',
+      role: 'ADMIN',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     }

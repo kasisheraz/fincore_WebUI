@@ -61,6 +61,8 @@ export class OrganizationsPage {
   async clickAddOrganization() {
     await this.addButton.click();
     await this.page.waitForSelector('.MuiDialog-root');
+    // Wait for the form inputs inside the dialog to be rendered and interactive
+    await this.page.waitForSelector('.MuiDialogContent-root input', { state: 'visible', timeout: 10000 });
   }
 
   async fillOrganizationForm(data: any) {
