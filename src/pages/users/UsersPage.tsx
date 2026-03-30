@@ -22,11 +22,11 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import UserForm from '../../components/users/UserForm';
 import StatusChip from '../../components/common/StatusChip';
 import { User, CreateUserDTO, UpdateUserDTO } from '../../types/user.types';
-import { PaginatedResponse, Status } from '../../types/common.types';
+import { PaginatedResponse } from '../../types/common.types';
 import userService from '../../services/userService';
 import { usePagination } from '../../hooks/usePagination';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
-import { GENDER_OPTIONS, STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
+import { STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
 
 const UsersPage: React.FC = () => {
@@ -80,8 +80,7 @@ const UsersPage: React.FC = () => {
         // Use search endpoint
         response = await userService.search(
           {
-            firstName: searchQuery,
-            lastName: searchQuery,
+            fullName: searchQuery,
             email: searchQuery,
             phoneNumber: searchQuery,
           },
@@ -222,19 +221,9 @@ const UsersPage: React.FC = () => {
 
   const columns: Column<User>[] = [
     {
-      id: 'id',
-      label: 'ID',
-      minWidth: 70,
-    },
-    {
-      id: 'firstName',
-      label: 'First Name',
-      minWidth: 120,
-    },
-    {
-      id: 'lastName',
-      label: 'Last Name',
-      minWidth: 120,
+      id: 'fullName',
+      label: 'Full Name',
+      minWidth: 180,
     },
     {
       id: 'email',
@@ -248,18 +237,18 @@ const UsersPage: React.FC = () => {
       format: (value) => formatPhoneNumber(value),
     },
     {
-      id: 'gender',
-      label: 'Gender',
+      id: 'role',
+      label: 'Role',
       minWidth: 100,
     },
     {
-      id: 'statusDescription',
+      id: 'status',
       label: 'Status',
       minWidth: 120,
-      format: (value) => <StatusChip status={value as Status} />,
+      format: (value) => <StatusChip status={value as any} />,
     },
     {
-      id: 'createdDatetime',
+      id: 'createdAt',
       label: 'Created',
       minWidth: 140,
       format: (value) => formatDate(value),
@@ -319,17 +308,6 @@ const UsersPage: React.FC = () => {
       label: 'Status',
       type: 'select',
       options: STATUS_OPTIONS,
-    },
-    {
-      name: 'gender',
-      label: 'Gender',
-      type: 'select',
-      options: GENDER_OPTIONS,
-    },
-    {
-      name: 'dateOfBirth',
-      label: 'Date of Birth',
-      type: 'dateRange',
     },
   ];
 
@@ -426,7 +404,7 @@ const UsersPage: React.FC = () => {
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete User"
-        message={`Are you sure you want to delete ${userToDelete?.firstName} ${userToDelete?.lastName}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${userToDelete?.fullName}? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteDialogOpen(false)}
         severity="error"

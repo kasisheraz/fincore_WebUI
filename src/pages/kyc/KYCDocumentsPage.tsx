@@ -6,12 +6,9 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Chip
 } from '@mui/material';
 import {
-  Add as AddIcon,
   CloudUpload as UploadIcon,
-  Download as DownloadIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CheckCircle as ApproveIcon,
@@ -19,24 +16,22 @@ import {
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
-import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import kycDocumentService from '../../services/kycDocumentService';
-import { KYCDocument, KYCDocumentFilters } from '../../types/kycDocument.types';
-import { formatDate, formatFileSize } from '../../utils/formatters';
+import { KYCDocument, KYCDocumentFilters, DocumentStatus } from '../../types/kycDocument.types';
+import { formatDate } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { DOCUMENT_TYPE_OPTIONS, VERIFICATION_STATUS_OPTIONS } from '../../utils/constants';
+import { DOCUMENT_TYPE_OPTIONS, DOCUMENT_STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
 
 const KYCDocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<KYCDocument[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<KYCDocumentFilters>({});
   const [sortBy, setSortBy] = useState<keyof KYCDocument>('uploadedAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const sortDirection = 'desc' as const;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null);
 
@@ -46,34 +41,25 @@ const KYCDocumentsPage: React.FC = () => {
     severity: 'success' | 'error' | 'info' | 'warning';
   }>({ open: false, message: '', severity: 'success' });
 
-  const pagination = usePagination();
-  const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
+  const { page, rowsPerPage, setPage, setRowsPerPage } = usePagination();
 
   const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {
-        page,
-        size: rowsPerPage,
-        sort: `${sortBy},${sortDirection}`,
-        ...filters
-      };
-
+      const params = { page, size: rowsPerPage };
       const response = await kycDocumentService.search(filters, params);
       setDocuments(response.content);
       setTotalElements(response.totalElements);
     } catch (error: any) {
       console.error('Failed to fetch documents:', error);
-      // Don't show error in mock mode - just keep empty state
       setDocuments([]);
       setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, sortBy, sortDirection, filters]);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
-    console.log('KYCDocumentsPage mounted');
     fetchDocuments();
   }, [fetchDocuments]);
 
@@ -83,26 +69,20 @@ const KYCDocumentsPage: React.FC = () => {
 
   const columns: Column<KYCDocument>[] = [
     { id: 'id', label: 'ID', sortable: true, minWidth: 80 },
-    { id: 'userId', label: 'User ID', sortable: true, minWidth: 100 },
+    { id: 'organisationId', label: 'Organisation ID', sortable: true, minWidth: 120 },
     {
       id: 'documentType',
       label: 'Document Type',
       sortable: true,
-      minWidth: 150,
+      minWidth: 200,
       format: (value) => {
         const option = DOCUMENT_TYPE_OPTIONS.find(opt => opt.value === value);
         return option?.label || value;
       }
     },
     { id: 'documentNumber', label: 'Document #', sortable: false, minWidth: 130 },
-    { id: 'fileName', label: 'File Name', sortable: false, minWidth: 180 },
-    {
-      id: 'fileSize',
-      label: 'Size',
-      sortable: false,
-      minWidth: 100,
-      format: (value) => formatFileSize(value as number)
-    },
+    { id: 'issueDate', label: 'Issue Date', sortable: true, minWidth: 110, format: (v) => formatDate(v as string) },
+    { id: 'expiryDate', label: 'Expiry Date', sortable: true, minWidth: 110, format: (v) => formatDate(v as string) },
     {
       id: 'status',
       label: 'Status',
@@ -124,20 +104,15 @@ const KYCDocumentsPage: React.FC = () => {
       minWidth: 150,
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Download">
-            <IconButton size="small" color="primary" onClick={() => handleDownload(row)}>
-              <DownloadIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
           {row.status === 'PENDING' && (
             <>
-              <Tooltip title="Approve">
-                <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
+              <Tooltip title="Verify">
+                <IconButton size="small" color="success" onClick={() => handleVerify(row, 'VERIFIED')}>
                   <ApproveIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Reject">
-                <IconButton size="small" color="warning" onClick={() => handleReject(row)}>
+                <IconButton size="small" color="warning" onClick={() => handleVerify(row, 'REJECTED')}>
                   <RejectIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -154,45 +129,18 @@ const KYCDocumentsPage: React.FC = () => {
   ];
 
   const filterFields: FilterField[] = [
-    { name: 'userId', label: 'User ID', type: 'text' },
+    { name: 'organisationId', label: 'Organisation ID', type: 'text' },
     { name: 'documentType', label: 'Document Type', type: 'select', options: DOCUMENT_TYPE_OPTIONS },
-    { name: 'status', label: 'Status', type: 'select', options: VERIFICATION_STATUS_OPTIONS },
-    { name: 'uploadDateFrom', label: 'Upload Date From', type: 'date' },
-    { name: 'uploadDateTo', label: 'Upload Date To', type: 'date' }
+    { name: 'status', label: 'Status', type: 'select', options: DOCUMENT_STATUS_OPTIONS },
   ];
 
-  const handleDownload = async (document: KYCDocument) => {
+  const handleVerify = async (document: KYCDocument, status: DocumentStatus) => {
     try {
-      const blob = await kycDocumentService.download(document.id);
-      const url = window.URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
-      a.href = url;
-      a.download = document.fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      showSnackbar('Document downloaded successfully', 'success');
-    } catch (error: any) {
-      showSnackbar(error.message || 'Failed to download document', 'error');
-    }
-  };
-
-  const handleApprove = async (document: KYCDocument) => {
-    try {
-      await kycDocumentService.updateStatus(document.id, 'VERIFIED');
-      showSnackbar('Document approved successfully', 'success');
+      await kycDocumentService.verify(document.id, 0, status);
+      showSnackbar(`Document ${status.toLowerCase()} successfully`, 'success');
       fetchDocuments();
     } catch (error: any) {
-      showSnackbar(error.message || 'Failed to approve document', 'error');
-    }
-  };
-
-  const handleReject = async (document: KYCDocument) => {
-    try {
-      await kycDocumentService.updateStatus(document.id, 'REJECTED', 'Document rejected by reviewer');
-      showSnackbar('Document rejected successfully', 'success');
-      fetchDocuments();
-    } catch (error: any) {
-      showSnackbar(error.message || 'Failed to reject document', 'error');
+      showSnackbar(error.message || `Failed to update document status`, 'error');
     }
   };
 
@@ -217,26 +165,13 @@ const KYCDocumentsPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="KYC Document Management" />
-      <Box sx={{ 
-        mb: 3, 
-        display: 'flex', 
-        gap: 2, 
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-          <SearchBar 
-            placeholder="Search documents..." 
-            onSearch={setSearchQuery} 
-            defaultValue={searchQuery}
-            fullWidth={true}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            variant="contained" 
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+          <Button
+            variant="contained"
             startIcon={<UploadIcon />}
             sx={{ whiteSpace: 'nowrap' }}
+            disabled
           >
             Upload Document
           </Button>
@@ -267,7 +202,7 @@ const KYCDocumentsPage: React.FC = () => {
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete Document"
-        message={`Are you sure you want to delete ${selectedDocument?.fileName}?`}
+        message={`Are you sure you want to delete document ${selectedDocument?.documentNumber}?`}
         onConfirm={handleDelete}
         onCancel={() => { setDeleteDialogOpen(false); setSelectedDocument(null); }}
         severity="error"

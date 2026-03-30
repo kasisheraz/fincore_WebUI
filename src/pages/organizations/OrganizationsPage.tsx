@@ -6,14 +6,12 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Chip
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
-  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -24,9 +22,9 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import OrganizationForm from '../../components/organizations/OrganizationForm';
 import organizationService from '../../services/organizationService';
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationFilters } from '../../types/organization.types';
-import { formatDate, formatPhoneNumber } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { ORGANIZATION_TYPE_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
+import { ORGANIZATION_TYPE_OPTIONS, ORGANIZATION_STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
 
 const OrganizationsPage: React.FC = () => {
@@ -36,7 +34,7 @@ const OrganizationsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<OrganizationFilters>({});
-  const [sortBy, setSortBy] = useState<keyof Organization>('createdDatetime');
+  const [sortBy, setSortBy] = useState<keyof Organization>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Dialog states
@@ -75,7 +73,7 @@ const OrganizationsPage: React.FC = () => {
       };
 
       const response = searchQuery
-        ? await organizationService.search({ legalName: searchQuery, ...filters }, params)
+        ? await organizationService.search({ searchTerm: searchQuery, ...filters })
         : await organizationService.getAll(params);
 
       setOrganizations(response.content);
@@ -130,27 +128,20 @@ const OrganizationsPage: React.FC = () => {
       minWidth: 150
     },
     {
-      id: 'email',
-      label: 'Email',
+      id: 'countryOfIncorporation',
+      label: 'Country',
       sortable: true,
-      minWidth: 200
+      minWidth: 100
     },
     {
-      id: 'phoneNumber',
-      label: 'Phone',
-      sortable: false,
-      minWidth: 130,
-      format: (value) => formatPhoneNumber(value as string)
-    },
-    {
-      id: 'statusDescription',
+      id: 'status',
       label: 'Status',
       sortable: true,
       minWidth: 100,
       format: (value) => <StatusChip status={value as any} />
     },
     {
-      id: 'createdDatetime',
+      id: 'createdAt',
       label: 'Created At',
       sortable: true,
       minWidth: 120,
@@ -187,10 +178,10 @@ const OrganizationsPage: React.FC = () => {
       options: ORGANIZATION_TYPE_OPTIONS
     },
     {
-      name: 'statusDescription',
+      name: 'status',
       label: 'Status',
       type: 'select',
-      options: STATUS_OPTIONS
+      options: ORGANIZATION_STATUS_OPTIONS
     },
     {
       name: 'registrationDateFrom',

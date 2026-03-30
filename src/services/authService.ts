@@ -11,39 +11,33 @@ class AuthService {
   private readonly MOCK_USERS: User[] = [
     {
       id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
+      fullName: 'John Doe',
       email: 'john.doe@fincore.com',
       phoneNumber: '1234567890',
-      dateOfBirth: '1990-01-01',
-      gender: 'MALE',
-      statusDescription: 'ACTIVE',
-      createdDatetime: '2024-01-01T00:00:00Z',
-      lastModifiedDatetime: '2024-01-01T00:00:00Z'
+      role: 'USER',
+      status: 'ACTIVE',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
     },
     {
       id: 2,
-      firstName: 'Jane',
-      lastName: 'Smith',
+      fullName: 'Jane Smith',
       email: 'jane.smith@fincore.com',
       phoneNumber: '9876543210',
-      dateOfBirth: '1992-05-15',
-      gender: 'FEMALE',
-      statusDescription: 'ACTIVE',
-      createdDatetime: '2024-01-01T00:00:00Z',
-      lastModifiedDatetime: '2024-01-01T00:00:00Z'
+      role: 'MANAGER',
+      status: 'ACTIVE',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
     },
     {
       id: 3,
-      firstName: 'Admin',
-      lastName: 'User',
+      fullName: 'Admin User',
       email: 'admin@fincore.com',
       phoneNumber: '5555555555',
-      dateOfBirth: '1985-03-20',
-      gender: 'OTHER',
-      statusDescription: 'ACTIVE',
-      createdDatetime: '2024-01-01T00:00:00Z',
-      lastModifiedDatetime: '2024-01-01T00:00:00Z'
+      role: 'SYSTEM_ADMINISTRATOR',
+      status: 'ACTIVE',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
     }
   ];
 

@@ -3,7 +3,7 @@ import {
   Organization,
   CreateOrganizationDTO,
   UpdateOrganizationDTO,
-  OrganizationSearchParams,
+  OrganizationSearchDTO,
   Address,
   CreateAddressDTO,
   UpdateAddressDTO,
@@ -13,120 +13,99 @@ import { PaginationParams, PaginatedResponse } from '../types/common.types';
 import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class OrganizationService {
-  private readonly BASE_PATH = '/organizations';
+  private readonly BASE_PATH = '/organisations';
   private readonly ADDRESS_PATH = '/addresses';
 
-  /**
-   * Get all organizations with pagination
-   */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<Organization>> {
     const response = await apiService.get<any>(this.BASE_PATH, { params });
     return normalizePaginatedResponse<Organization>(response.data);
   }
 
-  /**
-   * Get organization by ID
-   */
   async getById(id: number): Promise<Organization> {
     const response = await apiService.get<Organization>(`${this.BASE_PATH}/${id}`);
     return response.data;
   }
 
-  /**
-   * Create new organization
-   */
+  async getByOwner(ownerId: number): Promise<Organization[]> {
+    const response = await apiService.get<Organization[]>(`${this.BASE_PATH}/owner/${ownerId}`);
+    return response.data;
+  }
+
+  async getByStatus(status: OrganizationStatus): Promise<Organization[]> {
+    const response = await apiService.get<Organization[]>(`${this.BASE_PATH}/status/${status}`);
+    return response.data;
+  }
+
+  async checkRegistrationExists(regNo: string): Promise<boolean> {
+    const response = await apiService.get<boolean>(`${this.BASE_PATH}/exists/registration/${regNo}`);
+    return response.data;
+  }
+
   async create(data: CreateOrganizationDTO): Promise<Organization> {
     const response = await apiService.post<Organization>(this.BASE_PATH, data);
     return response.data;
   }
 
-  /**
-   * Update organization
-   */
   async update(id: number, data: UpdateOrganizationDTO): Promise<Organization> {
     const response = await apiService.put<Organization>(`${this.BASE_PATH}/${id}`, data);
     return response.data;
   }
 
-  /**
-   * Delete organization
-   */
   async delete(id: number): Promise<void> {
     await apiService.delete(`${this.BASE_PATH}/${id}`);
   }
 
-  /**
-   * Update organization status
-   */
-  async updateStatus(id: number, status: OrganizationStatus): Promise<Organization> {
-    const response = await apiService.patch<Organization>(`${this.BASE_PATH}/${id}/status`, { status });
+  async updateStatus(id: number, status: OrganizationStatus, reason?: string): Promise<Organization> {
+    const response = await apiService.patch<Organization>(
+      `${this.BASE_PATH}/${id}/status`,
+      null,
+      { params: { status, reason } }
+    );
     return response.data;
   }
 
-  /**
-   * Search organizations with filters
-   */
-  async search(searchParams: OrganizationSearchParams, paginationParams?: PaginationParams): Promise<PaginatedResponse<Organization>> {
-    // Backend doesn't have /search endpoint, use regular GET with params
-    const response = await apiService.get<PaginatedResponse<Organization>>(this.BASE_PATH, {
-      params: { ...searchParams, ...paginationParams }
-    });
-    return response.data;
+  async search(searchParams: OrganizationSearchDTO): Promise<PaginatedResponse<Organization>> {
+    const response = await apiService.post<any>(`${this.BASE_PATH}/search`, searchParams);
+    return normalizePaginatedResponse<Organization>(response.data);
   }
 
-  /**
-   * Get all organizations by type
-   */
   async getByType(type: string, params?: PaginationParams): Promise<PaginatedResponse<Organization>> {
-    const response = await apiService.get<PaginatedResponse<Organization>>(`${this.BASE_PATH}/type/${type}`, { params });
-    return response.data;
+    const response = await apiService.get<any>(`${this.BASE_PATH}/type/${type}`, { params });
+    return normalizePaginatedResponse<Organization>(response.data);
   }
 
-  // Address Management Methods
+  // Address Management
 
-  /**
-   * Get all addresses with pagination
-   */
   async getAllAddresses(params?: PaginationParams): Promise<PaginatedResponse<Address>> {
-    const response = await apiService.get<PaginatedResponse<Address>>(this.ADDRESS_PATH, { params });
-    return response.data;
+    const response = await apiService.get<any>(this.ADDRESS_PATH, { params });
+    return normalizePaginatedResponse<Address>(response.data);
   }
 
-  /**
-   * Get address by ID
-   */
   async getAddressById(id: number): Promise<Address> {
     const response = await apiService.get<Address>(`${this.ADDRESS_PATH}/${id}`);
     return response.data;
   }
 
-  /**
-   * Get addresses by organization ID
-   */
-  async getAddressesByOrganization(organizationId: number): Promise<Address[]> {
-    const response = await apiService.get<Address[]>(`${this.ADDRESS_PATH}/organization/${organizationId}`);
+  async getAddressesByType(typeCode: number): Promise<Address[]> {
+    const response = await apiService.get<Address[]>(`${this.ADDRESS_PATH}/type/${typeCode}`);
     return response.data;
   }
 
-  /**
-   * Create new address
-   */
+  async getAddressesByCountry(country: string): Promise<Address[]> {
+    const response = await apiService.get<Address[]>(`${this.ADDRESS_PATH}/country/${country}`);
+    return response.data;
+  }
+
   async createAddress(data: CreateAddressDTO): Promise<Address> {
     const response = await apiService.post<Address>(this.ADDRESS_PATH, data);
     return response.data;
   }
 
-  /**
-   * Update address
-   */
   async updateAddress(id: number, data: UpdateAddressDTO): Promise<Address> {
     const response = await apiService.put<Address>(`${this.ADDRESS_PATH}/${id}`, data);
     return response.data;
   }
 
-  /**
-   * Delete address
-   */
   async deleteAddress(id: number): Promise<void> {
     await apiService.delete(`${this.ADDRESS_PATH}/${id}`);
   }

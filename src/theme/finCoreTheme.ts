@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 
 // FinCore Dark Green theme inspired by modern design patterns
 export const finCoreTheme = createTheme({

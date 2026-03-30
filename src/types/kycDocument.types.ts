@@ -1,54 +1,45 @@
-// KYC Document Types
+// KYC Document Types (Corporate/Organisation Documents)
 
-export type DocumentType = 'PASSPORT' | 'DRIVERS_LICENSE' | 'NATIONAL_ID' | 'UTILITY_BILL' | 'BANK_STATEMENT' | 'TAX_RETURN' | 'OTHER';
+export type DocumentType = 'ARTICLES_OF_ASSOCIATION' | 'CERTIFICATE_OF_INCORPORATION' | 'PROOF_OF_ADDRESS' | 'DIRECTOR_ID' | 'SHAREHOLDER_REGISTER' | 'BANK_STATEMENT' | 'TAX_REGISTRATION' | 'OTHER';
 export type DocumentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
 
 export interface KYCDocument {
   id: number;
-  userId: number;
+  organisationId: number;
   documentType: DocumentType;
   documentNumber: string;
-  fileName: string;
-  fileUrl: string;
-  fileSize: number;
-  mimeType: string;
-  status: DocumentStatus;
-  uploadedAt: string;
-  verifiedAt?: string;
-  verifiedBy?: number;
-  rejectionReason?: string;
+  issueDate: string;
   expiryDate?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  issuingAuthority?: string;
+  documentUrl: string;
+  status: DocumentStatus;
+  verifierId?: number;
+  verificationDate?: string;
+  verificationNotes?: string;
+  uploadedAt: string;
 }
 
 export interface CreateKYCDocumentDTO {
-  userId: number;
-  organisationId: number; // Required by backend (British spelling!)
+  organisationId: number;
   documentType: DocumentType;
   documentNumber: string;
-  file?: File;
-  issuingCountry?: string;
-  issueDate?: string;
+  issueDate: string;
   expiryDate?: string;
-  notes?: string;
-  status?: string; // PENDING, VERIFIED, REJECTED
+  issuingAuthority?: string;
+  documentUrl: string;
 }
 
 export interface UpdateKYCDocumentDTO {
   documentType?: DocumentType;
   documentNumber?: string;
-  status?: DocumentStatus;
+  issueDate?: string;
   expiryDate?: string;
-  notes?: string;
-  rejectionReason?: string;
+  issuingAuthority?: string;
+  documentUrl?: string;
 }
 
 export interface KYCDocumentFilters {
-  userId?: number;
+  organisationId?: number;
   documentType?: DocumentType;
   status?: DocumentStatus;
-  uploadDateFrom?: string;
-  uploadDateTo?: string;
 }

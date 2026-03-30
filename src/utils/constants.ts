@@ -9,16 +9,21 @@ export const STATUS_OPTIONS = [
   { label: 'Suspended', value: 'SUSPENDED' },
 ];
 
-export const GENDER_OPTIONS = [
-  { label: 'Male', value: 'MALE' },
-  { label: 'Female', value: 'FEMALE' },
-  { label: 'Other', value: 'OTHER' },
+export const ORGANIZATION_STATUS_OPTIONS = [
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'Suspended', value: 'SUSPENDED' },
+  { label: 'Rejected', value: 'REJECTED' },
 ];
 
 export const DOCUMENT_TYPE_OPTIONS = [
-  { label: 'Passport', value: 'PASSPORT' },
-  { label: 'Driver License', value: 'DRIVER_LICENSE' },
-  { label: 'National ID', value: 'NATIONAL_ID' },
+  { label: 'Articles of Association', value: 'ARTICLES_OF_ASSOCIATION' },
+  { label: 'Certificate of Incorporation', value: 'CERTIFICATE_OF_INCORPORATION' },
+  { label: 'Proof of Address', value: 'PROOF_OF_ADDRESS' },
+  { label: 'Director ID', value: 'DIRECTOR_ID' },
+  { label: 'Shareholder Register', value: 'SHAREHOLDER_REGISTER' },
+  { label: 'Bank Statement', value: 'BANK_STATEMENT' },
+  { label: 'Tax Registration', value: 'TAX_REGISTRATION' },
   { label: 'Other', value: 'OTHER' },
 ];
 
@@ -26,29 +31,51 @@ export const DOCUMENT_STATUS_OPTIONS = [
   { label: 'Pending', value: 'PENDING' },
   { label: 'Verified', value: 'VERIFIED' },
   { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Expired', value: 'EXPIRED' },
 ];
 
 export const VERIFICATION_STATUS_OPTIONS = [
   { label: 'Pending', value: 'PENDING' },
-  { label: 'In Review', value: 'IN_REVIEW' },
   { label: 'Approved', value: 'APPROVED' },
   { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Expired', value: 'EXPIRED' },
+];
+
+export const VERIFICATION_LEVEL_OPTIONS = [
+  { label: 'Basic', value: 'BASIC' },
+  { label: 'Enhanced', value: 'ENHANCED' },
+  { label: 'Full', value: 'FULL' },
+];
+
+export const RISK_LEVEL_OPTIONS = [
+  { label: 'Low', value: 'LOW' },
+  { label: 'Medium', value: 'MEDIUM' },
+  { label: 'High', value: 'HIGH' },
 ];
 
 export const ORGANIZATION_TYPE_OPTIONS = [
-  { label: 'Corporation', value: 'CORPORATION' },
-  { label: 'LLC', value: 'LLC' },
+  { label: 'Limited Company (LTD)', value: 'LTD' },
+  { label: 'Public Limited Company (PLC)', value: 'PLC' },
+  { label: 'Sole Trader', value: 'SOLE_TRADER' },
   { label: 'Partnership', value: 'PARTNERSHIP' },
-  { label: 'Sole Proprietorship', value: 'SOLE_PROPRIETORSHIP' },
-  { label: 'Non-Profit', value: 'NON_PROFIT' },
+  { label: 'Limited Liability Partnership (LLP)', value: 'LLP' },
+  { label: 'Charity', value: 'CHARITY' },
+  { label: 'Community Interest Company (CIC)', value: 'CIC' },
 ];
 
-export const QUESTION_TYPE_OPTIONS = [
-  { label: 'Text', value: 'TEXT' },
-  { label: 'Multiple Choice', value: 'MULTIPLE_CHOICE' },
-  { label: 'Yes/No', value: 'YES_NO' },
-  { label: 'Date', value: 'DATE' },
-  { label: 'Number', value: 'NUMBER' },
+export const QUESTION_CATEGORY_OPTIONS = [
+  { label: 'Personal Info', value: 'PERSONAL_INFO' },
+  { label: 'Financial', value: 'FINANCIAL' },
+  { label: 'Employment', value: 'EMPLOYMENT' },
+  { label: 'Identification', value: 'IDENTIFICATION' },
+  { label: 'Risk Assessment', value: 'RISK_ASSESSMENT' },
+  { label: 'Compliance', value: 'COMPLIANCE' },
+];
+
+export const QUESTION_STATUS_OPTIONS = [
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'Inactive', value: 'INACTIVE' },
+  { label: 'Archived', value: 'ARCHIVED' },
 ];
 
 export const PAGINATION_OPTIONS = [10, 25, 50, 100];
@@ -138,6 +165,7 @@ export const STATUS_COLORS = {
   SUSPENDED: 'error',
   APPROVED: 'success',
   REJECTED: 'error',
-  IN_REVIEW: 'info',
+  EXPIRED: 'default',
   VERIFIED: 'success',
+  ARCHIVED: 'default',
 } as const;

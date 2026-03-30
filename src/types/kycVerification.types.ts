@@ -1,53 +1,56 @@
 // KYC Verification Types
 
-export type VerificationStatus = 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'REQUIRES_UPDATE';
+export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+export type VerificationLevel = 'BASIC' | 'ENHANCED' | 'FULL';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export interface ReviewResult {
+  reviewerId: number;
+  comments: string;
+  approvalReason: string;
+}
+
 export interface KYCVerification {
-  id: number;
+  verificationId: number;
   userId: number;
-  userName?: string;
+  sumsubApplicantId?: string;
+  verificationLevel: VerificationLevel;
   status: VerificationStatus;
   riskLevel?: RiskLevel;
-  verifiedBy?: number;
-  verifierName?: string;
-  verificationDate?: string;
-  approvalDate?: string;
-  rejectionReason?: string;
-  notes?: string;
-  documentsVerified: number;
-  totalDocuments: number;
-  createdAt: string;
-  updatedAt: string;
+  reviewResult?: ReviewResult;
+  submittedAt: string;
+  reviewedAt?: string;
+  approvedAt?: string;
+  expiresAt?: string;
 }
 
 export interface CreateKYCVerificationDTO {
   userId: number;
-  notes?: string;
+  verificationLevel: VerificationLevel;
+  sumsubApplicantId?: string;
 }
 
 export interface UpdateKYCVerificationDTO {
-  status?: VerificationStatus;
+  status: VerificationStatus;
   riskLevel?: RiskLevel;
-  notes?: string;
-  rejectionReason?: string;
+  reviewerComments?: string;
+  approvalReason?: string;
 }
 
 export interface ApproveVerificationDTO {
   riskLevel: RiskLevel;
-  notes?: string;
+  approvalReason?: string;
+  reviewerComments?: string;
 }
 
 export interface RejectVerificationDTO {
-  rejectionReason: string;
-  notes?: string;
+  reviewerComments: string;
+  approvalReason?: string;
 }
 
 export interface KYCVerificationFilters {
   userId?: number;
   status?: VerificationStatus;
+  verificationLevel?: VerificationLevel;
   riskLevel?: RiskLevel;
-  verifiedBy?: number;
-  dateFrom?: string;
-  dateTo?: string;
 }

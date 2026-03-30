@@ -1,34 +1,28 @@
 // Customer Answer Types
 
 export interface CustomerAnswer {
-  id: number;
+  answerId: number;
   userId: number;
-  userName?: string;
   questionId: number;
-  questionText?: string;
-  answerText?: string;
-  answerFile?: string;
-  submittedAt: string;
-  updatedAt: string;
+  answerText: string;
+  answeredAt: string;
 }
 
 export interface CreateCustomerAnswerDTO {
   userId: number;
   questionId: number;
-  answerText?: string;
-  answerFile?: File;
+  answerText: string;
 }
 
 export interface UpdateCustomerAnswerDTO {
-  answerText?: string;
-  answerFile?: File;
+  userId: number;
+  questionId: number;
+  answerText: string;
 }
 
 export interface CustomerAnswerFilters {
   userId?: number;
   questionId?: number;
-  submittedDateFrom?: string;
-  submittedDateTo?: string;
 }
 
 export interface AnswerProgress {

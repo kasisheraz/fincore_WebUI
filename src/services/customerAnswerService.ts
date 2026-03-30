@@ -10,85 +10,83 @@ import { PaginationParams, PaginatedResponse } from '../types/common.types';
 import { normalizePaginatedResponse } from '../utils/paginationUtils';
 
 class CustomerAnswerService {
-  private readonly BASE_PATH = '/customer-answers';
+  private readonly BASE_PATH = '/v1/answers';
 
-  /**
-   * Get all answers with pagination
-   */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<CustomerAnswer>> {
     const response = await apiService.get<any>(this.BASE_PATH, { params });
     return normalizePaginatedResponse<CustomerAnswer>(response.data);
   }
 
-  /**
-   * Get answer by ID
-   */
   async getById(id: number): Promise<CustomerAnswer> {
     const response = await apiService.get<CustomerAnswer>(`${this.BASE_PATH}/${id}`);
     return response.data;
   }
 
-  /**
-   * Get answers by user ID
-   */
   async getByUserId(userId: number, params?: PaginationParams): Promise<PaginatedResponse<CustomerAnswer>> {
-    const response = await apiService.get<PaginatedResponse<CustomerAnswer>>(`${this.BASE_PATH}/user/${userId}`, { params });
+    const response = await apiService.get<any>(`${this.BASE_PATH}/user/${userId}`, { params });
+    return normalizePaginatedResponse<CustomerAnswer>(response.data);
+  }
+
+  async getCompleted(): Promise<CustomerAnswer[]> {
+    const response = await apiService.get<CustomerAnswer[]>(`${this.BASE_PATH}/completed`);
     return response.data;
   }
 
-  /**
-   * Submit answer
-   */
+  async getByUserAndQuestion(userId: number, questionId: number): Promise<CustomerAnswer> {
+    const response = await apiService.get<CustomerAnswer>(
+      `${this.BASE_PATH}/user/${userId}/question/${questionId}`
+    );
+    return response.data;
+  }
+
+  async isAnswered(userId: number, questionId: number): Promise<boolean> {
+    const response = await apiService.get<boolean>(`${this.BASE_PATH}/answered`, {
+      params: { userId, questionId }
+    });
+    return response.data;
+  }
+
+  async countByUser(userId: number): Promise<number> {
+    const response = await apiService.get<number>(`${this.BASE_PATH}/user/${userId}/count`);
+    return response.data;
+  }
+
+  async getCompletionRate(userId: number, totalQuestions: number): Promise<number> {
+    const response = await apiService.get<number>(
+      `${this.BASE_PATH}/completion-rate/${totalQuestions}`,
+      { params: { userId } }
+    );
+    return response.data;
+  }
+
   async submit(data: CreateCustomerAnswerDTO): Promise<CustomerAnswer> {
-    const formData = new FormData();
-    formData.append('userId', data.userId.toString());
-    formData.append('questionId', data.questionId.toString());
-    if (data.answerText) formData.append('answerText', data.answerText);
-    if (data.answerFile) formData.append('answerFile', data.answerFile);
-
-    const response = await apiService.getAxiosInstance().post<CustomerAnswer>(this.BASE_PATH, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await apiService.post<CustomerAnswer>(this.BASE_PATH, data);
     return response.data;
   }
 
-  /**
-   * Update answer
-   */
   async update(id: number, data: UpdateCustomerAnswerDTO): Promise<CustomerAnswer> {
-    const formData = new FormData();
-    if (data.answerText) formData.append('answerText', data.answerText);
-    if (data.answerFile) formData.append('answerFile', data.answerFile);
-
-    const response = await apiService.getAxiosInstance().put<CustomerAnswer>(`${this.BASE_PATH}/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await apiService.put<CustomerAnswer>(`${this.BASE_PATH}/${id}`, data);
     return response.data;
   }
 
-  /**
-   * Delete answer
-   */
   async delete(id: number): Promise<void> {
     await apiService.delete(`${this.BASE_PATH}/${id}`);
   }
 
-  /**
-   * Get answer progress for user
-   */
+  async deleteAllForUser(userId: number): Promise<void> {
+    await apiService.delete(`${this.BASE_PATH}/user/${userId}`);
+  }
+
   async getProgress(userId: number): Promise<AnswerProgress> {
     const response = await apiService.get<AnswerProgress>(`${this.BASE_PATH}/progress/${userId}`);
     return response.data;
   }
 
-  /**
-   * Search answers with filters
-   */
   async search(filters: CustomerAnswerFilters, params?: PaginationParams): Promise<PaginatedResponse<CustomerAnswer>> {
-    const response = await apiService.get<PaginatedResponse<CustomerAnswer>>(`${this.BASE_PATH}`, {
+    const response = await apiService.get<any>(`${this.BASE_PATH}`, {
       params: { ...filters, ...params }
     });
-    return response.data;
+    return normalizePaginatedResponse<CustomerAnswer>(response.data);
   }
 }
 

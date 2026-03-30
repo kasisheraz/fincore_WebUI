@@ -6,9 +6,6 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Chip,
-  Switch,
-  FormControlLabel
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -16,27 +13,25 @@ import {
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CheckCircle as ActivateIcon,
-  Block as DeactivateIcon
+  Block as DeactivateIcon,
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
-import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import questionnaireService from '../../services/questionnaireService';
 import { Question, QuestionFilters } from '../../types/questionnaire.types';
 import { usePagination } from '../../hooks/usePagination';
-import { QUESTION_TYPE_OPTIONS } from '../../utils/constants';
+import { QUESTION_CATEGORY_OPTIONS, QUESTION_STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
 
 const QuestionnairePage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<QuestionFilters>({});
-  const [sortBy, setSortBy] = useState<keyof Question>('orderIndex');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<keyof Question>('displayOrder');
+  const sortDirection = 'asc' as const;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
@@ -46,34 +41,25 @@ const QuestionnairePage: React.FC = () => {
     severity: 'success' | 'error' | 'info' | 'warning';
   }>({ open: false, message: '', severity: 'success' });
 
-  const pagination = usePagination();
-  const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
+  const { page, rowsPerPage, setPage, setRowsPerPage } = usePagination();
 
   const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {
-        page,
-        size: rowsPerPage,
-        sort: `${sortBy},${sortDirection}`,
-        ...filters
-      };
-
+      const params = { page, size: rowsPerPage };
       const response = await questionnaireService.search(filters, params);
       setQuestions(response.content);
       setTotalElements(response.totalElements);
     } catch (error: any) {
       console.error('Failed to fetch questions:', error);
-      // Don't show error in mock mode - just keep empty state
       setQuestions([]);
       setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, sortBy, sortDirection, filters]);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
-    console.log('QuestionnairePage mounted');
     fetchQuestions();
   }, [fetchQuestions]);
 
@@ -82,34 +68,24 @@ const QuestionnairePage: React.FC = () => {
   };
 
   const columns: Column<Question>[] = [
-    { id: 'orderIndex', label: 'Order', sortable: true, minWidth: 80 },
+    { id: 'displayOrder', label: 'Order', sortable: true, minWidth: 80 },
     { id: 'questionText', label: 'Question', sortable: true, minWidth: 300 },
     {
-      id: 'questionType',
-      label: 'Type',
+      id: 'questionCategory',
+      label: 'Category',
       sortable: true,
       minWidth: 150,
       format: (value) => {
-        const option = QUESTION_TYPE_OPTIONS.find(opt => opt.value === value);
-        return option?.label || value;
-      }
+        const option = QUESTION_CATEGORY_OPTIONS.find(opt => opt.value === value);
+        return option?.label || (value as string);
+      },
     },
-    {
-      id: 'isRequired',
-      label: 'Required',
-      sortable: true,
-      minWidth: 100,
-      format: (value) => (
-        <Chip label={value ? 'Yes' : 'No'} color={value ? 'primary' : 'default'} size="small" />
-      )
-    },
-    { id: 'category', label: 'Category', sortable: true, minWidth: 120 },
     {
       id: 'status',
       label: 'Status',
       sortable: true,
       minWidth: 100,
-      format: (value) => <StatusChip status={value as any} />
+      format: (value) => <StatusChip status={value as any} />,
     },
     {
       id: 'actions',
@@ -119,13 +95,13 @@ const QuestionnairePage: React.FC = () => {
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Edit">
-            <IconButton size="small" color="primary" onClick={() => handleEdit(row)}>
+            <IconButton size="small" color="primary" onClick={() => showSnackbar('Edit not implemented', 'info')}>
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
           {row.status === 'ACTIVE' ? (
-            <Tooltip title="Deactivate">
-              <IconButton size="small" color="warning" onClick={() => handleDeactivate(row)}>
+            <Tooltip title="Inactivate">
+              <IconButton size="small" color="warning" onClick={() => handleInactivate(row)}>
                 <DeactivateIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -142,27 +118,18 @@ const QuestionnairePage: React.FC = () => {
             </IconButton>
           </Tooltip>
         </Box>
-      )
-    }
+      ),
+    },
   ];
 
   const filterFields: FilterField[] = [
-    { name: 'questionType', label: 'Type', type: 'select', options: QUESTION_TYPE_OPTIONS },
-    { name: 'status', label: 'Status', type: 'select', options: [
-      { value: 'ACTIVE', label: 'Active' },
-      { value: 'INACTIVE', label: 'Inactive' },
-      { value: 'DRAFT', label: 'Draft' }
-    ]},
-    { name: 'category', label: 'Category', type: 'text' }
+    { name: 'questionCategory', label: 'Category', type: 'select', options: QUESTION_CATEGORY_OPTIONS },
+    { name: 'status', label: 'Status', type: 'select', options: QUESTION_STATUS_OPTIONS },
   ];
-
-  const handleEdit = (question: Question) => {
-    showSnackbar('Edit not implemented yet', 'info');
-  };
 
   const handleActivate = async (question: Question) => {
     try {
-      await questionnaireService.activate(question.id);
+      await questionnaireService.activate(question.questionId);
       showSnackbar('Question activated successfully', 'success');
       fetchQuestions();
     } catch (error: any) {
@@ -170,13 +137,13 @@ const QuestionnairePage: React.FC = () => {
     }
   };
 
-  const handleDeactivate = async (question: Question) => {
+  const handleInactivate = async (question: Question) => {
     try {
-      await questionnaireService.deactivate(question.id);
-      showSnackbar('Question deactivated successfully', 'success');
+      await questionnaireService.inactivate(question.questionId);
+      showSnackbar('Question inactivated successfully', 'success');
       fetchQuestions();
     } catch (error: any) {
-      showSnackbar(error.message || 'Failed to deactivate question', 'error');
+      showSnackbar(error.message || 'Failed to inactivate question', 'error');
     }
   };
 
@@ -188,7 +155,7 @@ const QuestionnairePage: React.FC = () => {
   const handleDelete = async () => {
     if (!selectedQuestion) return;
     try {
-      await questionnaireService.delete(selectedQuestion.id);
+      await questionnaireService.delete(selectedQuestion.questionId);
       showSnackbar('Question deleted successfully', 'success');
       setDeleteDialogOpen(false);
       setSelectedQuestion(null);
@@ -201,27 +168,9 @@ const QuestionnairePage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Questionnaire Management" />
-      <Box sx={{ 
-        mb: 3, 
-        display: 'flex', 
-        gap: 2, 
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-          <SearchBar 
-            placeholder="Search questions..." 
-            onSearch={setSearchQuery} 
-            defaultValue={searchQuery} 
-            fullWidth={true}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ whiteSpace: 'nowrap' }} disabled>
             Add Question
           </Button>
           <Tooltip title="Refresh">
@@ -245,13 +194,13 @@ const QuestionnairePage: React.FC = () => {
         sortDirection={sortDirection}
         loading={loading}
         emptyMessage="No questions found"
-        getRowId={(row) => row.id}
+        getRowId={(row) => row.questionId}
       />
 
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete Question"
-        message={`Are you sure you want to delete this question? This action cannot be undone.`}
+        message="Are you sure you want to delete this question? This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => { setDeleteDialogOpen(false); setSelectedQuestion(null); }}
         severity="error"

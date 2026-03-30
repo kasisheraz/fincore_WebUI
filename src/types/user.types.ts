@@ -1,59 +1,40 @@
 // User Management Types
 
-import { Status, Gender } from './common.types';
-
 export interface User {
   id: number;
-  firstName: string;
-  middleName?: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
-  dateOfBirth: string;
-  gender: Gender;
-  statusDescription: Status; // Backend uses statusDescription, not status
-  role?: string;
-  residentialAddressIdentifier?: number;
-  postalAddressIdentifier?: number;
-  createdDatetime: string; // Backend uses createdDatetime, not createdAt
-  lastModifiedDatetime: string; // Backend uses lastModifiedDatetime, not updatedAt
+  role: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateUserDTO {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
-  dateOfBirth: string;
-  gender: Gender;
-  role?: string; // Backend requires role - use 'ADMIN' as default
-  statusDescription?: Status;
+  role: string;
 }
 
 export interface UpdateUserDTO {
-  firstName?: string;
-  middleName?: string;
-  lastName?: string;
+  fullName?: string;
   email?: string;
   phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: Gender;
-  statusDescription?: Status; // Backend uses statusDescription
+  role?: string;
+  status?: string;
 }
 
 export interface UserSearchParams {
-  firstName?: string;
-  lastName?: string;
+  fullName?: string;
   email?: string;
   phoneNumber?: string;
-  status?: Status;
-  gender?: Gender;
+  status?: string;
+  role?: string;
 }
 
 export interface UserFilters {
-  status?: Status;
-  gender?: Gender;
-  dateFrom?: string;
-  dateTo?: string;
+  status?: string;
+  role?: string;
 }

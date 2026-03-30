@@ -11,11 +11,9 @@ import {
   Typography,
 } from '@mui/material';
 import { useThemeContext } from '../../context/ThemeContext';
-import ThemeSwitcher from '../common/ThemeSwitcher';
 import {
   Dashboard,
   Person,
-  Assessment,
   Settings,
   People,
   Business,
@@ -136,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                     color: sidebarColors[themeMode],
                     fontWeight: 600,
                     '&::before': {
-                      content: '\"\"',
+                      content: '"\\""',
                       position: 'absolute',
                       left: 0,
                       top: 0,

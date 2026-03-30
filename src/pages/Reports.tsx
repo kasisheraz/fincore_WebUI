@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -25,7 +24,6 @@ import {
 import PageHeader from '../components/common/PageHeader';
 
 const Reports: React.FC = () => {
-  const navigate = useNavigate();
   const reportTypes = [
     {
       title: 'Application Summary Report',

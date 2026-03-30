@@ -1,47 +1,30 @@
 // Questionnaire Types
 
-export type QuestionType = 'TEXT' | 'MULTIPLE_CHOICE' | 'YES_NO' | 'DATE' | 'NUMBER' | 'FILE';
-export type QuestionStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+export type QuestionCategory = 'PERSONAL_INFO' | 'FINANCIAL' | 'EMPLOYMENT' | 'IDENTIFICATION' | 'RISK_ASSESSMENT' | 'COMPLIANCE';
+export type QuestionStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 
 export interface Question {
-  id: number;
+  questionId: number;
   questionText: string;
-  questionType: QuestionType;
-  options?: string[];
-  isRequired: boolean;
-  orderIndex: number;
+  questionCategory: QuestionCategory;
+  displayOrder: number;
   status: QuestionStatus;
-  category?: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdBy?: number;
 }
 
 export interface CreateQuestionDTO {
   questionText: string;
-  questionType: QuestionType;
-  options?: string[];
-  isRequired: boolean;
-  orderIndex: number;
-  category?: string;
-  description?: string;
-  status?: QuestionStatus;
+  questionCategory: QuestionCategory;
+  displayOrder: number;
 }
 
 export interface UpdateQuestionDTO {
   questionText?: string;
-  questionType?: QuestionType;
-  options?: string[];
-  isRequired?: boolean;
-  orderIndex?: number;
-  status?: QuestionStatus;
-  category?: string;
-  description?: string;
+  questionCategory?: QuestionCategory;
+  displayOrder?: number;
 }
 
 export interface QuestionFilters {
-  questionType?: QuestionType;
+  questionCategory?: QuestionCategory;
   status?: QuestionStatus;
-  category?: string;
-  isRequired?: boolean;
 }

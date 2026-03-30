@@ -6,36 +6,29 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  LinearProgress,
   Typography,
-  Card,
-  CardContent
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
-  Assessment as ProgressIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
-import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import customerAnswerService from '../../services/customerAnswerService';
 import { CustomerAnswer, CustomerAnswerFilters } from '../../types/customerAnswer.types';
-import { formatDate, formatDateTime } from '../../utils/formatters';
+import { formatDateTime } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
 
 const CustomerAnswersPage: React.FC = () => {
   const [answers, setAnswers] = useState<CustomerAnswer[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<CustomerAnswerFilters>({});
-  const [sortBy, setSortBy] = useState<keyof CustomerAnswer>('submittedAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<keyof CustomerAnswer>('answeredAt');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<CustomerAnswer | null>(null);
 
@@ -45,31 +38,23 @@ const CustomerAnswersPage: React.FC = () => {
     severity: 'success' | 'error' | 'info' | 'warning';
   }>({ open: false, message: '', severity: 'success' });
 
-  const pagination = usePagination();
-  const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
+  const { page, rowsPerPage, setPage, setRowsPerPage } = usePagination();
 
   const fetchAnswers = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {
-        page,
-        size: rowsPerPage,
-        sort: `${sortBy},${sortDirection}`,
-        ...filters
-      };
-
+      const params = { page, size: rowsPerPage };
       const response = await customerAnswerService.search(filters, params);
       setAnswers(response.content);
       setTotalElements(response.totalElements);
     } catch (error: any) {
       console.error('Failed to fetch answers:', error);
-      // Don't show error in mock mode - just keep empty state
       setAnswers([]);
       setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, sortBy, sortDirection, filters]);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
     fetchAnswers();
@@ -80,39 +65,26 @@ const CustomerAnswersPage: React.FC = () => {
   };
 
   const columns: Column<CustomerAnswer>[] = [
-    { id: 'id', label: 'ID', sortable: true, minWidth: 80 },
+    { id: 'answerId', label: 'ID', sortable: true, minWidth: 80 },
     { id: 'userId', label: 'User ID', sortable: true, minWidth: 100 },
     { id: 'questionId', label: 'Question ID', sortable: true, minWidth: 120 },
-    {
-      id: 'questionText',
-      label: 'Question',
-      sortable: false,
-      minWidth: 250,
-      format: (value) => (
-        <Typography variant="body2" noWrap sx={{ maxWidth: 250 }}>
-          {value || '-'}
-        </Typography>
-      )
-    },
     {
       id: 'answerText',
       label: 'Answer',
       sortable: false,
-      minWidth: 200,
+      minWidth: 300,
       format: (value) => (
-        <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-          {value || (
-            <Typography variant="body2" color="text.secondary">File Upload</Typography>
-          )}
+        <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
+          {(value as string) || '-'}
         </Typography>
-      )
+      ),
     },
     {
-      id: 'submittedAt',
-      label: 'Submitted',
+      id: 'answeredAt',
+      label: 'Answered',
       sortable: true,
       minWidth: 150,
-      format: (value) => formatDateTime(value as string)
+      format: (value) => formatDateTime(value as string),
     },
     {
       id: 'actions',
@@ -122,7 +94,7 @@ const CustomerAnswersPage: React.FC = () => {
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Edit">
-            <IconButton size="small" color="primary" onClick={() => handleEdit(row)}>
+            <IconButton size="small" color="primary" onClick={() => showSnackbar('Edit not implemented', 'info')}>
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -132,20 +104,14 @@ const CustomerAnswersPage: React.FC = () => {
             </IconButton>
           </Tooltip>
         </Box>
-      )
-    }
+      ),
+    },
   ];
 
   const filterFields: FilterField[] = [
     { name: 'userId', label: 'User ID', type: 'text' },
     { name: 'questionId', label: 'Question ID', type: 'text' },
-    { name: 'submittedDateFrom', label: 'Submitted From', type: 'date' },
-    { name: 'submittedDateTo', label: 'Submitted To', type: 'date' }
   ];
-
-  const handleEdit = (answer: CustomerAnswer) => {
-    showSnackbar('Edit not implemented yet', 'info');
-  };
 
   const handleDeleteClick = (answer: CustomerAnswer) => {
     setSelectedAnswer(answer);
@@ -155,7 +121,7 @@ const CustomerAnswersPage: React.FC = () => {
   const handleDelete = async () => {
     if (!selectedAnswer) return;
     try {
-      await customerAnswerService.delete(selectedAnswer.id);
+      await customerAnswerService.delete(selectedAnswer.answerId);
       showSnackbar('Answer deleted successfully', 'success');
       setDeleteDialogOpen(false);
       setSelectedAnswer(null);
@@ -168,28 +134,10 @@ const CustomerAnswersPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Customer Answers Management" />
-      
-      <Box sx={{ 
-        mb: 3, 
-        display: 'flex', 
-        gap: 2, 
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-          <SearchBar 
-            placeholder="Search answers..." 
-            onSearch={setSearchQuery} 
-            defaultValue={searchQuery}
-            fullWidth={true}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
+
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ whiteSpace: 'nowrap' }} disabled>
             Submit Answer
           </Button>
           <Tooltip title="Refresh">
@@ -210,16 +158,16 @@ const CustomerAnswersPage: React.FC = () => {
         onRowsPerPageChange={setRowsPerPage}
         onSort={(column) => setSortBy(column as keyof CustomerAnswer)}
         sortBy={sortBy as string}
-        sortDirection={sortDirection}
+        sortDirection="desc"
         loading={loading}
         emptyMessage="No answers found"
-        getRowId={(row) => row.id}
+        getRowId={(row) => row.answerId}
       />
 
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete Answer"
-        message={`Are you sure you want to delete this answer? This action cannot be undone.`}
+        message="Are you sure you want to delete this answer? This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => { setDeleteDialogOpen(false); setSelectedAnswer(null); }}
         severity="error"

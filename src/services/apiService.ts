@@ -56,20 +56,20 @@ class ApiService {
     return this.api.get<T>(url, config);
   }
 
-  public post<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.api.post<T>(url, data);
+  public post<T = any>(url: string, data?: any, config?: any): Promise<AxiosResponse<T>> {
+    return this.api.post<T>(url, data, config);
   }
 
-  public put<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.api.put<T>(url, data);
+  public put<T = any>(url: string, data?: any, config?: any): Promise<AxiosResponse<T>> {
+    return this.api.put<T>(url, data, config);
   }
 
-  public patch<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.api.patch<T>(url, data);
+  public patch<T = any>(url: string, data?: any, config?: any): Promise<AxiosResponse<T>> {
+    return this.api.patch<T>(url, data, config);
   }
 
-  public delete<T = any>(url: string): Promise<AxiosResponse<T>> {
-    return this.api.delete<T>(url);
+  public delete<T = any>(url: string, config?: any): Promise<AxiosResponse<T>> {
+    return this.api.delete<T>(url, config);
   }
 
   public getAxiosInstance(): AxiosInstance {

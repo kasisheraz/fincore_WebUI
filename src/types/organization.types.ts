@@ -1,100 +1,123 @@
 // Organization Types
 
-export type OrganizationType = 'GOVERNMENT' | 'PRIVATE' | 'NON_PROFIT' | 'PUBLIC';
-export type OrganizationStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+export type OrganizationType = 'LTD' | 'PLC' | 'SOLE_TRADER' | 'PARTNERSHIP' | 'LLP' | 'CHARITY' | 'CIC';
+export type OrganizationStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED';
 
 export interface Address {
   id: number;
-  userId: number;
-  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
+  typeCode: number; // 1=Residential, 2=Business, 3=Registered, 4=Correspondence, 5=Postal
   addressLine1: string;
   addressLine2?: string;
   city: string;
-  stateProvince: string;
+  stateCode: string;
   postalCode: string;
   country: string;
-  isPrimary: boolean;
-  createdAt: string;
-  updatedAt: string;
+  statusDescription: string;
 }
 
 export interface Organization {
   id: number;
-  legalName: string; // Backend uses legalName
-  organisationType: OrganizationType; // Backend uses organisationType
+  legalName: string;
+  businessName?: string;
   registrationNumber: string;
-  taxId?: string;
-  email: string;
-  phoneNumber: string;
-  website?: string;
-  description?: string;
-  statusDescription: OrganizationStatus; // Backend uses statusDescription
-  ownerId: number; // Owner user ID
-  addresses?: Address[];
-  createdDatetime: string; // Backend uses createdDatetime
-  lastModifiedDatetime: string; // Backend uses lastModifiedDatetime
+  companyNumber?: string;
+  organisationType: OrganizationType;
+  sicCode?: string;
+  incorporationDate: string;
+  countryOfIncorporation: string;
+  status: OrganizationStatus;
+  businessDescription?: string;
+  websiteAddress?: string;
+  fcaNumber?: string;
+  hmrcMlrNumber?: string;
+  numberOfBranches?: number;
+  numberOfAgents?: number;
+  registeredAddress?: Address;
+  businessAddress?: Address;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateOrganizationDTO {
-  legalName: string; // Backend requires legalName
-  organisationType: OrganizationType; // Backend requires organisationType
+  ownerId: number;
+  legalName: string;
+  businessName?: string;
   registrationNumber: string;
-  taxId?: string;
-  email: string;
-  phoneNumber: string;
-  website?: string;
-  description?: string;
-  ownerId: number; // Backend requires ownerId
+  companyNumber?: string;
+  organisationType: OrganizationType;
+  sicCode?: string;
+  incorporationDate: string;
+  countryOfIncorporation: string;
+  businessDescription?: string;
+  websiteAddress?: string;
+  fcaNumber?: string;
+  hmrcMlrNumber?: string;
+  numberOfBranches?: number;
+  numberOfAgents?: number;
+  registeredAddress?: CreateAddressDTO;
+  businessAddress?: CreateAddressDTO;
 }
 
 export interface UpdateOrganizationDTO {
   legalName?: string;
-  organisationType?: OrganizationType;
+  businessName?: string;
   registrationNumber?: string;
-  taxId?: string;
-  email?: string;
-  phoneNumber?: string;
-  website?: string;
-  description?: string;
-  statusDescription?: OrganizationStatus;
-  ownerId?: number;
+  companyNumber?: string;
+  organisationType?: OrganizationType;
+  sicCode?: string;
+  incorporationDate?: string;
+  countryOfIncorporation?: string;
+  status?: OrganizationStatus;
+  businessDescription?: string;
+  websiteAddress?: string;
+  fcaNumber?: string;
+  hmrcMlrNumber?: string;
+  numberOfBranches?: number;
+  numberOfAgents?: number;
+  registeredAddress?: CreateAddressDTO;
+  businessAddress?: CreateAddressDTO;
 }
 
 export interface CreateAddressDTO {
-  userId: number;
-  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
+  typeCode: number;
   addressLine1: string;
   addressLine2?: string;
   city: string;
-  stateProvince: string;
+  stateCode: string;
   postalCode: string;
   country: string;
-  isPrimary?: boolean;
+  statusDescription: string;
 }
 
 export interface UpdateAddressDTO {
-  userId?: number;
   typeCode?: number;
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
-  stateProvince?: string;
+  stateCode?: string;
   postalCode?: string;
   country?: string;
-  isPrimary?: boolean;
+  statusDescription?: string;
+}
+
+export interface OrganizationSearchDTO {
+  searchTerm?: string;
+  status?: OrganizationStatus;
+  organisationType?: OrganizationType;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: string;
 }
 
 export interface OrganizationSearchParams {
   legalName?: string;
   organisationType?: OrganizationType;
-  statusDescription?: OrganizationStatus;
-  email?: string;
-  phoneNumber?: string;
+  status?: OrganizationStatus;
+  searchTerm?: string;
 }
 
 export interface OrganizationFilters {
   organisationType?: OrganizationType;
-  statusDescription?: OrganizationStatus;
-  registrationDateFrom?: string;
-  registrationDateTo?: string;
+  status?: OrganizationStatus;
 }

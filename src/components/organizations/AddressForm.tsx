@@ -4,127 +4,99 @@ import {
   TextField,
   Alert,
   MenuItem,
-  FormControlLabel,
-  Checkbox
 } from '@mui/material';
 import { Address, CreateAddressDTO, UpdateAddressDTO } from '../../types/organization.types';
-import { isRequired, isValidPostalCode } from '../../utils/validators';
+import { isRequired } from '../../utils/validators';
 
 interface AddressFormProps {
   address: Address | null;
-  userId?: number;
   onSubmit: (data: CreateAddressDTO | UpdateAddressDTO) => Promise<void>;
   mode: 'create' | 'edit';
   onValidationChange?: (isValid: boolean) => void;
+  onDataChange?: (data: CreateAddressDTO | UpdateAddressDTO) => void;
 }
 
 const ADDRESS_TYPE_OPTIONS = [
-  { value: 1, label: 'Home' },
-  { value: 2, label: 'Work' },
-  { value: 3, label: 'Billing' },
-  { value: 4, label: 'Shipping' },
+  { value: 1, label: 'Residential' },
+  { value: 2, label: 'Business' },
+  { value: 3, label: 'Registered' },
+  { value: 4, label: 'Correspondence' },
+  { value: 5, label: 'Postal' },
 ];
 
 const AddressForm: React.FC<AddressFormProps> = ({
   address,
-  userId,
   onSubmit,
   mode,
-  onValidationChange
+  onValidationChange,
+  onDataChange,
 }) => {
-  const [formData, setFormData] = useState({
-    userId: userId || 0,
-    typeCode: 1,
+  const [formData, setFormData] = useState<CreateAddressDTO>({
+    typeCode: 3,
     addressLine1: '',
     addressLine2: '',
     city: '',
-    stateProvince: '',
+    stateCode: '',
     postalCode: '',
-    country: 'USA',
-    isPrimary: false
+    country: 'GB',
+    statusDescription: 'ACTIVE',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Initialize form with address data in edit mode
   useEffect(() => {
     if (mode === 'edit' && address) {
       setFormData({
-        userId: address.userId || userId || 0,
-        typeCode: address.typeCode || 1,
+        typeCode: address.typeCode || 3,
         addressLine1: address.addressLine1 || '',
         addressLine2: address.addressLine2 || '',
         city: address.city || '',
-        stateProvince: address.stateProvince || '',
+        stateCode: address.stateCode || '',
         postalCode: address.postalCode || '',
-        country: address.country || 'USA',
-        isPrimary: address.isPrimary || false
+        country: address.country || 'GB',
+        statusDescription: address.statusDescription || 'ACTIVE',
       });
-    } else if (userId) {
-      setFormData(prev => ({ ...prev, userId }));
     }
-  }, [address, mode, userId]);
+  }, [address, mode]);
 
-  // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Address Line 1 validation
     if (!isRequired(formData.addressLine1)) {
       newErrors.addressLine1 = 'Address line 1 is required';
     }
-
-    // City validation
     if (!isRequired(formData.city)) {
       newErrors.city = 'City is required';
     }
-
-    // State validation
-    if (!isRequired(formData.stateProvince)) {
-      newErrors.stateProvince = 'State/Province is required';
-    }
-
-    // Postal code validation
     if (!isRequired(formData.postalCode)) {
       newErrors.postalCode = 'Postal code is required';
-    } else if (!isValidPostalCode(formData.postalCode)) {
-      newErrors.postalCode = 'Please enter a valid postal code';
     }
-
-    // Country validation
     if (!isRequired(formData.country)) {
       newErrors.country = 'Country is required';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    if (onValidationChange) onValidationChange(isValid);
+    return isValid;
   };
 
-  // Auto-validate on form data change
   useEffect(() => {
     const isValid = validateForm();
-    if (onValidationChange) {
-      onValidationChange(isValid);
-    }
-  }, [formData, onValidationChange]);
+    if (onDataChange) onDataChange(formData);
+  }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (field: keyof typeof formData) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = field === 'typeCode' ? Number(event.target.value) : 
-                   field === 'isPrimary' ? (event.target as HTMLInputElement).checked :
-                   event.target.value;
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    const value = field === 'typeCode' ? Number(event.target.value) : event.target.value;
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <Grid container spacing={2}>
-      {/* Address Type */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -142,20 +114,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         </TextField>
       </Grid>
 
-      {/* Primary Address Checkbox */}
-      <Grid item xs={12} sm={6}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.isPrimary}
-              onChange={handleChange('isPrimary')}
-            />
-          }
-          label="Primary Address"
-        />
-      </Grid>
-
-      {/* Address Line 1 */}
       <Grid item xs={12}>
         <TextField
           fullWidth
@@ -168,7 +126,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* Address Line 2 */}
       <Grid item xs={12}>
         <TextField
           fullWidth
@@ -178,7 +135,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* City */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -191,20 +147,16 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* State/Province */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="State/Province"
-          value={formData.stateProvince}
-          onChange={handleChange('stateProvince')}
-          error={!!errors.stateProvince}
-          helperText={errors.stateProvince}
-          required
+          label="State/County Code"
+          value={formData.stateCode}
+          onChange={handleChange('stateCode')}
+          placeholder="e.g. ENG"
         />
       </Grid>
 
-      {/* Postal Code */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -217,7 +169,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* Country */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -230,12 +181,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       </Grid>
 
-      {/* Error Summary */}
       {hasErrors && (
         <Grid item xs={12}>
           <Alert severity="error">
             Please fix the errors above before submitting.
- </Alert>
+          </Alert>
         </Grid>
       )}
     </Grid>

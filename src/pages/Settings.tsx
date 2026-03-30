@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -8,10 +7,8 @@ import {
   Grid,
   Switch,
   FormControlLabel,
-  Divider,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Button,
   TextField,
@@ -27,19 +24,14 @@ import {
 import {
   Notifications,
   Security,
-  Language,
   Palette,
   Storage,
   AccountCircle,
-  Email,
-  Phone,
-  Lock,
   Save,
 } from '@mui/icons-material';
 import PageHeader from '../components/common/PageHeader';
 
 const Settings: React.FC = () => {
-  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     email: true,
     sms: false,

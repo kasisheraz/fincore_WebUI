@@ -6,35 +6,32 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  LinearProgress,
-  Typography
+  Typography,
 } from '@mui/material';
 import {
   Add as AddIcon,
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
   Visibility as ViewIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
-import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import kycVerificationService from '../../services/kycVerificationService';
 import { KYCVerification, KYCVerificationFilters } from '../../types/kycVerification.types';
 import { formatDate } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { VERIFICATION_STATUS_OPTIONS } from '../../utils/constants';
+import { VERIFICATION_STATUS_OPTIONS, VERIFICATION_LEVEL_OPTIONS, RISK_LEVEL_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
 
 const KYCVerificationPage: React.FC = () => {
   const [verifications, setVerifications] = useState<KYCVerification[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<KYCVerificationFilters>({});
-  const [sortBy, setSortBy] = useState<keyof KYCVerification>('createdAt');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<keyof KYCVerification>('submittedAt');
+  const sortDirection = 'desc' as const;
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -42,34 +39,25 @@ const KYCVerificationPage: React.FC = () => {
     severity: 'success' | 'error' | 'info' | 'warning';
   }>({ open: false, message: '', severity: 'success' });
 
-  const pagination = usePagination();
-  const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
+  const { page, rowsPerPage, setPage, setRowsPerPage } = usePagination();
 
   const fetchVerifications = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {
-        page,
-        size: rowsPerPage,
-        sort: `${sortBy},${sortDirection}`,
-        ...filters
-      };
-
+      const params = { page, size: rowsPerPage };
       const response = await kycVerificationService.search(filters, params);
       setVerifications(response.content);
       setTotalElements(response.totalElements);
     } catch (error: any) {
       console.error('Failed to fetch verifications:', error);
-      // Don't show error in mock mode - just keep empty state
       setVerifications([]);
       setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, sortBy, sortDirection, filters]);
+  }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
-    console.log('KYCVerificationPage mounted');
     fetchVerifications();
   }, [fetchVerifications]);
 
@@ -78,14 +66,20 @@ const KYCVerificationPage: React.FC = () => {
   };
 
   const columns: Column<KYCVerification>[] = [
-    { id: 'id', label: 'ID', sortable: true, minWidth: 80 },
+    { id: 'verificationId', label: 'ID', sortable: true, minWidth: 80 },
     { id: 'userId', label: 'User ID', sortable: true, minWidth: 100 },
+    {
+      id: 'verificationLevel',
+      label: 'Level',
+      sortable: true,
+      minWidth: 100,
+    },
     {
       id: 'status',
       label: 'Status',
       sortable: true,
       minWidth: 120,
-      format: (value) => <StatusChip status={value as any} />
+      format: (value) => <StatusChip status={value as any} />,
     },
     {
       id: 'riskLevel',
@@ -93,41 +87,27 @@ const KYCVerificationPage: React.FC = () => {
       sortable: true,
       minWidth: 100,
       format: (value) => value ? (
-        <Tooltip title="Risk Assessment">
-          <Typography variant="body2" color={value === 'HIGH' ? 'error' : value === 'MEDIUM' ? 'warning.main' : 'success.main'}>
-            {value}
-          </Typography>
-        </Tooltip>
-      ) : '-'
+        <Typography
+          variant="body2"
+          color={value === 'HIGH' ? 'error' : value === 'MEDIUM' ? 'warning.main' : 'success.main'}
+        >
+          {value as string}
+        </Typography>
+      ) : '-',
     },
     {
-      id: 'documentsVerified',
-      label: 'Documents Progress',
-      sortable: false,
-      minWidth: 200,
-      format: (value, row) => {
-        const percentage = row.totalDocuments > 0 ? (row.documentsVerified / row.totalDocuments) * 100 : 0;
-        return (
-          <Box>
-            <Typography variant="caption">{row.documentsVerified} / {row.totalDocuments}</Typography>
-            <LinearProgress variant="determinate" value={percentage} sx={{ mt: 0.5 }} />
-          </Box>
-        );
-      }
-    },
-    {
-      id: 'verificationDate',
-      label: 'Verification Date',
+      id: 'submittedAt',
+      label: 'Submitted',
       sortable: true,
       minWidth: 120,
-      format: (value) => value ? formatDate(value as string) : '-'
+      format: (value) => formatDate(value as string),
     },
     {
-      id: 'createdAt',
-      label: 'Created',
+      id: 'reviewedAt',
+      label: 'Reviewed',
       sortable: true,
       minWidth: 120,
-      format: (value) => formatDate(value as string)
+      format: (value) => value ? formatDate(value as string) : '-',
     },
     {
       id: 'actions',
@@ -137,11 +117,11 @@ const KYCVerificationPage: React.FC = () => {
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="View Details">
-            <IconButton size="small" color="primary" onClick={() => handleView(row)}>
+            <IconButton size="small" color="primary" onClick={() => showSnackbar('View not implemented', 'info')}>
               <ViewIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          {(row.status === 'PENDING' || row.status === 'IN_REVIEW') && (
+          {row.status === 'PENDING' && (
             <>
               <Tooltip title="Approve">
                 <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
@@ -156,29 +136,20 @@ const KYCVerificationPage: React.FC = () => {
             </>
           )}
         </Box>
-      )
-    }
+      ),
+    },
   ];
 
   const filterFields: FilterField[] = [
     { name: 'userId', label: 'User ID', type: 'text' },
     { name: 'status', label: 'Status', type: 'select', options: VERIFICATION_STATUS_OPTIONS },
-    { name: 'riskLevel', label: 'Risk Level', type: 'select', options: [
-      { value: 'LOW', label: 'Low' },
-      { value: 'MEDIUM', label: 'Medium' },
-      { value: 'HIGH', label: 'High' }
-    ]},
-    { name: 'dateFrom', label: 'Date From', type: 'date' },
-    { name: 'dateTo', label: 'Date To', type: 'date' }
+    { name: 'verificationLevel', label: 'Level', type: 'select', options: VERIFICATION_LEVEL_OPTIONS },
+    { name: 'riskLevel', label: 'Risk Level', type: 'select', options: RISK_LEVEL_OPTIONS },
   ];
-
-  const handleView = (verification: KYCVerification) => {
-    showSnackbar('View details not implemented yet', 'info');
-  };
 
   const handleApprove = async (verification: KYCVerification) => {
     try {
-      await kycVerificationService.approve(verification.id, { riskLevel: 'LOW', notes: 'Approved by reviewer' });
+      await kycVerificationService.approve(verification.verificationId, { riskLevel: 'LOW', approvalReason: 'Approved by reviewer' });
       showSnackbar('Verification approved successfully', 'success');
       fetchVerifications();
     } catch (error: any) {
@@ -188,7 +159,7 @@ const KYCVerificationPage: React.FC = () => {
 
   const handleReject = async (verification: KYCVerification) => {
     try {
-      await kycVerificationService.reject(verification.id, { rejectionReason: 'Documents incomplete', notes: 'Rejected by reviewer' });
+      await kycVerificationService.reject(verification.verificationId, { reviewerComments: 'Documents incomplete' });
       showSnackbar('Verification rejected successfully', 'success');
       fetchVerifications();
     } catch (error: any) {
@@ -199,27 +170,9 @@ const KYCVerificationPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="KYC Verification Management" />
-      <Box sx={{ 
-        mb: 3, 
-        display: 'flex', 
-        gap: 2, 
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-          <SearchBar 
-            placeholder="Search verifications..." 
-            onSearch={setSearchQuery} 
-            defaultValue={searchQuery}
-            fullWidth={true}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ whiteSpace: 'nowrap' }} disabled>
             New Verification
           </Button>
           <Tooltip title="Refresh">
@@ -243,7 +196,7 @@ const KYCVerificationPage: React.FC = () => {
         sortDirection={sortDirection}
         loading={loading}
         emptyMessage="No verifications found"
-        getRowId={(row) => row.id}
+        getRowId={(row) => row.verificationId}
       />
 
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>

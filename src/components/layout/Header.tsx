@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  AppBar,
-  Toolbar,
   Typography,
   IconButton,
   Avatar,
@@ -16,7 +14,6 @@ import {
 import {
   Menu as MenuIcon,
   Notifications,
-  AccountCircle,
   Logout,
   Settings,
   Person,
@@ -59,8 +56,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
   };
 
   const getUserInitials = () => {
-    if (!user || !user.firstName || !user.lastName) return '?';
-    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    if (!user || !user.fullName) return '?';
+    const parts = user.fullName.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
   };
 
   return (
@@ -162,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
               <>
                 <Box sx={{ px: 2, py: 1.5 }}>
                   <Typography variant="subtitle2" fontWeight="bold">
-                    {user.firstName} {user.lastName}
+                    {user.fullName}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {user.email}
