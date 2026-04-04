@@ -17,8 +17,8 @@ class AuthService {
       phoneNumber: '1234567890',
       dateOfBirth: '1990-01-01',
       gender: 'MALE',
-      role: 'USER',
       statusDescription: 'ACTIVE',
+      role: 'USER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -30,8 +30,8 @@ class AuthService {
       phoneNumber: '9876543210',
       dateOfBirth: '1992-05-15',
       gender: 'FEMALE',
-      role: 'MANAGER',
       statusDescription: 'ACTIVE',
+      role: 'MANAGER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -43,8 +43,8 @@ class AuthService {
       phoneNumber: '5555555555',
       dateOfBirth: '1985-03-20',
       gender: 'OTHER',
-      role: 'ADMIN',
       statusDescription: 'ACTIVE',
+      role: 'ADMIN',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     }
