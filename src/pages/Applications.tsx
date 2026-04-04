@@ -147,15 +147,14 @@ const Applications: React.FC = () => {
   const statuses = ['Pending', 'Under Review', 'Approved', 'Rejected'];
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+    <Box>
       <PageHeader 
         title="Applications Management"
         buttonText="New Application"
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      
-      <Box sx={{ p: 0 }}>
+      <Box sx={{ px: 2, py: 2 }}>      
         {/* Stats Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>

@@ -38,6 +38,7 @@ const KYCDocumentsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<keyof KYCDocument>('uploadedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
@@ -214,6 +215,20 @@ const KYCDocumentsPage: React.FC = () => {
     }
   };
 
+  const handleUploadClick = () => {
+    console.log('🔵 BUTTON CLICKED: Upload Document button clicked!');
+    setUploadDialogOpen(true);
+  };
+
+  const handleUploadClose = () => {
+    setUploadDialogOpen(false);
+  };
+
+  const handleUpload = () => {
+    showSnackbar('Document upload functionality will be implemented soon', 'info');
+    setUploadDialogOpen(false);
+  };
+
   return (
     <Box>
       <PageHeader title="KYC Document Management" />
@@ -237,6 +252,7 @@ const KYCDocumentsPage: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<UploadIcon />}
+            onClick={handleUploadClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
             Upload Document

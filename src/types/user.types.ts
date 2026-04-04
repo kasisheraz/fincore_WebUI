@@ -1,6 +1,6 @@
 // User Management Types
 
-import { Status, Gender } from './common.types';
+import { Status } from './common.types';
 
 export interface User {
   id: number;
@@ -10,7 +10,6 @@ export interface User {
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
-  gender: Gender;
   statusDescription: Status; // Backend uses statusDescription, not status
   role?: string;
   residentialAddressIdentifier?: number;
@@ -26,9 +25,10 @@ export interface CreateUserDTO {
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
-  gender: Gender;
-  role?: string; // Backend requires role - use 'ADMIN' as default
+  role?: string; // Backend requires role
   statusDescription?: Status;
+  residentialAddressIdentifier?: number; // FK to Address table
+  postalAddressIdentifier?: number; // FK to Address table
 }
 
 export interface UpdateUserDTO {
@@ -38,8 +38,9 @@ export interface UpdateUserDTO {
   email?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
-  gender?: Gender;
   statusDescription?: Status; // Backend uses statusDescription
+  residentialAddressIdentifier?: number; // FK to Address table
+  postalAddressIdentifier?: number; // FK to Address table
 }
 
 export interface UserSearchParams {
@@ -48,12 +49,10 @@ export interface UserSearchParams {
   email?: string;
   phoneNumber?: string;
   status?: Status;
-  gender?: Gender;
 }
 
 export interface UserFilters {
   status?: Status;
-  gender?: Gender;
   dateFrom?: string;
   dateTo?: string;
 }

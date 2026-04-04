@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './context/AuthContext';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import Dashboard from './pages/Dashboard';
 import Applications from './pages/Applications';
 import IndividualApplication from './pages/IndividualApplication';
@@ -30,25 +31,30 @@ const AppLayout: React.FC = () => {
 
   return (
     <ProtectedRoute>
-      <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: 0,
-            ml: '220px',
+            m: 0,
+            pt: '64px',
             transition: 'margin-left 0.3s ease',
             backgroundColor: '#F8F9FA',
             minHeight: '100vh',
             width: 'calc(100% - 220px)',
-            maxWidth: 'calc(100vw - 220px)',
             overflow: 'auto',
             boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} title="FinCore" />
-          <Outlet />
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Outlet />
+          </Box>
+          <Footer />
         </Box>
       </Box>
     </ProtectedRoute>
@@ -94,7 +100,7 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppContent />
       </Router>
     </ThemeProvider>

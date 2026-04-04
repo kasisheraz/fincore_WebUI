@@ -24,7 +24,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ steps }) => {
                   height: 40,
                   borderRadius: '50%',
                   backgroundColor:
-                    step.status === 'completed' ? '#1F7A5C' :
+                    step.status === 'completed' ? '#003D2A' :
                     step.status === 'active' ? '#D97706' :
                     '#E5E7EB',
                   border: step.status === 'active' ? '3px solid #D97706' : 'none',
@@ -67,7 +67,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ steps }) => {
                   height: 2,
                   backgroundColor:
                     steps[index + 1].status === 'completed' || step.status === 'completed'
-                      ? '#1F7A5C'
+                      ? '#003D2A'
                       : '#E5E7EB',
                   mb: 5,
                   transition: 'all 0.3s ease',

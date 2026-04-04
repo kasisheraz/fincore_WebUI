@@ -69,7 +69,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           backgroundColor: sidebarColors[themeMode],
           color: '#ffffff',
           borderRight: 'none',
-          boxShadow: '4px 0 12px rgba(0, 0, 0, 0.15)',
+          boxShadow: 'none',
+          m: 0,
+          p: 0,
+          left: 0,
+          top: 0,
         },
       }}
     >

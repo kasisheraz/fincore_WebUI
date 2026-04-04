@@ -35,6 +35,9 @@ const KYCVerificationPage: React.FC = () => {
   const [filters, setFilters] = useState<KYCVerificationFilters>({});
   const [sortBy, setSortBy] = useState<keyof KYCVerification>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedVerification, setSelectedVerification] = useState<KYCVerification | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -173,7 +176,17 @@ const KYCVerificationPage: React.FC = () => {
   ];
 
   const handleView = (verification: KYCVerification) => {
-    showSnackbar('View details not implemented yet', 'info');
+    setSelectedVerification(verification);
+    setViewDialogOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreate = () => {
+    showSnackbar('Verification creation functionality will be implemented soon', 'info');
+    setCreateDialogOpen(false);
   };
 
   const handleApprove = async (verification: KYCVerification) => {
@@ -219,6 +232,7 @@ const KYCVerificationPage: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
+            onClick={handleCreateClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
             New Verification

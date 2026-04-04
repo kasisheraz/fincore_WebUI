@@ -23,6 +23,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   Notifications,
@@ -40,6 +42,11 @@ import PageHeader from '../components/common/PageHeader';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info' | 'warning';
+  }>({ open: false, message: '', severity: 'success' });
   const [notifications, setNotifications] = useState({
     email: true,
     sms: false,
@@ -55,6 +62,11 @@ const Settings: React.FC = () => {
   });
 
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
+    console.log('🟡 SETTINGS SNACKBAR:', message, severity);
+    setSnackbar({ open: true, message, severity });
+  };
 
   const handleNotificationChange = (key: string) => {
     setNotifications(prev => ({
@@ -111,15 +123,14 @@ const Settings: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+    <Box>
       <PageHeader 
         title="Settings"
         buttonText="Save Settings"
         buttonIcon={<Save />}
-        onButtonClick={() => console.log('Settings saved')}
+        onButtonClick={() => showSnackbar('Settings saved successfully', 'success')}
       />
-      
-      <Box sx={{ p: 0 }}>
+      <Box sx={{ px: 2, py: 2 }}>      
         <Grid container spacing={3}>
           {/* Notifications */}
         <Grid item xs={12} md={6}>
@@ -408,11 +419,20 @@ const Settings: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPasswordDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => setPasswordDialogOpen(false)}>
+          <Button variant="contained" onClick={() => {
+            showSnackbar('Password update functionality will be implemented soon', 'info');
+            setPasswordDialogOpen(false);
+          }}>
             Update Password
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       </Box>
     </Box>
   );

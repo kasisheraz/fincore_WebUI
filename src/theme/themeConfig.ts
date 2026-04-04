@@ -13,9 +13,9 @@ export interface ThemeColors {
 export const themes = {
   green: {
     sidebar: '#003D2A',        // Dark Forest Green
-    primary: '#1F7A5C',         // Action Green
-    primaryLight: '#2D8A6A',
-    primaryDark: '#0D5940',
+    primary: '#003D2A',         // Matching sidebar color
+    primaryLight: '#2E8B67',
+    primaryDark: '#002418',
     accent: '#E6F4F0',          // Light green accent
     accentBg: '#F0FDF4',
   },

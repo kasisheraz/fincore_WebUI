@@ -37,6 +37,8 @@ const CustomerAnswersPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<keyof CustomerAnswer>('submittedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<CustomerAnswer | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
@@ -144,7 +146,23 @@ const CustomerAnswersPage: React.FC = () => {
   ];
 
   const handleEdit = (answer: CustomerAnswer) => {
-    showSnackbar('Edit not implemented yet', 'info');
+    setSelectedAnswer(answer);
+    setEditDialogOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreate = () => {
+    showSnackbar('Answer submission functionality will be implemented soon', 'info');
+    setCreateDialogOpen(false);
+  };
+
+  const handleEditSave = () => {
+    showSnackbar('Answer edit functionality will be implemented soon', 'info');
+    setEditDialogOpen(false);
+    setSelectedAnswer(null);
   };
 
   const handleDeleteClick = (answer: CustomerAnswer) => {
@@ -189,6 +207,7 @@ const CustomerAnswersPage: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
+            onClick={handleCreateClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
             Submit Answer

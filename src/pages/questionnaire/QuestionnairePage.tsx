@@ -38,6 +38,8 @@ const QuestionnairePage: React.FC = () => {
   const [sortBy, setSortBy] = useState<keyof Question>('orderIndex');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
   const [snackbar, setSnackbar] = useState<{
@@ -157,7 +159,23 @@ const QuestionnairePage: React.FC = () => {
   ];
 
   const handleEdit = (question: Question) => {
-    showSnackbar('Edit not implemented yet', 'info');
+    setSelectedQuestion(question);
+    setEditDialogOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreate = () => {
+    showSnackbar('Question creation functionality will be implemented soon', 'info');
+    setCreateDialogOpen(false);
+  };
+
+  const handleEditSave = () => {
+    showSnackbar('Question edit functionality will be implemented soon', 'info');
+    setEditDialogOpen(false);
+    setSelectedQuestion(null);
   };
 
   const handleActivate = async (question: Question) => {
@@ -221,6 +239,7 @@ const QuestionnairePage: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
+            onClick={handleCreateClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
             Add Question
