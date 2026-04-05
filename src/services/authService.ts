@@ -19,6 +19,7 @@ class AuthService {
       gender: 'MALE',
       role: 'USER',
       statusDescription: 'ACTIVE',
+      role: 'MANAGER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -32,6 +33,7 @@ class AuthService {
       gender: 'FEMALE',
       role: 'MANAGER',
       statusDescription: 'ACTIVE',
+      role: 'MANAGER',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     },
@@ -45,6 +47,7 @@ class AuthService {
       gender: 'OTHER',
       role: 'ADMIN',
       statusDescription: 'ACTIVE',
+      role: 'ADMIN',
       createdDatetime: '2024-01-01T00:00:00Z',
       lastModifiedDatetime: '2024-01-01T00:00:00Z'
     }

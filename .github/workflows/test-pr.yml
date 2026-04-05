@@ -9,32 +9,184 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     permissions:
       contents: read
       pull-requests: write
-      
+      issues: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          
+
       - name: Install dependencies
-        run: npm ci
-        
+        run: npm install
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-        
+
       - name: Run E2E tests
+        id: run_tests
         run: npx playwright test
+        continue-on-error: true
         env:
           CI: true
-          
+
+      - name: Parse test results
+        id: parse_results
+        if: always()
+        run: |
+          if [ -f "test-results/results.json" ]; then
+            FAILED=$(cat test-results/results.json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          suites = data.get('suites', [])
+          failed = []
+          def collect_failures(suites, path=''):
+              for suite in suites:
+                  title = suite.get('title', '')
+                  full_path = f'{path} > {title}' if path else title
+                  for spec in suite.get('specs', []):
+                      for test in spec.get('tests', []):
+                          if test.get('status') == 'failed' or any(r.get('status') == 'failed' for r in test.get('results', [])):
+                              failed.append(f'{full_path} > {spec.get(\"title\", \"\")}')
+                  collect_failures(suite.get('suites', []), full_path)
+          collect_failures(suites)
+          print('\n'.join(failed[:20]))
+          " 2>/dev/null || echo "")
+            {
+              echo "FAILED_TESTS<<EOF"
+              echo "$FAILED"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "FAILED_TESTS=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post test failure comment and re-assign to developer
+        if: steps.run_tests.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const failedTests = `${{ steps.parse_results.outputs.FAILED_TESTS }}`;
+            const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+
+            const failedList = failedTests.trim()
+              ? failedTests.trim().split('\n').map(t => `- \`${t.trim()}\``).join('\n')
+              : '- See CI logs for details';
+
+            const comment = `## ❌ E2E Tests Failed — Action Required
+
+            The automated E2E test suite detected **test failures** in this PR. The PR has been flagged and returned to the developer for fixes.
+
+            ### 🔴 Failing Tests
+            ${failedList}
+
+            ### 🔧 Next Steps for Developer Agent
+            1. Review the failing tests listed above
+            2. Check the [full CI logs](${runUrl}) and attached artifacts for screenshots/traces
+            3. Fix the failing tests in the source code or test files
+            4. Push the fixes to re-trigger this workflow
+
+            ### 📎 Resources
+            - [CI Run Logs](${runUrl})
+            - Download \`playwright-report\` and \`test-results\` artifacts from the run above for screenshots and traces
+
+            ---
+            *🤖 This comment was posted automatically by the CI/CD pipeline. The \`tests-failing\` label has been applied to block merge until tests pass.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
+
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'tests-failing'
+              });
+            } catch (e) {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'tests-failing',
+                color: 'd73a4a',
+                description: 'E2E tests are failing — fix required before merge'
+              });
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['tests-failing']
+            });
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name: 'tests-passing'
+              });
+            } catch (e) {
+              // Label may not exist on this PR, ignore
+            }
+
+            console.log('✅ Posted test failure comment and applied tests-failing label');
+
+      - name: Mark tests as passing
+        if: steps.run_tests.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'tests-passing'
+              });
+            } catch (e) {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'tests-passing',
+                color: '0e8a16',
+                description: 'All E2E tests are passing'
+              });
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['tests-passing']
+            });
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name: 'tests-failing'
+              });
+            } catch (e) {
+              // Label may not exist on this PR, ignore
+            }
+
+            console.log('✅ Tests passing — applied tests-passing label');
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,11 +194,15 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-          
+
       - name: Upload test artifacts
-        if: failure()
+        if: steps.run_tests.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: test-results/
           retention-days: 7
+
+      - name: Fail the workflow if tests failed
+        if: steps.run_tests.outcome == 'failure'
+        run: exit 1
