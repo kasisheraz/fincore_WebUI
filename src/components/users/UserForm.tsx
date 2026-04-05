@@ -6,7 +6,7 @@ import {
   Alert,
 } from '@mui/material';
 import { User, CreateUserDTO, UpdateUserDTO } from '../../types/user.types';
-import { GENDER_OPTIONS, STATUS_OPTIONS, CREATABLE_ROLES, USER_ROLES } from '../../utils/constants';
+import { STATUS_OPTIONS, CREATABLE_ROLES, USER_ROLES } from '../../utils/constants';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidAge } from '../../utils/validators';
 
 interface UserFormProps {
@@ -25,7 +25,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     email: user?.email || '',
     phoneNumber: user?.phoneNumber || '',
     dateOfBirth: user?.dateOfBirth || '',
-    gender: user?.gender || 'MALE',
+    residentialAddressIdentifier: user?.residentialAddressIdentifier,
+    postalAddressIdentifier: user?.postalAddressIdentifier,
     ...(mode === 'create' ? { role: USER_ROLES.USER } : {}), // Default to USER role
     ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
@@ -41,7 +42,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         email: user.email,
         phoneNumber: user.phoneNumber,
         dateOfBirth: user.dateOfBirth,
-        gender: user.gender,
+        residentialAddressIdentifier: user.residentialAddressIdentifier,
+        postalAddressIdentifier: user.postalAddressIdentifier,
         ...(mode === 'create' ? { role: USER_ROLES.USER } : {}),
         ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
@@ -75,10 +77,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
       newErrors.dateOfBirth = 'Date of birth is required';
     } else if (!isValidAge(formData.dateOfBirth!, 18)) {
       newErrors.dateOfBirth = 'User must be at least 18 years old';
-    }
-
-    if (!isRequired(formData.gender)) {
-      newErrors.gender = 'Gender is required';
     }
 
     setErrors(newErrors);
@@ -120,7 +118,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
   }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={3}>
+      {/* Row 1: Basic Name Information */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -145,6 +144,19 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         />
       </Grid>
 
+      {/* Row 2: Middle Name */}
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Middle Name"
+          value={formData.middleName || ''}
+          onChange={(e) => handleChange('middleName', e.target.value)}
+          helperText="Optional (max 100 chars)"
+          inputProps={{ maxLength: 100 }}
+        />
+      </Grid>
+
+      {/* Row 3: Contact Information */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -171,6 +183,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         />
       </Grid>
 
+      {/* Row 4: Date of Birth and Role/Status */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -183,25 +196,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
           InputLabelProps={{ shrink: true }}
           required
         />
-      </Grid>
-
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          select
-          label="Gender"
-          value={formData.gender}
-          onChange={(e) => handleChange('gender', e.target.value)}
-          error={!!errors.gender}
-          helperText={errors.gender}
-          required
-        >
-          {GENDER_OPTIONS.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
       </Grid>
 
       {mode === 'create' && (
@@ -232,6 +226,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
             label="Status"
             value={(formData as UpdateUserDTO).statusDescription || 'ACTIVE'}
             onChange={(e) => handleChange('statusDescription', e.target.value)}
+            helperText="Current user status"
           >
             {STATUS_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
@@ -242,6 +237,32 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         </Grid>
       )}
 
+      {/* Row 5: Address Identifiers */}
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Residential Address ID"
+          type="number"
+          value={formData.residentialAddressIdentifier || ''}
+          onChange={(e) => handleChange('residentialAddressIdentifier', e.target.value ? Number(e.target.value) : undefined)}
+          helperText="Optional: Link to existing residential address"
+          InputProps={{ inputProps: { min: 1 } }}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Postal Address ID"
+          type="number"
+          value={formData.postalAddressIdentifier || ''}
+          onChange={(e) => handleChange('postalAddressIdentifier', e.target.value ? Number(e.target.value) : undefined)}
+          helperText="Optional: Link to existing postal address"
+          InputProps={{ inputProps: { min: 1 } }}
+        />
+      </Grid>
+
+      {/* Validation Error Alert */}
       {Object.keys(errors).length > 0 && (
         <Grid item xs={12}>
           <Alert severity="error">

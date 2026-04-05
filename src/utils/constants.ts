@@ -36,11 +36,10 @@ export const VERIFICATION_STATUS_OPTIONS = [
 ];
 
 export const ORGANIZATION_TYPE_OPTIONS = [
-  { label: 'Corporation', value: 'CORPORATION' },
-  { label: 'LLC', value: 'LLC' },
-  { label: 'Partnership', value: 'PARTNERSHIP' },
-  { label: 'Sole Proprietorship', value: 'SOLE_PROPRIETORSHIP' },
+  { label: 'Government', value: 'GOVERNMENT' },
+  { label: 'Private', value: 'PRIVATE' },
   { label: 'Non-Profit', value: 'NON_PROFIT' },
+  { label: 'Public', value: 'PUBLIC' },
 ];
 
 export const QUESTION_TYPE_OPTIONS = [

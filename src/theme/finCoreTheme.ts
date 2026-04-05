@@ -11,9 +11,9 @@ export const finCoreTheme = createTheme({
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#1F7A5C', // WCAG Compliant Action Green (4.5:1 on white)
-      light: '#4CAF50',
-      dark: '#0D5940',
+      main: '#003D2A', // Matching sidebar and header color
+      light: '#2E8B67',
+      dark: '#002418',
       contrastText: '#ffffff',
     },
     background: {

@@ -12,6 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { CheckCircle, Error as ErrorIcon, Warning } from '@mui/icons-material';
+import PageHeader from '../components/common/PageHeader';
 import { API_CONFIG } from '../config/config';
 import apiService from '../services/apiService';
 import userService from '../services/userService';
@@ -147,10 +148,9 @@ const DiagnosticsPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
-      <Typography variant="h4" gutterBottom>
-        System Diagnostics
-      </Typography>
+    <Box>
+      <PageHeader title="System Diagnostics" />
+      <Box sx={{ px: 2, py: 2 }}>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Run diagnostics to check system health and connectivity
       </Typography>
@@ -211,6 +211,7 @@ const DiagnosticsPage: React.FC = () => {
           Click "Run Diagnostics" to check system health
         </Alert>
       )}
+      </Box>
     </Box>
   );
 };

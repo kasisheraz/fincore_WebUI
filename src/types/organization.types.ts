@@ -5,83 +5,223 @@ export type OrganizationStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED'
 
 export interface Address {
   id: number;
-  userId: number;
-  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
+  addressType?: string;
+  typeCode: number; // 1=Registered, 2=Business, 3=Correspondence, etc.
   addressLine1: string;
   addressLine2?: string;
-  city: string;
-  stateProvince: string;
-  postalCode: string;
+  city?: string;
+  stateCode?: string; // Backend uses stateCode
+  postalCode?: string;
   country: string;
-  isPrimary: boolean;
-  createdAt: string;
-  updatedAt: string;
+  statusDescription?: string;
+  createdDatetime?: string;
 }
 
 export interface Organization {
   id: number;
-  legalName: string; // Backend uses legalName
-  organisationType: OrganizationType; // Backend uses organisationType
-  registrationNumber: string;
-  taxId?: string;
-  email: string;
-  phoneNumber: string;
-  website?: string;
-  description?: string;
-  statusDescription: OrganizationStatus; // Backend uses statusDescription
-  ownerId: number; // Owner user ID
-  addresses?: Address[];
-  createdDatetime: string; // Backend uses createdDatetime
-  lastModifiedDatetime: string; // Backend uses lastModifiedDatetime
+  ownerId: number;
+  ownerName?: string;
+  
+  // Basic Information
+  legalName: string;
+  organisationType: OrganizationType;
+  registrationNumber?: string;
+  sicCode?: string;
+  businessName?: string;
+  businessDescription?: string;
+  incorporationDate?: string;
+  countryOfIncorporation?: string;
+  typeOfBusinessCode?: string;
+  
+  // Contact Information
+  websiteAddress?: string;
+  
+  // Regulatory Information
+  hmrcMlrNumber?: string;
+  hmrcExpiryDate?: string;
+  fcaNumber?: string;
+  icoNumber?: string;
+  
+  // Business Structure
+  numberOfBranches?: string;
+  numberOfAgents?: string;
+  mlroDetails?: string;
+  complianceConsultantDetails?: string;
+  accountantDetails?: string;
+  technologyServiceProviderDetails?: string;
+  payoutPartnerName?: string;
+  
+  // Registration Details
+  registrationInformation?: string;
+  companyNumber?: string;
+  sicCodes?: string;
+  businessLicenseNumber?: string;
+  
+  // Remittance Information
+  primaryRemittanceDestinationCountry?: string;
+  secondaryRemittanceDestinationCountry?: string;
+  
+  // Transaction Volumes
+  monthlyTurnoverRange?: string;
+  numberOfIncomingTransactions?: string;
+  numberOfOutgoingTransactions?: string;
+  valueOfIncomingTransactions?: string;
+  valueOfOutgoingTransactions?: string;
+  maxValueOfIncomingPayments?: string;
+  maxValueOfOutgoingPayments?: string;
+  productDescription?: string;
+  
+  // Addresses
+  registeredAddress?: Address;
+  businessAddress?: Address;
+  correspondenceAddress?: Address;
+  
+  // Status and Audit
+  statusDescription: OrganizationStatus;
+  reasonDescription?: string;
+  legacyIdentifier?: string;
+  createdDatetime: string;
+  lastModifiedDatetime: string;
 }
 
 export interface CreateOrganizationDTO {
-  legalName: string; // Backend requires legalName
-  organisationType: OrganizationType; // Backend requires organisationType
-  registrationNumber: string;
-  taxId?: string;
-  email: string;
-  phoneNumber: string;
-  website?: string;
-  description?: string;
-  ownerId: number; // Backend requires ownerId
+  // Required fields
+  ownerId: number; // Required
+  legalName: string; // Required
+  organisationType: OrganizationType; // Required
+  
+  // Basic Information
+  registrationNumber?: string;
+  sicCode?: string;
+  businessName?: string;
+  businessDescription?: string;
+  incorporationDate?: string; // LocalDate format
+  countryOfIncorporation?: string;
+  typeOfBusinessCode?: string;
+  
+  // Contact Information (mapped from websiteAddress in backend)
+  websiteAddress?: string;
+  
+  // Regulatory Information
+  hmrcMlrNumber?: string;
+  hmrcExpiryDate?: string; // LocalDate format
+  fcaNumber?: string;
+  icoNumber?: string;
+  
+  // Business Structure
+  numberOfBranches?: string;
+  numberOfAgents?: string;
+  mlroDetails?: string;
+  complianceConsultantDetails?: string;
+  accountantDetails?: string;
+  technologyServiceProviderDetails?: string;
+  payoutPartnerName?: string;
+  
+  // Registration Details
+  registrationInformation?: string;
+  companyNumber?: string;
+  sicCodes?: string;
+  businessLicenseNumber?: string;
+  
+  // Remittance Information
+  primaryRemittanceDestinationCountry?: string;
+  secondaryRemittanceDestinationCountry?: string;
+  
+  // Transaction Volume Information
+  monthlyTurnoverRange?: string;
+  numberOfIncomingTransactions?: string;
+  numberOfOutgoingTransactions?: string;
+  valueOfIncomingTransactions?: string;
+  valueOfOutgoingTransactions?: string;
+  maxValueOfIncomingPayments?: string;
+  maxValueOfOutgoingPayments?: string;
+  productDescription?: string;
+  
+  // Addresses (nested objects)
+  registeredAddress?: CreateAddressDTO;
+  businessAddress?: CreateAddressDTO;
+  correspondenceAddress?: CreateAddressDTO;
+  
+  // Other
+  legacyIdentifier?: string;
 }
 
 export interface UpdateOrganizationDTO {
+  // Basic Information
   legalName?: string;
   organisationType?: OrganizationType;
   registrationNumber?: string;
-  taxId?: string;
-  email?: string;
-  phoneNumber?: string;
-  website?: string;
-  description?: string;
+  sicCode?: string;
+  businessName?: string;
+  businessDescription?: string;
+  incorporationDate?: string;
+  countryOfIncorporation?: string;
+  typeOfBusinessCode?: string;
+  
+  // Contact Information
+  websiteAddress?: string;
+  
+  // Regulatory Information
+  hmrcMlrNumber?: string;
+  hmrcExpiryDate?: string;
+  fcaNumber?: string;
+  icoNumber?: string;
+  
+  // Business Structure
+  numberOfBranches?: string;
+  numberOfAgents?: string;
+  mlroDetails?: string;
+  complianceConsultantDetails?: string;
+  accountantDetails?: string;
+  technologyServiceProviderDetails?: string;
+  payoutPartnerName?: string;
+  
+  // Registration Details
+  registrationInformation?: string;
+  companyNumber?: string;
+  sicCodes?: string;
+  businessLicenseNumber?: string;
+  
+  // Remittance Information
+  primaryRemittanceDestinationCountry?: string;
+  secondaryRemittanceDestinationCountry?: string;
+  
+  // Transaction Volumes
+  monthlyTurnoverRange?: string;
+  numberOfIncomingTransactions?: string;
+  numberOfOutgoingTransactions?: string;
+  valueOfIncomingTransactions?: string;
+  valueOfOutgoingTransactions?: string;
+  maxValueOfIncomingPayments?: string;
+  maxValueOfOutgoingPayments?: string;
+  productDescription?: string;
+  
+  // Status
   statusDescription?: OrganizationStatus;
   ownerId?: number;
+  
+  // Other
+  legacyIdentifier?: string;
 }
 
 export interface CreateAddressDTO {
-  userId: number;
-  typeCode: number; // 1=HOME, 2=WORK, 3=BILLING, etc.
-  addressLine1: string;
+  typeCode: number; // Required: 1=Registered, 2=Business, 3=Correspondence
+  addressLine1: string; // Required
   addressLine2?: string;
-  city: string;
-  stateProvince: string;
-  postalCode: string;
-  country: string;
-  isPrimary?: boolean;
+  postalCode?: string;
+  stateCode?: string; // Backend uses stateCode
+  city?: string;
+  country: string; // Required
 }
 
 export interface UpdateAddressDTO {
-  userId?: number;
   typeCode?: number;
   addressLine1?: string;
   addressLine2?: string;
-  city?: string;
-  stateProvince?: string;
   postalCode?: string;
+  stateCode?: string; // Backend uses stateCode
+  city?: string;
   country?: string;
-  isPrimary?: boolean;
 }
 
 export interface OrganizationSearchParams {

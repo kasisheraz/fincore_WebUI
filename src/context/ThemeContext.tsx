@@ -30,9 +30,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const colors = {
       green: {
         sidebar: '#003D2A',
-        primary: '#1F7A5C',
-        primaryLight: '#2D8A6A',
-        primaryDark: '#0D5940',
+        primary: '#003D2A',
+        primaryLight: '#2E8B67',
+        primaryDark: '#002418',
         accent: '#E6F7F1',
         accentBg: '#F0FDF4',
         warning: '#D97706',

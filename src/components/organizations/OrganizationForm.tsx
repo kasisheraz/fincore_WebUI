@@ -3,13 +3,44 @@ import {
   Grid,
   TextField,
   MenuItem,
-  FormHelperText,
-  Alert
+  Alert,
+  Tabs,
+  Tab,
+  Box,
+  Typography,
+  Divider,
+  Chip
 } from '@mui/material';
-import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationStatus, OrganizationType } from '../../types/organization.types';
-import { isValidEmail, isValidPhoneNumber, isRequired, isValidURL } from '../../utils/validators';
-import { ORGANIZATION_TYPE_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
+import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, CreateAddressDTO } from '../../types/organization.types';
+import { isRequired, isValidURL } from '../../utils/validators';
+import { ORGANIZATION_TYPE_OPTIONS } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
+import AddressForm from '../common/AddressForm';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`organization-tabpanel-${index}`}
+      aria-labelledby={`organization-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 interface OrganizationFormProps {
   organization: Organization | null;
@@ -26,39 +57,126 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   onValidationChange,
   onDataChange
 }) => {
-  const { user } = useAuth(); // Get current user for ownerId
-  const [formData, setFormData] = useState({
+  const { user } = useAuth();
+  const [currentTab, setCurrentTab] = useState(0);
+  
+  const [formData, setFormData] = useState<CreateOrganizationDTO>({
+    // Required fields
     legalName: '',
-    organisationType: '' as OrganizationType | '',
+    organisationType: 'GOVERNMENT',
+    ownerId: user?.id || 0,
+    
+    // Basic Information
     registrationNumber: '',
-    taxId: '',
-    email: '',
-    phoneNumber: '',
-    website: '',
-    description: '',
-    statusDescription: 'ACTIVE' as OrganizationStatus,
-    ownerId: user?.id || 0
+    sicCode: '',
+    businessName: '',
+    businessDescription: '',
+    incorporationDate: '',
+    countryOfIncorporation: '',
+    typeOfBusinessCode: '',
+    websiteAddress: '',
+    
+    // Regulatory Information
+    hmrcMlrNumber: '',
+    hmrcExpiryDate: '',
+    fcaNumber: '',
+    icoNumber: '',
+    
+    // Business Structure
+    numberOfBranches: '',
+    numberOfAgents: '',
+    mlroDetails: '',
+    complianceConsultantDetails: '',
+    accountantDetails: '',
+    technologyServiceProviderDetails: '',
+    payoutPartnerName: '',
+    
+    // Registration Details
+    registrationInformation: '',
+    companyNumber: '',
+    sicCodes: '',
+    businessLicenseNumber: '',
+    
+    // Remittance Information
+    primaryRemittanceDestinationCountry: '',
+    secondaryRemittanceDestinationCountry: '',
+    
+    // Transaction Volume Information
+    monthlyTurnoverRange: '',
+    numberOfIncomingTransactions: '',
+    numberOfOutgoingTransactions: '',
+    valueOfIncomingTransactions: '',
+    valueOfOutgoingTransactions: '',
+    maxValueOfIncomingPayments: '',
+    maxValueOfOutgoingPayments: '',
+    productDescription: '',
+    
+    // Addresses
+    registeredAddress: undefined,
+    businessAddress: undefined,
+    correspondenceAddress: undefined,
+    
+    // Other
+    legacyIdentifier: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [addressValidation, setAddressValidation] = useState<{
+    registered: boolean;
+    business: boolean;
+    correspondence: boolean;
+  }>({
+    registered: true,
+    business: true,
+    correspondence: true
+  });
 
   // Initialize form with organization data in edit mode
   useEffect(() => {
     if (mode === 'edit' && organization) {
       setFormData({
         legalName: organization.legalName || '',
-        organisationType: organization.organisationType || '',
+        organisationType: organization.organisationType || 'GOVERNMENT',
+        ownerId: organization.ownerId || user?.id || 0,
         registrationNumber: organization.registrationNumber || '',
-        taxId: organization.taxId || '',
-        email: organization.email || '',
-        phoneNumber: organization.phoneNumber || '',
-        website: organization.website || '',
-        description: organization.description || '',
-        statusDescription: organization.statusDescription || 'ACTIVE',
-        ownerId: organization.ownerId || user?.id || 0
+        sicCode: organization.sicCode || '',
+        businessName: organization.businessName || '',
+        businessDescription: organization.businessDescription || '',
+        incorporationDate: organization.incorporationDate || '',
+        countryOfIncorporation: organization.countryOfIncorporation || '',
+        typeOfBusinessCode: organization.typeOfBusinessCode || '',
+        websiteAddress: organization.websiteAddress || '',
+        hmrcMlrNumber: organization.hmrcMlrNumber || '',
+        hmrcExpiryDate: organization.hmrcExpiryDate || '',
+        fcaNumber: organization.fcaNumber || '',
+        icoNumber: organization.icoNumber || '',
+        numberOfBranches: organization.numberOfBranches || '',
+        numberOfAgents: organization.numberOfAgents || '',
+        mlroDetails: organization.mlroDetails || '',
+        complianceConsultantDetails: organization.complianceConsultantDetails || '',
+        accountantDetails: organization.accountantDetails || '',
+        technologyServiceProviderDetails: organization.technologyServiceProviderDetails || '',
+        payoutPartnerName: organization.payoutPartnerName || '',
+        registrationInformation: organization.registrationInformation || '',
+        companyNumber: organization.companyNumber || '',
+        sicCodes: organization.sicCodes || '',
+        businessLicenseNumber: organization.businessLicenseNumber || '',
+        primaryRemittanceDestinationCountry: organization.primaryRemittanceDestinationCountry || '',
+        secondaryRemittanceDestinationCountry: organization.secondaryRemittanceDestinationCountry || '',
+        monthlyTurnoverRange: organization.monthlyTurnoverRange || '',
+        numberOfIncomingTransactions: organization.numberOfIncomingTransactions || '',
+        numberOfOutgoingTransactions: organization.numberOfOutgoingTransactions || '',
+        valueOfIncomingTransactions: organization.valueOfIncomingTransactions || '',
+        valueOfOutgoingTransactions: organization.valueOfOutgoingTransactions || '',
+        maxValueOfIncomingPayments: organization.maxValueOfIncomingPayments || '',
+        maxValueOfOutgoingPayments: organization.maxValueOfOutgoingPayments || '',
+        productDescription: organization.productDescription || '',
+        registeredAddress: organization.registeredAddress,
+        businessAddress: organization.businessAddress,
+        correspondenceAddress: organization.correspondenceAddress,
+        legacyIdentifier: organization.legacyIdentifier || '',
       });
     } else if (user) {
-      // Set ownerId for create mode
       setFormData(prev => ({ ...prev, ownerId: user.id }));
     }
   }, [organization, mode, user]);
@@ -67,48 +185,20 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Name validation
     if (!isRequired(formData.legalName)) {
-      newErrors.legalName = 'Organization name is required';
+      newErrors.legalName = 'Legal name is required';
     }
 
-    // Type validation
     if (!isRequired(formData.organisationType)) {
       newErrors.organisationType = 'Organization type is required';
     }
 
-    // Owner ID validation
     if (!formData.ownerId || formData.ownerId === 0) {
       newErrors.ownerId = 'Owner ID is required. Please ensure you are logged in.';
     }
 
-    // Registration number validation
-    if (!isRequired(formData.registrationNumber)) {
-      newErrors.registrationNumber = 'Registration number is required';
-    }
-
-    // Tax ID validation (optional)
-    // if (!isRequired(formData.taxId)) {
-    //   newErrors.taxId = 'Tax ID is required';
-    // }
-
-    // Email validation
-    if (!isRequired(formData.email)) {
-      newErrors.email = 'Email is required';
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Phone validation
-    if (!isRequired(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Phone number is required';
-    } else if (!isValidPhoneNumber(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Please enter a valid 10-digit phone number';
-    }
-
-    // Website validation (optional)
-    if (formData.website && !isValidURL(formData.website)) {
-      newErrors.website = 'Please enter a valid URL';
+    if (formData.websiteAddress && !isValidURL(formData.websiteAddress)) {
+      newErrors.websiteAddress = 'Please enter a valid URL';
     }
 
     setErrors(newErrors);
@@ -117,16 +207,16 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
   // Auto-validate on form data change
   useEffect(() => {
-    const isValid = validateForm();
+    const isValid = validateForm() && addressValidation.registered && addressValidation.business && addressValidation.correspondence;
     if (onValidationChange) {
       onValidationChange(isValid);
     }
     if (onDataChange) {
       onDataChange(formData as any);
     }
-  }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData, addressValidation]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleChange = (field: keyof typeof formData) => (
+  const handleChange = (field: keyof CreateOrganizationDTO) => (
     event: React.ChangeEvent<HTMLInputElement | { value: unknown }>
   ) => {
     setFormData(prev => ({
@@ -135,149 +225,643 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     }));
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  const handleAddressChange = (addressType: 'registered' | 'business' | 'correspondence') => 
+    (addressData: CreateAddressDTO, isValid: boolean) => {
+      setFormData(prev => ({
+        ...prev,
+        [`${addressType}Address`]: addressData
+      }));
+      setAddressValidation(prev => ({
+        ...prev,
+        [addressType]: isValid
+      }));
+    };
+
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
-    <Grid container spacing={2}>
-      {/* Organization Name */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Organization Name"
-          value={formData.legalName}
-          onChange={handleChange('legalName')}
-          error={!!errors.legalName}
-          helperText={errors.legalName}
-          required
-        />
-      </Grid>
-
-      {/* Organization Type */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          select
-          label="Organization Type"
-          value={formData.organisationType}
-          onChange={handleChange('organisationType')}
-          error={!!errors.organisationType}
-          helperText={errors.organisationType}
-          required
+    <Box sx={{ width: '100%' }}>
+      {/* Tab Navigation */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs 
+          value={currentTab} 
+          onChange={handleTabChange} 
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="Organization form tabs"
         >
-          {ORGANIZATION_TYPE_OPTIONS.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
+          <Tab label="Basic Info *" />
+          <Tab label="Regulatory" />
+          <Tab label="Business Structure" />
+          <Tab label="Registration" />
+          <Tab label="Remittance" />
+          <Tab label="Transactions" />
+          <Tab label="Addresses" />
+          <Tab label="Other" />
+        </Tabs>
+      </Box>
 
-      {/* Registration Number */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Registration Number"
-          value={formData.registrationNumber}
-          onChange={handleChange('registrationNumber')}
-          error={!!errors.registrationNumber}
-          helperText={errors.registrationNumber}
-          required
-        />
-      </Grid>
+      {/* Tab 0: Basic Information */}
+      <TabPanel value={currentTab} index={0}>
+        <Typography variant="h6" gutterBottom>
+          Basic Organization Information
+          <Chip label="Required" color="error" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Legal Name - Required */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Legal Name"
+              value={formData.legalName}
+              onChange={handleChange('legalName')}
+              error={!!errors.legalName}
+              helperText={errors.legalName || 'Official legal name (max 100 chars)'}
+              required
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
 
-      {/* Tax ID */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Tax ID"
-          value={formData.taxId}
-          onChange={handleChange('taxId')}
-          error={!!errors.taxId}
-          helperText={errors.taxId}
-          required
-        />
-      </Grid>
+          {/* Business Name - Optional */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Business Name"
+              value={formData.businessName}
+              onChange={handleChange('businessName')}
+              helperText="Trading name if different (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
 
-      {/* Email */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange('email')}
-          error={!!errors.email}
-          helperText={errors.email}
-          required
-        />
-      </Grid>
+          {/* Organization Type - Required */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              select
+              label="Organization Type"
+              value={formData.organisationType}
+              onChange={handleChange('organisationType')}
+              error={!!errors.organisationType}
+              helperText={errors.organisationType || 'Select organization type'}
+              required
+            >
+              {ORGANIZATION_TYPE_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
 
-      {/* Phone Number */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Phone Number"
-          value={formData.phoneNumber}
-          onChange={handleChange('phoneNumber')}
-          error={!!errors.phoneNumber}
-          helperText={errors.phoneNumber || 'Enter 10-digit phone number'}
-          required
-        />
-      </Grid>
+          {/* Type of Business Code */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Type of Business Code"
+              value={formData.typeOfBusinessCode}
+              onChange={handleChange('typeOfBusinessCode')}
+              helperText="Business classification code (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
 
-      {/* Website */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Website"
-          value={formData.website}
-          onChange={handleChange('website')}
-          error={!!errors.website}
-          helperText={errors.website || 'Optional'}
-        />
-      </Grid>
+          {/* SIC Code */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="SIC Code"
+              value={formData.sicCode}
+              onChange={handleChange('sicCode')}
+              helperText="Standard Industrial Classification (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
 
-      {/* Status (only in edit mode) */}
-      {mode === 'edit' && (
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            select
-            label="Status"
-            value={formData.statusDescription}
-            onChange={handleChange('statusDescription')}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
+          {/* Registration Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Registration Number"
+              value={formData.registrationNumber}
+              onChange={handleChange('registrationNumber')}
+              helperText="Official registration number (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* Incorporation Date */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              type="date"
+              label="Incorporation Date"
+              value={formData.incorporationDate}
+              onChange={handleChange('incorporationDate')}
+              helperText="Date of incorporation"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          {/* Country of Incorporation */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Country of Incorporation"
+              value={formData.countryOfIncorporation}
+              onChange={handleChange('countryOfIncorporation')}
+              helperText="Country where incorporated (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Website Address */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Website"
+              value={formData.websiteAddress}
+              onChange={handleChange('websiteAddress')}
+              error={!!errors.websiteAddress}
+              helperText={errors.websiteAddress || 'https://example.com (max 100 chars)'}
+              placeholder="https://example.com"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Business Description */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Business Description"
+              value={formData.businessDescription}
+              onChange={handleChange('businessDescription')}
+              multiline
+              rows={3}
+              helperText="Describe the organization's business activities (max 255 chars)"
+              inputProps={{ maxLength: 255 }}
+            />
+          </Grid>
         </Grid>
-      )}
+      </TabPanel>
 
-      {/* Description */}
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          label="Description"
-          value={formData.description}
-          onChange={handleChange('description')}
-          multiline
-          rows={3}
-          helperText="Optional"
-        />
-      </Grid>
+      {/* Tab 1: Regulatory Information */}
+      <TabPanel value={currentTab} index={1}>
+        <Typography variant="h6" gutterBottom>
+          Regulatory & Compliance Information
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* HMRC MLR Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="HMRC MLR Number"
+              value={formData.hmrcMlrNumber}
+              onChange={handleChange('hmrcMlrNumber')}
+              helperText="HM Revenue & Customs Money Laundering Registration (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* HMRC Expiry Date */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              type="date"
+              label="HMRC Expiry Date"
+              value={formData.hmrcExpiryDate}
+              onChange={handleChange('hmrcExpiryDate')}
+              helperText="HMRC registration expiry date"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
+          {/* FCA Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="FCA Number"
+              value={formData.fcaNumber}
+              onChange={handleChange('fcaNumber')}
+              helperText="Financial Conduct Authority registration (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* ICO Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="ICO Number"
+              value={formData.icoNumber}
+              onChange={handleChange('icoNumber')}
+              helperText="Information Commissioner's Office number (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 2: Business Structure */}
+      <TabPanel value={currentTab} index={2}>
+        <Typography variant="h6" gutterBottom>
+          Business Structure & Key Personnel
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Number of Branches */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Number of Branches"
+              value={formData.numberOfBranches}
+              onChange={handleChange('numberOfBranches')}
+              helperText="Total number of branches (max 10 chars)"
+              inputProps={{ maxLength: 10 }}
+            />
+          </Grid>
+
+          {/* Number of Agents */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Number of Agents"
+              value={formData.numberOfAgents}
+              onChange={handleChange('numberOfAgents')}
+              helperText="Total number of agents (max 10 chars)"
+              inputProps={{ maxLength: 10 }}
+            />
+          </Grid>
+
+          {/* MLRO Details */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="MLRO Details"
+              value={formData.mlroDetails}
+              onChange={handleChange('mlroDetails')}
+              helperText="Money Laundering Reporting Officer (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Compliance Consultant */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Compliance Consultant Details"
+              value={formData.complianceConsultantDetails}
+              onChange={handleChange('complianceConsultantDetails')}
+              helperText="External compliance consultant (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Accountant Details */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Accountant Details"
+              value={formData.accountantDetails}
+              onChange={handleChange('accountantDetails')}
+              helperText="Accounting firm details (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Technology Service Provider */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Technology Service Provider"
+              value={formData.technologyServiceProviderDetails}
+              onChange={handleChange('technologyServiceProviderDetails')}
+              helperText="IT/Tech service provider (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+
+          {/* Payout Partner Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Payout Partner Name"
+              value={formData.payoutPartnerName}
+              onChange={handleChange('payoutPartnerName')}
+              helperText="Payment/payout partner (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 3: Registration Details */}
+      <TabPanel value={currentTab} index={3}>
+        <Typography variant="h6" gutterBottom>
+          Registration & Licensing Details
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Company Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Company Number"
+              value={formData.companyNumber}
+              onChange={handleChange('companyNumber')}
+              helperText="Companies House number (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* Business License Number */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Business License Number"
+              value={formData.businessLicenseNumber}
+              onChange={handleChange('businessLicenseNumber')}
+              helperText="Business license number (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* SIC Codes */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="SIC Codes"
+              value={formData.sicCodes}
+              onChange={handleChange('sicCodes')}
+              helperText="Multiple SIC codes (comma-separated, max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Registration Information */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Registration Information"
+              value={formData.registrationInformation}
+              onChange={handleChange('registrationInformation')}
+              multiline
+              rows={3}
+              helperText="Additional registration details (max 100 chars)"
+              inputProps={{ maxLength: 100 }}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 4: Remittance Information */}
+      <TabPanel value={currentTab} index={4}>
+        <Typography variant="h6" gutterBottom>
+          Remittance & Destination Information
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Primary Remittance Destination Country */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Primary Remittance Destination Country"
+              value={formData.primaryRemittanceDestinationCountry}
+              onChange={handleChange('primaryRemittanceDestinationCountry')}
+              helperText="Main destination country for remittances (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Secondary Remittance Destination Country */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Secondary Remittance Destination Country"
+              value={formData.secondaryRemittanceDestinationCountry}
+              onChange={handleChange('secondaryRemittanceDestinationCountry')}
+              helperText="Secondary destination country (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 5: Transaction Volume Information */}
+      <TabPanel value={currentTab} index={5}>
+        <Typography variant="h6" gutterBottom>
+          Transaction Volume & Financial Information
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Monthly Turnover Range */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Monthly Turnover Range"
+              value={formData.monthlyTurnoverRange}
+              onChange={handleChange('monthlyTurnoverRange')}
+              helperText="e.g., £10,000-£50,000 (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Number of Incoming Transactions */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Number of Incoming Transactions"
+              value={formData.numberOfIncomingTransactions}
+              onChange={handleChange('numberOfIncomingTransactions')}
+              helperText="Monthly incoming transaction count (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* Number of Outgoing Transactions */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Number of Outgoing Transactions"
+              value={formData.numberOfOutgoingTransactions}
+              onChange={handleChange('numberOfOutgoingTransactions')}
+              helperText="Monthly outgoing transaction count (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* Value of Incoming Transactions */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Value of Incoming Transactions"
+              value={formData.valueOfIncomingTransactions}
+              onChange={handleChange('valueOfIncomingTransactions')}
+              helperText="Total value of incoming (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Value of Outgoing Transactions */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Value of Outgoing Transactions"
+              value={formData.valueOfOutgoingTransactions}
+              onChange={handleChange('valueOfOutgoingTransactions')}
+              helperText="Total value of outgoing (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Max Value of Incoming Payments */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Max Value of Incoming Payments"
+              value={formData.maxValueOfIncomingPayments}
+              onChange={handleChange('maxValueOfIncomingPayments')}
+              helperText="Maximum single incoming payment (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Max Value of Outgoing Payments */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Max Value of Outgoing Payments"
+              value={formData.maxValueOfOutgoingPayments}
+              onChange={handleChange('maxValueOfOutgoingPayments')}
+              helperText="Maximum single outgoing payment (max 50 chars)"
+              inputProps={{ maxLength: 50 }}
+            />
+          </Grid>
+
+          {/* Product Description */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Product Description"
+              value={formData.productDescription}
+              onChange={handleChange('productDescription')}
+              multiline
+              rows={3}
+              helperText="Description of products/services offered (max 255 chars)"
+              inputProps={{ maxLength: 255 }}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 6: Addresses */}
+      <TabPanel value={currentTab} index={6}>
+        <Typography variant="h6" gutterBottom>
+          Organization Addresses
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={4}>
+          {/* Registered Address */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Registered Address
+            </Typography>
+            <AddressForm
+              address={formData.registeredAddress || null}
+              onDataChange={handleAddressChange('registered')}
+              typeCode={1}
+              required={false}
+            />
+          </Grid>
+
+          {/* Business Address */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Business Address
+            </Typography>
+            <AddressForm
+              address={formData.businessAddress || null}
+              onDataChange={handleAddressChange('business')}
+              typeCode={2}
+              required={false}
+            />
+          </Grid>
+
+          {/* Correspondence Address */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              Correspondence Address
+            </Typography>
+            <AddressForm
+              address={formData.correspondenceAddress || null}
+              onDataChange={handleAddressChange('correspondence')}
+              typeCode={3}
+              required={false}
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 7: Other Information */}
+      <TabPanel value={currentTab} index={7}>
+        <Typography variant="h6" gutterBottom>
+          Additional Information
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          {/* Legacy Identifier */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Legacy Identifier"
+              value={formData.legacyIdentifier}
+              onChange={handleChange('legacyIdentifier')}
+              helperText="Legacy system identifier (max 20 chars)"
+              inputProps={{ maxLength: 20 }}
+            />
+          </Grid>
+
+          {/* Owner ID (Read-only) */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Owner ID"
+              value={formData.ownerId}
+              disabled
+              helperText="Organization owner (current user)"
+            />
+          </Grid>
+        </Grid>
+      </TabPanel>
 
       {/* Error Summary */}
       {hasErrors && (
-        <Grid item xs={12}>
-          <Alert severity="error">
-            Please fix the errors above before submitting.
-          </Alert>
-        </Grid>
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Please fix the errors in the Basic Info tab before submitting.
+        </Alert>
       )}
-    </Grid>
+    </Box>
   );
 };
 

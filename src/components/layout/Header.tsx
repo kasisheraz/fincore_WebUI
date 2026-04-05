@@ -66,15 +66,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
   return (
     <Box
       sx={{
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
-        zIndex: 1100,
-        background: 'linear-gradient(135deg, #00503C 0%, #00704F 100%)',
+        left: 220,
+        right: 0,
+        zIndex: 1200,
+        background: '#003D2A',
         color: '#ffffff',
-        p: 2,
-        borderRadius: 2,
-        mb: 3,
-        boxShadow: '0 4px 20px rgba(0, 80, 60, 0.15)',
+        p: 0,
+        m: 0,
+        borderRadius: 0,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        width: 'calc(100% - 220px)',
       }}
     >
       <Box sx={{ 
@@ -82,7 +85,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
         alignItems: 'center', 
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: 2
+        gap: 2,
+        px: 2,
+        py: 1.5
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton

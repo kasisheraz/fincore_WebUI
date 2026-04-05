@@ -26,7 +26,7 @@ import { PaginatedResponse, Status } from '../../types/common.types';
 import userService from '../../services/userService';
 import { usePagination } from '../../hooks/usePagination';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
-import { GENDER_OPTIONS, STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
+import { STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
 
 const UsersPage: React.FC = () => {
@@ -321,12 +321,6 @@ const UsersPage: React.FC = () => {
       options: STATUS_OPTIONS,
     },
     {
-      name: 'gender',
-      label: 'Gender',
-      type: 'select',
-      options: GENDER_OPTIONS,
-    },
-    {
       name: 'dateOfBirth',
       label: 'Date of Birth',
       type: 'dateRange',
@@ -334,8 +328,9 @@ const UsersPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
+    <Box>
       <PageHeader title="User Management" />
+      <Box sx={{ px: 2, py: 2 }}>
 
       <Box sx={{ 
         mb: 3, 
@@ -448,6 +443,7 @@ const UsersPage: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 };

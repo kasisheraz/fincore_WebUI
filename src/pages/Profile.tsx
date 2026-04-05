@@ -19,6 +19,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   Person,
@@ -35,6 +37,11 @@ import PageHeader from '../components/common/PageHeader';
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info' | 'warning';
+  }>({ open: false, message: '', severity: 'success' });
   const [userInfo, setUserInfo] = useState({
     name: 'John Anderson',
     email: 'john.anderson@fincore.com',
@@ -52,6 +59,11 @@ const Profile: React.FC = () => {
 
   const handleCloseEdit = () => {
     setEditDialogOpen(false);
+  };
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
+    console.log('🟢 SNACKBAR CALLED:', message, severity);
+    setSnackbar({ open: true, message, severity });
   };
 
   const profileSections = [
@@ -84,15 +96,14 @@ const Profile: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+    <Box>
       <PageHeader 
         title="My Profile"
         buttonText="Edit Profile"
         buttonIcon={<Edit />}
         onButtonClick={handleEditProfile}
       />
-      
-      <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
+      <Box sx={{ px: 2, py: 2 }}>      
         <Grid container spacing={3}>
           {/* Profile Header Card */}
           <Grid item xs={12}>
@@ -254,6 +265,12 @@ const Profile: React.FC = () => {
         </Grid>
       </Grid>
 
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       {/* Edit Profile Dialog */}
       <Dialog open={editDialogOpen} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Profile</DialogTitle>
@@ -316,7 +333,10 @@ const Profile: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEdit}>Cancel</Button>
-          <Button variant="contained" onClick={handleCloseEdit}>
+          <Button variant="contained" onClick={() => {
+            showSnackbar('Profile update functionality will be implemented soon', 'info');
+            handleCloseEdit();
+          }}>
             Save Changes
           </Button>
         </DialogActions>

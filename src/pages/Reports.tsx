@@ -78,15 +78,14 @@ const Reports: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+    <Box>
       <PageHeader 
         title="Reports & Analytics"
         buttonText="Generate Report"
         buttonIcon={<Add />}
         onButtonClick={() => console.log('Generate new report')}
       />
-      
-      <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
+      <Box sx={{ px: 2, py: 2 }}>      
         {/* Quick Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>

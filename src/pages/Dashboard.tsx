@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
       title: 'Approved',
       value: '14',
       icon: <CheckCircle fontSize="large" />,
-      color: '#1F7A5C',
+      color: '#003D2A',
       trend: '+8%',
     },
     {
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
-        return '#1F7A5C';
+        return '#003D2A';
       case 'Under Review':
         return '#D97706';
       case 'Pending':
@@ -100,15 +100,14 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+    <Box>
       <PageHeader 
         title="FINCORE Dashboard" 
         buttonText="New Application"
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      
-      <Box sx={{ pt: 1, pr: 2, pb: 2, pl: 0 }}>
+      <Box sx={{ px: 2, py: 2 }}>
         {/* Step Indicator */}
         <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0, 61, 42, 0.08)' }}>
           <Typography variant="h6" sx={{ mb: 2, color: '#003D2A', fontWeight: 600 }}>
@@ -226,8 +225,8 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/applications')}
                 sx={{ 
                   mt: 2,
-                  borderColor: '#1F7A5C',
-                  color: '#1F7A5C',
+                  borderColor: '#003D2A',
+                  color: '#003D2A',
                   borderWidth: '1.5px',
                   '&:hover': {
                     borderColor: '#003D2A',
@@ -256,14 +255,14 @@ const Dashboard: React.FC = () => {
                   fullWidth
                   startIcon={<Assignment />}
                   sx={{
-                    backgroundColor: '#1F7A5C',
+                    backgroundColor: '#003D2A',
                     color: '#ffffff',
                     fontWeight: 600,
                     textTransform: 'none',
                     borderRadius: 2,
                     py: 1.5,
                     '&:hover': {
-                      backgroundColor: '#0D5940',
+                      backgroundColor: '#002418',
                       transform: 'translateY(-2px)',
                       boxShadow: '0 6px 20px rgba(45, 138, 106, 0.4)',
                     }
@@ -336,7 +335,7 @@ const Dashboard: React.FC = () => {
                     mb: 2,
                     backgroundColor: '#E5E7EB',
                     '& .MuiLinearProgress-bar': {
-                      backgroundColor: '#1F7A5C',
+                      backgroundColor: '#003D2A',
                     }
                   }}
                 />
