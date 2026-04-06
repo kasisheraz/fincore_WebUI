@@ -15,6 +15,7 @@ jobs:
   update-docs:
     name: Update Confluence Pages
     runs-on: ubuntu-latest
+    continue-on-error: true # Don't fail the workflow if Confluence update fails
     
     steps:
       - name: Checkout code
