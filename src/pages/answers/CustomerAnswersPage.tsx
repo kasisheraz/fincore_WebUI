@@ -9,7 +9,12 @@ import {
   LinearProgress,
   Typography,
   Card,
-  CardContent
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -40,6 +45,11 @@ const CustomerAnswersPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<CustomerAnswer | null>(null);
+  const [answerForm, setAnswerForm] = useState({
+    userId: 0,
+    questionId: 0,
+    answerText: ''
+  });
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -147,22 +157,54 @@ const CustomerAnswersPage: React.FC = () => {
 
   const handleEdit = (answer: CustomerAnswer) => {
     setSelectedAnswer(answer);
+    setAnswerForm({
+      userId: answer.userId,
+      questionId: answer.questionId,
+      answerText: answer.answerText || ''
+    });
     setEditDialogOpen(true);
   };
 
   const handleCreateClick = () => {
+    setAnswerForm({
+      userId: 0,
+      questionId: 0,
+      answerText: ''
+    });
     setCreateDialogOpen(true);
   };
 
-  const handleCreate = () => {
-    showSnackbar('Answer submission functionality will be implemented soon', 'info');
-    setCreateDialogOpen(false);
+  const handleCreate = async () => {
+    if (!answerForm.userId || !answerForm.questionId) {
+      showSnackbar('Please enter User ID and Question ID', 'error');
+      return;
+    }
+    
+    try {
+      await customerAnswerService.submit(answerForm);
+      showSnackbar('Answer submitted successfully', 'success');
+      setCreateDialogOpen(false);
+      fetchAnswers();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to submit answer', 'error');
+    }
   };
 
-  const handleEditSave = () => {
-    showSnackbar('Answer edit functionality will be implemented soon', 'info');
-    setEditDialogOpen(false);
-    setSelectedAnswer(null);
+  const handleEditSave = async () => {
+    if (!selectedAnswer) {
+      showSnackbar('No answer selected', 'error');
+      return;
+    }
+    
+    try {
+      await customerAnswerService.update(selectedAnswer.id, { answerText: answerForm.answerText });
+      showSnackbar('Answer updated successfully', 'success');
+      setEditDialogOpen(false);
+      setSelectedAnswer(null);
+      fetchAnswers();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to update answer', 'error');
+    }
   };
 
   const handleDeleteClick = (answer: CustomerAnswer) => {
@@ -235,6 +277,82 @@ const CustomerAnswersPage: React.FC = () => {
         emptyMessage="No answers found"
         getRowId={(row) => row.id}
       />
+
+      {/* Create Answer Dialog */}
+      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Submit New Answer</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="User ID"
+              type="number"
+              value={answerForm.userId || ''}
+              onChange={(e) => setAnswerForm({ ...answerForm, userId: parseInt(e.target.value) || 0 })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Question ID"
+              type="number"
+              value={answerForm.questionId || ''}
+              onChange={(e) => setAnswerForm({ ...answerForm, questionId: parseInt(e.target.value) || 0 })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Answer Text"
+              multiline
+              rows={6}
+              value={answerForm.answerText}
+              onChange={(e) => setAnswerForm({ ...answerForm, answerText: e.target.value })}
+              placeholder="Enter your answer..."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreate}>Submit Answer</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Answer Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => { setEditDialogOpen(false); setSelectedAnswer(null); }} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Answer</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="User ID"
+              type="number"
+              value={answerForm.userId}
+              disabled
+              helperText="Cannot change user"
+            />
+            <TextField
+              fullWidth
+              label="Question ID"
+              type="number"
+              value={answerForm.questionId}
+              disabled
+              helperText="Cannot change question"
+            />
+            <TextField
+              fullWidth
+              label="Answer Text"
+              multiline
+              rows={6}
+              value={answerForm.answerText}
+              onChange={(e) => setAnswerForm({ ...answerForm, answerText: e.target.value })}
+              placeholder="Enter your answer..."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setEditDialogOpen(false); setSelectedAnswer(null); }}>Cancel</Button>
+          <Button variant="contained" onClick={handleEditSave}>Save Changes</Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}

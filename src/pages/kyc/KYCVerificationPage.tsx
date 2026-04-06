@@ -7,7 +7,12 @@ import {
   Snackbar,
   Alert,
   LinearProgress,
-  Typography
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -38,6 +43,10 @@ const KYCVerificationPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedVerification, setSelectedVerification] = useState<KYCVerification | null>(null);
+  const [createForm, setCreateForm] = useState({
+    userId: 0,
+    notes: ''
+  });
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -184,9 +193,26 @@ const KYCVerificationPage: React.FC = () => {
     setCreateDialogOpen(true);
   };
 
-  const handleCreate = () => {
-    showSnackbar('Verification creation functionality will be implemented soon', 'info');
+  const handleCreateClose = () => {
     setCreateDialogOpen(false);
+    setCreateForm({ userId: 0, notes: '' });
+  };
+
+  const handleCreate = async () => {
+    if (!createForm.userId) {
+      showSnackbar('Please enter a User ID', 'error');
+      return;
+    }
+    
+    try {
+      await kycVerificationService.create(createForm);
+      showSnackbar('Verification created successfully', 'success');
+      setCreateDialogOpen(false);
+      setCreateForm({ userId: 0, notes: '' });
+      fetchVerifications();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to create verification', 'error');
+    }
   };
 
   const handleApprove = async (verification: KYCVerification) => {
@@ -260,6 +286,37 @@ const KYCVerificationPage: React.FC = () => {
         emptyMessage="No verifications found"
         getRowId={(row) => row.id}
       />
+
+      {/* Create Verification Dialog */}
+      <Dialog open={createDialogOpen} onClose={handleCreateClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Create New Verification</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="User ID"
+              type="number"
+              value={createForm.userId || ''}
+              onChange={(e) => setCreateForm({ ...createForm, userId: parseInt(e.target.value) || 0 })}
+              required
+              helperText="Enter the user ID to verify"
+            />
+            <TextField
+              fullWidth
+              label="Notes"
+              multiline
+              rows={4}
+              value={createForm.notes}
+              onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+              placeholder="Add any notes about this verification..."
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCreateClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreate}>Create Verification</Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>

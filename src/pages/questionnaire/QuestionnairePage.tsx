@@ -8,7 +8,17 @@ import {
   Alert,
   Chip,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -24,7 +34,7 @@ import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import questionnaireService from '../../services/questionnaireService';
-import { Question, QuestionFilters } from '../../types/questionnaire.types';
+import { Question, QuestionFilters, QuestionType } from '../../types/questionnaire.types';
 import { usePagination } from '../../hooks/usePagination';
 import { QUESTION_TYPE_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
@@ -41,6 +51,23 @@ const QuestionnairePage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+  const [questionForm, setQuestionForm] = useState<{
+    questionText: string;
+    questionType: QuestionType;
+    options: string[];
+    isRequired: boolean;
+    orderIndex: number;
+    category: string;
+    description: string;
+  }>({
+    questionText: '',
+    questionType: 'TEXT',
+    options: [],
+    isRequired: false,
+    orderIndex: 0,
+    category: '',
+    description: ''
+  });
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -160,22 +187,62 @@ const QuestionnairePage: React.FC = () => {
 
   const handleEdit = (question: Question) => {
     setSelectedQuestion(question);
+    setQuestionForm({
+      questionText: question.questionText,
+      questionType: question.questionType,
+      options: question.options || [],
+      isRequired: question.isRequired,
+      orderIndex: question.orderIndex,
+      category: question.category || '',
+      description: question.description || ''
+    });
     setEditDialogOpen(true);
   };
 
   const handleCreateClick = () => {
+    setQuestionForm({
+      questionText: '',
+      questionType: 'TEXT',
+      options: [],
+      isRequired: false,
+      orderIndex: questions.length,
+      category: '',
+      description: ''
+    });
     setCreateDialogOpen(true);
   };
 
-  const handleCreate = () => {
-    showSnackbar('Question creation functionality will be implemented soon', 'info');
-    setCreateDialogOpen(false);
+  const handleCreate = async () => {
+    if (!questionForm.questionText) {
+      showSnackbar('Please enter a question text', 'error');
+      return;
+    }
+    
+    try {
+      await questionnaireService.create(questionForm);
+      showSnackbar('Question created successfully', 'success');
+      setCreateDialogOpen(false);
+      fetchQuestions();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to create question', 'error');
+    }
   };
 
-  const handleEditSave = () => {
-    showSnackbar('Question edit functionality will be implemented soon', 'info');
-    setEditDialogOpen(false);
-    setSelectedQuestion(null);
+  const handleEditSave = async () => {
+    if (!selectedQuestion || !questionForm.questionText) {
+      showSnackbar('Please enter a question text', 'error');
+      return;
+    }
+    
+    try {
+      await questionnaireService.update(selectedQuestion.id, questionForm);
+      showSnackbar('Question updated successfully', 'success');
+      setEditDialogOpen(false);
+      setSelectedQuestion(null);
+      fetchQuestions();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to update question', 'error');
+    }
   };
 
   const handleActivate = async (question: Question) => {
@@ -267,6 +334,156 @@ const QuestionnairePage: React.FC = () => {
         emptyMessage="No questions found"
         getRowId={(row) => row.id}
       />
+
+      {/* Create Question Dialog */}
+      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Add New Question</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Question Text"
+              value={questionForm.questionText}
+              onChange={(e) => setQuestionForm({ ...questionForm, questionText: e.target.value })}
+              required
+              multiline
+              rows={2}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Question Type</InputLabel>
+              <Select
+                value={questionForm.questionType}
+                label="Question Type"
+                onChange={(e) => setQuestionForm({ ...questionForm, questionType: e.target.value as any })}
+              >
+                {QUESTION_TYPE_OPTIONS.map(opt => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {(questionForm.questionType === 'MULTIPLE_CHOICE') && (
+              <TextField
+                fullWidth
+                label="Options (one per line)"
+                multiline
+                rows={4}
+                value={questionForm.options.join('\n')}
+                onChange={(e) => setQuestionForm({ ...questionForm, options: e.target.value.split('\n').filter(o => o.trim()) })}
+                helperText="Enter each option on a new line"
+              />
+            )}
+            <TextField
+              fullWidth
+              label="Category"
+              value={questionForm.category}
+              onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Description"
+              multiline
+              rows={2}
+              value={questionForm.description}
+              onChange={(e) => setQuestionForm({ ...questionForm, description: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Order Index"
+              type="number"
+              value={questionForm.orderIndex}
+              onChange={(e) => setQuestionForm({ ...questionForm, orderIndex: parseInt(e.target.value) || 0 })}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={questionForm.isRequired}
+                  onChange={(e) => setQuestionForm({ ...questionForm, isRequired: e.target.checked })}
+                />
+              }
+              label="Required Question"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreate}>Create Question</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Question Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => { setEditDialogOpen(false); setSelectedQuestion(null); }} maxWidth="md" fullWidth>
+        <DialogTitle>Edit Question</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Question Text"
+              value={questionForm.questionText}
+              onChange={(e) => setQuestionForm({ ...questionForm, questionText: e.target.value })}
+              required
+              multiline
+              rows={2}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Question Type</InputLabel>
+              <Select
+                value={questionForm.questionType}
+                label="Question Type"
+                onChange={(e) => setQuestionForm({ ...questionForm, questionType: e.target.value as any })}
+              >
+                {QUESTION_TYPE_OPTIONS.map(opt => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {(questionForm.questionType === 'MULTIPLE_CHOICE') && (
+              <TextField
+                fullWidth
+                label="Options (one per line)"
+                multiline
+                rows={4}
+                value={questionForm.options.join('\n')}
+                onChange={(e) => setQuestionForm({ ...questionForm, options: e.target.value.split('\n').filter(o => o.trim()) })}
+                helperText="Enter each option on a new line"
+              />
+            )}
+            <TextField
+              fullWidth
+              label="Category"
+              value={questionForm.category}
+              onChange={(e) => setQuestionForm({ ...questionForm, category: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Description"
+              multiline
+              rows={2}
+              value={questionForm.description}
+              onChange={(e) => setQuestionForm({ ...questionForm, description: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Order Index"
+              type="number"
+              value={questionForm.orderIndex}
+              onChange={(e) => setQuestionForm({ ...questionForm, orderIndex: parseInt(e.target.value) || 0 })}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={questionForm.isRequired}
+                  onChange={(e) => setQuestionForm({ ...questionForm, isRequired: e.target.checked })}
+                />
+              }
+              label="Required Question"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setEditDialogOpen(false); setSelectedQuestion(null); }}>Cancel</Button>
+          <Button variant="contained" onClick={handleEditSave}>Save Changes</Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}

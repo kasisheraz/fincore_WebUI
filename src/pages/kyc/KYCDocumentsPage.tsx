@@ -6,7 +6,18 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+  Input
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -40,6 +51,14 @@ const KYCDocumentsPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null);
+  const [uploadForm, setUploadForm] = useState({
+    userId: 0,
+    organisationId: 0,
+    documentType: 'PASSPORT' as const,
+    documentNumber: '',
+    file: undefined as File | undefined,
+    notes: ''
+  });
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -222,11 +241,38 @@ const KYCDocumentsPage: React.FC = () => {
 
   const handleUploadClose = () => {
     setUploadDialogOpen(false);
+    setUploadForm({
+      userId: 0,
+      organisationId: 0,
+      documentType: 'PASSPORT',
+      documentNumber: '',
+      file: undefined,
+      notes: ''
+    });
   };
 
-  const handleUpload = () => {
-    showSnackbar('Document upload functionality will be implemented soon', 'info');
-    setUploadDialogOpen(false);
+  const handleUpload = async () => {
+    if (!uploadForm.userId || !uploadForm.organisationId || !uploadForm.documentNumber) {
+      showSnackbar('Please fill in all required fields', 'error');
+      return;
+    }
+    
+    try {
+      await kycDocumentService.upload(uploadForm);
+      showSnackbar('Document uploaded successfully', 'success');
+      setUploadDialogOpen(false);
+      setUploadForm({
+        userId: 0,
+        organisationId: 0,
+        documentType: 'PASSPORT',
+        documentNumber: '',
+        file: undefined,
+        notes: ''
+      });
+      fetchDocuments();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to upload document', 'error');
+    }
   };
 
   return (
@@ -280,6 +326,70 @@ const KYCDocumentsPage: React.FC = () => {
         emptyMessage="No documents found"
         getRowId={(row) => row.id}
       />
+
+      {/* Upload Document Dialog */}
+      <Dialog open={uploadDialogOpen} onClose={handleUploadClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Upload KYC Document</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="User ID"
+              type="number"
+              value={uploadForm.userId || ''}
+              onChange={(e) => setUploadForm({ ...uploadForm, userId: parseInt(e.target.value) || 0 })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Organisation ID"
+              type="number"
+              value={uploadForm.organisationId || ''}
+              onChange={(e) => setUploadForm({ ...uploadForm, organisationId: parseInt(e.target.value) || 0 })}
+              required
+            />
+            <FormControl fullWidth>
+              <InputLabel>Document Type</InputLabel>
+              <Select
+                value={uploadForm.documentType}
+                label="Document Type"
+                onChange={(e) => setUploadForm({ ...uploadForm, documentType: e.target.value as any })}
+              >
+                {DOCUMENT_TYPE_OPTIONS.map(opt => (
+                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              label="Document Number"
+              value={uploadForm.documentNumber}
+              onChange={(e) => setUploadForm({ ...uploadForm, documentNumber: e.target.value })}
+              required
+            />
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>Upload File:</Typography>
+              <Input
+                type="file"
+                onChange={(e: any) => setUploadForm({ ...uploadForm, file: e.target.files[0] })}
+                fullWidth
+              />
+            </Box>
+            <TextField
+              fullWidth
+              label="Notes"
+              multiline
+              rows={3}
+              value={uploadForm.notes}
+              onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUploadClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleUpload}>Upload</Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}
