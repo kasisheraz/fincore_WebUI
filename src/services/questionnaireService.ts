@@ -8,6 +8,7 @@ import {
 } from '../types/questionnaire.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
 import { normalizePaginatedResponse } from '../utils/paginationUtils';
+import { MOCK_QUESTIONNAIRES, createMockPaginatedResponse } from './mockData';
 
 class QuestionnaireService {
   private readonly BASE_PATH = '/questions';
@@ -71,10 +72,18 @@ class QuestionnaireService {
    * Search questions with filters
    */
   async search(filters: QuestionFilters, params?: PaginationParams): Promise<PaginatedResponse<Question>> {
-    const response = await apiService.get<PaginatedResponse<Question>>(`${this.BASE_PATH}`, {
-      params: { ...filters, ...params }
-    });
-    return response.data;
+    try {
+      const response = await apiService.get<PaginatedResponse<Question>>(`${this.BASE_PATH}`, {
+        params: { ...filters, ...params }
+      });
+      return response.data;
+    } catch (error) {
+      console.log('API unavailable, using mock data for questionnaires');
+      // Return mock data when API is unavailable
+      const page = params?.page || 0;
+      const size = params?.size || 10;
+      return createMockPaginatedResponse(MOCK_QUESTIONNAIRES, page, size);
+    }
   }
 }
 
