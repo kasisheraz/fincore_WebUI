@@ -86,10 +86,17 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  webServer: {
+  webServer: process.env.CI ? {
+    // In CI: Build and serve static files (cleaner shutdown)
+    command: 'npm run build && npx serve -s build -l 3000',
+    url: 'http://localhost:3000',
+    reuseExistingServer: false,
+    timeout: 120 * 1000,
+  } : {
+    // Locally: Use dev server
     command: 'npm start',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000,
     env: {
       // Enable mock authentication for E2E tests
