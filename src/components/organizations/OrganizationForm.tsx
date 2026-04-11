@@ -9,7 +9,9 @@ import {
   Box,
   Typography,
   Divider,
-  Chip
+  Chip,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, CreateAddressDTO } from '../../types/organization.types';
 import { isRequired, isValidURL } from '../../utils/validators';
@@ -118,9 +120,16 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     
     // Other
     legacyIdentifier: '',
+    
+    // KYC Documents
+    kycDocuments: [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sameAsRegisteredAddress, setSameAsRegisteredAddress] = useState({
+    business: false,
+    correspondence: false
+  });
   const [addressValidation, setAddressValidation] = useState<{
     registered: boolean;
     business: boolean;
@@ -239,7 +248,32 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         ...prev,
         [addressType]: isValid
       }));
+      
+      // If registered address changed and any "same as" checkbox is checked, copy to those addresses
+      if (addressType === 'registered') {
+        const updates: any = {};
+        if (sameAsRegisteredAddress.business) {
+          updates.businessAddress = { ...addressData, typeCode: 2 };
+        }
+        if (sameAsRegisteredAddress.correspondence) {
+          updates.correspondenceAddress = { ...addressData, typeCode: 3 };
+        }
+        if (Object.keys(updates).length > 0) {
+          setFormData(prev => ({ ...prev, ...updates }));
+        }
+      }
     };
+
+  const handleSameAsRegistered = (addressType: 'business' | 'correspondence') => (checked: boolean) => {
+    setSameAsRegisteredAddress(prev => ({ ...prev, [addressType]: checked }));
+    if (checked && formData.registeredAddress) {
+      const typeCode = addressType === 'business' ? 2 : 3;
+      setFormData(prev => ({
+        ...prev,
+        [`${addressType}Address`]: { ...formData.registeredAddress!, typeCode }
+      }));
+    }
+  };
 
   const hasErrors = Object.keys(errors).length > 0;
 
@@ -261,6 +295,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           <Tab label="Remittance" />
           <Tab label="Transactions" />
           <Tab label="Addresses" />
+          <Tab label="KYC Documents" />
           <Tab label="Other" />
         </Tabs>
       </Box>
@@ -779,12 +814,12 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         </Typography>
         <Divider sx={{ mb: 3 }} />
         
-        <Grid container spacing={4}>
-          {/* Registered Address */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              Registered Address
-            </Typography>
+        {/* Registered Address */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+            Registered Address
+          </Typography>
+          <Grid container spacing={3}>
             <AddressForm
               address={formData.registeredAddress || null}
               onDataChange={handleAddressChange('registered')}
@@ -792,37 +827,115 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
               required={false}
             />
           </Grid>
+        </Box>
 
-          {/* Business Address */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+        <Divider sx={{ my: 3 }} />
+
+        {/* Business Address */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Business Address
             </Typography>
-            <AddressForm
-              address={formData.businessAddress || null}
-              onDataChange={handleAddressChange('business')}
-              typeCode={2}
-              required={false}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={sameAsRegisteredAddress.business}
+                  onChange={(e) => handleSameAsRegistered('business')(e.target.checked)}
+                />
+              }
+              label="Same as registered address"
             />
-          </Grid>
+          </Box>
+          {!sameAsRegisteredAddress.business && (
+            <Grid container spacing={3}>
+              <AddressForm
+                address={formData.businessAddress || null}
+                onDataChange={handleAddressChange('business')}
+                typeCode={2}
+                required={false}
+              />
+            </Grid>
+          )}
+        </Box>
 
-          {/* Correspondence Address */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+        <Divider sx={{ my: 3 }} />
+
+        {/* Correspondence Address */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Correspondence Address
             </Typography>
-            <AddressForm
-              address={formData.correspondenceAddress || null}
-              onDataChange={handleAddressChange('correspondence')}
-              typeCode={3}
-              required={false}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={sameAsRegisteredAddress.correspondence}
+                  onChange={(e) => handleSameAsRegistered('correspondence')(e.target.checked)}
+                />
+              }
+              label="Same as registered address"
             />
+          </Box>
+          {!sameAsRegisteredAddress.correspondence && (
+            <Grid container spacing={3}>
+              <AddressForm
+                address={formData.correspondenceAddress || null}
+                onDataChange={handleAddressChange('correspondence')}
+                typeCode={3}
+                required={false}
+              />
+            </Grid>
+          )}
+        </Box>
+      </TabPanel>
+
+      {/* Tab 7: KYC Documents */}
+      <TabPanel value={currentTab} index={7}>
+        <Typography variant="h6" gutterBottom>
+          KYC & Compliance Documents
+          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Upload supporting documents for organization verification and compliance.
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>Note:</strong> KYC document upload functionality will be integrated after organization creation. 
+            You can upload documents through the organization details page after completing this form.
+          </Typography>
+        </Alert>
+        
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" gutterBottom>
+              Recommended Documents:
+            </Typography>
+            <Box component="ul" sx={{ mt: 1, pl: 3 }}>
+              <li>Certificate of Incorporation</li>
+              <li>Proof of Registered Address</li>
+              <li>Memorandum of Association</li>
+              <li>Articles of Association</li>
+              <li>Directors' Register</li>
+              <li>Shareholders' Register</li>
+              <li>Tax Registration Certificate</li>
+              <li>Regulatory License (if applicable)</li>
+            </Box>
+          </Grid>
+          
+          {/* Placeholder for future file upload component */}
+          <Grid item xs={12}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+              Document upload interface will be available in the organization management page.
+            </Typography>
           </Grid>
         </Grid>
       </TabPanel>
 
-      {/* Tab 7: Other Information */}
-      <TabPanel value={currentTab} index={7}>
+      {/* Tab 8: Other Information */}
+      <TabPanel value={currentTab} index={8}>
         <Typography variant="h6" gutterBottom>
           Additional Information
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />

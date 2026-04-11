@@ -2,6 +2,20 @@
 
 import { Status } from './common.types';
 
+export interface Address {
+  id?: number;
+  addressType?: string;
+  typeCode: number;
+  addressLine1: string;
+  addressLine2?: string;
+  city?: string;
+  stateCode?: string;
+  postalCode?: string;
+  country: string;
+  statusDescription?: string;
+  createdDatetime?: string;
+}
+
 export interface User {
   id: number;
   firstName: string;
@@ -12,8 +26,8 @@ export interface User {
   dateOfBirth: string;
   statusDescription: Status; // Backend uses statusDescription, not status
   role?: string;
-  residentialAddressIdentifier?: number;
-  postalAddressIdentifier?: number;
+  residentialAddress?: Address;
+  postalAddress?: Address;
   createdDatetime: string; // Backend uses createdDatetime, not createdAt
   lastModifiedDatetime: string; // Backend uses lastModifiedDatetime, not updatedAt
 }
@@ -27,8 +41,8 @@ export interface CreateUserDTO {
   dateOfBirth: string;
   role?: string; // Backend requires role
   statusDescription?: Status;
-  residentialAddressIdentifier?: number; // FK to Address table
-  postalAddressIdentifier?: number; // FK to Address table
+  residentialAddress?: Address;
+  postalAddress?: Address;
 }
 
 export interface UpdateUserDTO {
@@ -39,8 +53,8 @@ export interface UpdateUserDTO {
   phoneNumber?: string;
   dateOfBirth?: string;
   statusDescription?: Status; // Backend uses statusDescription
-  residentialAddressIdentifier?: number; // FK to Address table
-  postalAddressIdentifier?: number; // FK to Address table
+  residentialAddress?: Address;
+  postalAddress?: Address;
 }
 
 export interface UserSearchParams {

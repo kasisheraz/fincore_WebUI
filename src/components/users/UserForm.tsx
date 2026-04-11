@@ -4,10 +4,16 @@ import {
   TextField,
   MenuItem,
   Alert,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+  Divider,
+  Box,
 } from '@mui/material';
-import { User, CreateUserDTO, UpdateUserDTO } from '../../types/user.types';
+import { User, CreateUserDTO, UpdateUserDTO, Address } from '../../types/user.types';
 import { STATUS_OPTIONS, CREATABLE_ROLES, USER_ROLES } from '../../utils/constants';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidAge } from '../../utils/validators';
+import AddressForm from '../common/AddressForm';
 
 interface UserFormProps {
   user?: User | null;
@@ -25,28 +31,42 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     email: user?.email || '',
     phoneNumber: user?.phoneNumber || '',
     dateOfBirth: user?.dateOfBirth || '',
-    residentialAddressIdentifier: user?.residentialAddressIdentifier,
-    postalAddressIdentifier: user?.postalAddressIdentifier,
+    residentialAddress: user?.residentialAddress,
+    postalAddress: user?.postalAddress,
     ...(mode === 'create' ? { role: USER_ROLES.USER } : {}), // Default to USER role
     ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sameAsResidential, setSameAsResidential] = useState(false);
+  const [addressValidation, setAddressValidation] = useState({
+    residential: true,
+    postal: true
+  });
 
   useEffect(() => {
     if (user) {
       setFormData({
         firstName: user.firstName,
-        middleName: user.middleName || '',
+        middleName: user.middleName,
         lastName: user.lastName,
         email: user.email,
         phoneNumber: user.phoneNumber,
         dateOfBirth: user.dateOfBirth,
-        residentialAddressIdentifier: user.residentialAddressIdentifier,
-        postalAddressIdentifier: user.postalAddressIdentifier,
+        residentialAddress: user.residentialAddress,
+        postalAddress: user.postalAddress,
         ...(mode === 'create' ? { role: USER_ROLES.USER } : {}),
         ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
+      
+      // Check if addresses are the same
+      if (user.residentialAddress && user.postalAddress) {
+        const isSame = 
+          user.residentialAddress.addressLine1 === user.postalAddress.addressLine1 &&
+          user.residentialAddress.city === user.postalAddress.city &&
+          user.residentialAddress.country === user.postalAddress.country;
+        setSameAsResidential(isSame);
+      }
     }
   }, [user, mode]);
 
@@ -109,13 +129,47 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
       }));
     }
   };
+  
+  const handleAddressChange = (addressType: 'residential' | 'postal') => 
+    (addressData: Address, isValid: boolean) => {
+      setFormData(prev => ({
+        ...prev,
+        [`${addressType}Address`]: addressData
+      }));
+      setAddressValidation(prev => ({
+        ...prev,
+        [addressType]: isValid
+      }));
+      
+      // If residential address changed and "same as" is checked, copy to postal
+      if (addressType === 'residential' && sameAsResidential) {
+        setFormData(prev => ({
+          ...prev,
+          postalAddress: { ...addressData, typeCode: 5 } // Postal type code
+        }));
+      }
+    };
+  
+  const handleSameAsResidential = (checked: boolean) => {
+    setSameAsResidential(checked);
+    if (checked && formData.residentialAddress) {
+      // Copy residential to postal with postal type code
+      setFormData(prev => ({
+        ...prev,
+        postalAddress: { ...prev.residentialAddress!, typeCode: 5 }
+      }));
+    }
+  };
 
   // Automatically validate when form data changes
   useEffect(() => {
     if (Object.keys(formData).some(key => formData[key as keyof typeof formData])) {
-      validateForm();
+      const isFormValid = validateForm() && addressValidation.residential &&  addressValidation.postal;
+      if (onValidationChange) {
+        onValidationChange(isFormValid);
+      }
     }
-  }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData, addressValidation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Grid container spacing={3}>
@@ -237,30 +291,48 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         </Grid>
       )}
 
-      {/* Row 5: Address Identifiers */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Residential Address ID"
-          type="number"
-          value={formData.residentialAddressIdentifier || ''}
-          onChange={(e) => handleChange('residentialAddressIdentifier', e.target.value ? Number(e.target.value) : undefined)}
-          helperText="Optional: Link to existing residential address"
-          InputProps={{ inputProps: { min: 1 } }}
-        />
+      {/* Row 5: Residential Address */}
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+          Residential Address
+        </Typography>
       </Grid>
+      
+      <AddressForm
+        address={formData.residentialAddress}
+        typeCode={1} // Residential
+        onDataChange={(data, valid) => handleAddressChange('residential')(data, valid)}
+        required={false}
+      />
 
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Postal Address ID"
-          type="number"
-          value={formData.postalAddressIdentifier || ''}
-          onChange={(e) => handleChange('postalAddressIdentifier', e.target.value ? Number(e.target.value) : undefined)}
-          helperText="Optional: Link to existing postal address"
-          InputProps={{ inputProps: { min: 1 } }}
-        />
+      {/* Row 6: Postal Address */}
+      <Grid item xs={12}>
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Postal Address
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={sameAsResidential}
+                onChange={(e) => handleSameAsResidential(e.target.checked)}
+              />
+            }
+            label="Same as residential address"
+          />
+        </Box>
       </Grid>
+      
+      {!sameAsResidential && (
+        <AddressForm
+          address={formData.postalAddress}
+          typeCode={5} // Postal
+          onDataChange={(data, valid) => handleAddressChange('postal')(data, valid)}
+          required={false}
+        />
+      )}
 
       {/* Validation Error Alert */}
       {Object.keys(errors).length > 0 && (

@@ -144,6 +144,16 @@ export interface CreateOrganizationDTO {
   
   // Other
   legacyIdentifier?: string;
+  
+  // KYC Documents
+  kycDocuments?: KYCDocumentUpload[];
+}
+
+export interface KYCDocumentUpload {
+  documentType: string;
+  fileName?: string;
+  fileUrl?: string;
+  file?: File;
 }
 
 export interface UpdateOrganizationDTO {
