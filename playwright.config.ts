@@ -14,7 +14,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 4, // Use 4 workers locally for faster tests
+  
+  // Stop after N failures to save time
+  maxFailures: process.env.CI ? undefined : 10,
   
   // Reporter to use
   reporter: [

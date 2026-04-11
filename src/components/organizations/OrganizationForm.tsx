@@ -216,7 +216,14 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
   // Auto-validate on form data change
   useEffect(() => {
-    const isValid = validateForm() && addressValidation.registered && addressValidation.business && addressValidation.correspondence;
+    const basicFormValid = validateForm();
+    // Addresses are optional, so only validate if they exist
+    const addressesValid = 
+      (!formData.registeredAddress || addressValidation.registered) &&
+      (!formData.businessAddress || addressValidation.business) &&
+      (!formData.correspondenceAddress || addressValidation.correspondence);
+    
+    const isValid = basicFormValid && addressesValid;
     if (onValidationChange) {
       onValidationChange(isValid);
     }

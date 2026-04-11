@@ -89,6 +89,14 @@ const AddressForm: React.FC<AddressFormProps> = ({
     return isValid;
   };
 
+  // Notify parent of initial validation state on mount
+  useEffect(() => {
+    const isValid = validateForm();
+    if (onDataChange) {
+      onDataChange(formData, isValid);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleChange = (field: keyof CreateAddressDTO, value: any) => {
     const updated = {
       ...formData,

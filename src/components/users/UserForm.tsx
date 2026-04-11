@@ -164,7 +164,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
   // Automatically validate when form data changes
   useEffect(() => {
     if (Object.keys(formData).some(key => formData[key as keyof typeof formData])) {
-      const isFormValid = validateForm() && addressValidation.residential &&  addressValidation.postal;
+      const basicFormValid = validateForm();
+      // Addresses are optional, so only validate if they exist
+      const addressesValid = 
+        (!formData.residentialAddress || addressValidation.residential) &&
+        (!formData.postalAddress || addressValidation.postal);
+      
+      const isFormValid = basicFormValid && addressesValid;
       if (onValidationChange) {
         onValidationChange(isFormValid);
       }
