@@ -9,11 +9,13 @@ import {
   FormControlLabel,
   Divider,
   Box,
+  CircularProgress,
 } from '@mui/material';
 import { User, CreateUserDTO, UpdateUserDTO, Address } from '../../types/user.types';
-import { STATUS_OPTIONS, CREATABLE_ROLES, USER_ROLES } from '../../utils/constants';
+import { STATUS_OPTIONS } from '../../utils/constants';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidAge } from '../../utils/validators';
 import AddressForm from '../common/AddressForm';
+import { roleService, Role } from '../../services/roleService';
 
 interface UserFormProps {
   user?: User | null;
@@ -43,6 +45,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     residential: true,
     postal: true
   });
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState<boolean>(true);
+  const [rolesError, setRolesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -67,6 +72,27 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
           user.residentialAddress.country === user.postalAddress.country;
         setSameAsResidential(isSame);
       }
+  // Fetch roles from backend on component mount
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setLoadingRoles(true);
+        setRolesError(null);
+        console.log('[UserForm] Fetching roles from backend...');
+        const fetchedRoles = await roleService.getAllRoles();
+        console.log('[UserForm] Roles fetched:', fetchedRoles);
+        setRoles(fetchedRoles);
+      } catch (error) {
+        console.error('[UserForm] Error fetching roles:', error);
+        setRolesError('Failed to load roles. Please refresh the page.');
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+
     }
   }, [user, mode]);
 
@@ -248,14 +274,34 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         />
       </Grid>
 
-      {/* Row 4: Date of Birth and Role/Status */}
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Date of Birth"
-          type="date"
-          value={formData.dateOfBirth}
-          onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+      {/* Row 4: Date of Birth and Role/Status */}''}''}
+            onChange={(e) => handleChange('role', e.target.value)}
+            helperText={rolesError || "User role determines access permissions"}
+            error={!!errors.role || !!rolesError}
+            required
+            disabled={loadingRoles}
+            InputProps={{
+              endAdornment: loadingRoles ? <CircularProgress size={20} /> : null,
+            }}
+          >
+            {!loadingRoles && roles.length === 0 && (
+              <MenuItem disabled value="">
+                No roles available
+              </MenuItem>
+            )}
+            {roles.map((role) => (
+              <MenuItem key={role.id} value={role.name}>
+                {role.nameoadingRoles ? <CircularProgress size={20} /> : null,
+            }}
+          >
+            {!loadingRoles && roles.length === 0 && (
+              <MenuItem disabled value="">
+                No roles available
+              </MenuItem>
+            )}
+            {roles.map((role) => (
+              <MenuItem key={role.id} value={role.name}>
+                {role.namendleChange('dateOfBirth', e.target.value)}
           error={!!errors.dateOfBirth}
           helperText={errors.dateOfBirth}
           InputLabelProps={{ shrink: true }}
