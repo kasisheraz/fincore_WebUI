@@ -86,8 +86,6 @@ export const PROTECTED_ROLES = [
  * Includes all business roles
  */
 export const CREATABLE_ROLES = [
-  { label: 'User', value: 'USER' },
-  { label: 'Manager', value: 'MANAGER' },
   { label: 'Business User', value: 'Business User' },
   { label: 'Operational', value: 'Operational' },
   { label: 'Compliance', value: 'Compliance' },
@@ -108,7 +106,6 @@ export const isProtectedRole = (role?: string): boolean => {
 export const canManageUsers = (userRole?: string): boolean => {
   if (!userRole) return false;
   return [
-    'MANAGER',
     'Operational',
     'Admin',
     USER_ROLES.SUPER_ADMIN,
