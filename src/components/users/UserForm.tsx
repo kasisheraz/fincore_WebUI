@@ -33,7 +33,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     dateOfBirth: user?.dateOfBirth || '',
     residentialAddress: user?.residentialAddress,
     postalAddress: user?.postalAddress,
-    ...(mode === 'create' ? { role: USER_ROLES.USER } : {}), // Default to USER role
+    ...(mode === 'create' ? { role: user?.role || '' } : {}), // Role must be selected
     ...(mode === 'edit' && user ? { statusDescription: user.statusDescription } : {}),
   });
 
@@ -55,7 +55,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         dateOfBirth: user.dateOfBirth,
         residentialAddress: user.residentialAddress,
         postalAddress: user.postalAddress,
-        ...(mode === 'create' ? { role: USER_ROLES.USER } : {}),
+        ...(mode === 'create' ? { role: user.role || '' } : {}),
         ...(mode === 'edit' ? { statusDescription: user.statusDescription } : {}),
       });
       
@@ -97,6 +97,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
       newErrors.dateOfBirth = 'Date of birth is required';
     } else if (!isValidAge(formData.dateOfBirth!, 18)) {
       newErrors.dateOfBirth = 'User must be at least 18 years old';
+    }
+
+    // Validate role is selected (only for create mode)
+    if (mode === 'create' && !isRequired((formData as CreateUserDTO).role)) {
+      newErrors.role = 'Role is required';
     }
 
     setErrors(newErrors);
