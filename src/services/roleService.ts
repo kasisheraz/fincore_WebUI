@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import apiService from './apiService';
 
 export interface Role {
   id: number;
@@ -16,7 +16,7 @@ class RoleService {
   async getAllRoles(): Promise<Role[]> {
     try {
       console.log('[RoleService] Fetching all roles from API');
-      const response = await apiClient.get<Role[]>('/roles');
+      const response = await apiService.get<Role[]>('/roles');
       console.log('[RoleService] Received roles:', response.data);
       return response.data;
     } catch (error) {

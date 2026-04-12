@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import apiService from './apiService';
 
 export interface EnumOption {
   value: string;
@@ -39,7 +39,7 @@ class EnumService {
     }
 
     // Start loading
-    this.loading = apiClient.get<Enums>('/enums')
+    this.loading = apiService.get<Enums>('/enums')
       .then(response => {
         this.cache = response.data;
         this.loading = null;
