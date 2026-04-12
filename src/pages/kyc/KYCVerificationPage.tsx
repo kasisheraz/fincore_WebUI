@@ -29,8 +29,8 @@ import kycVerificationService from '../../services/kycVerificationService';
 import { KYCVerification, KYCVerificationFilters } from '../../types/kycVerification.types';
 import { formatDate } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { VERIFICATION_STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
+import enumService, { EnumOption } from '../../services/enumService';
 
 const KYCVerificationPage: React.FC = () => {
   const [verifications, setVerifications] = useState<KYCVerification[]>([]);
@@ -56,6 +56,9 @@ const KYCVerificationPage: React.FC = () => {
 
   const pagination = usePagination();
   const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
+
+  // Enum options
+  const [verificationStatusOptions, setVerificationStatusOptions] = useState<EnumOption[]>([]);
 
   const fetchVerifications = useCallback(async () => {
     try {
@@ -84,6 +87,19 @@ const KYCVerificationPage: React.FC = () => {
     console.log('KYCVerificationPage mounted');
     fetchVerifications();
   }, [fetchVerifications]);
+
+  // Fetch enum options on mount
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const statuses = await enumService.getVerificationStatus();
+        setVerificationStatusOptions(statuses);
+      } catch (error) {
+        console.error('Failed to fetch enum options:', error);
+      }
+    };
+    fetchEnums();
+  }, []);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbar({ open: true, message, severity });
@@ -174,7 +190,7 @@ const KYCVerificationPage: React.FC = () => {
 
   const filterFields: FilterField[] = [
     { name: 'userId', label: 'User ID', type: 'text' },
-    { name: 'status', label: 'Status', type: 'select', options: VERIFICATION_STATUS_OPTIONS },
+    { name: 'status', label: 'Status', type: 'select', options: verificationStatusOptions },
     { name: 'riskLevel', label: 'Risk Level', type: 'select', options: [
       { value: 'LOW', label: 'Low' },
       { value: 'MEDIUM', label: 'Medium' },

@@ -12,10 +12,10 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { User, CreateUserDTO, UpdateUserDTO, Address } from '../../types/user.types';
-import { STATUS_OPTIONS } from '../../utils/constants';
 import { isValidEmail, isValidPhoneNumber, isRequired, isValidAge } from '../../utils/validators';
 import AddressForm from '../common/AddressForm';
 import { roleService, Role } from '../../services/roleService';
+import enumService, { EnumOption } from '../../services/enumService';
 
 interface UserFormProps {
   user?: User | null;
@@ -48,6 +48,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState<boolean>(true);
   const [rolesError, setRolesError] = useState<string | null>(null);
+  const [statusOptions, setStatusOptions] = useState<EnumOption[]>([]);
+  const [loadingStatuses, setLoadingStatuses] = useState<boolean>(true);
 
   useEffect(() => {
     if (user) {
@@ -72,7 +74,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
           user.residentialAddress.country === user.postalAddress.country;
         setSameAsResidential(isSame);
       }
-  // Fetch roles from backend on component mount
+  // Fetch roles and statuses from backend on component mount
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -90,7 +92,22 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
       }
     };
 
+    const fetchStatuses = async () => {
+      try {
+        setLoadingStatuses(true);
+        console.log('[UserForm] Fetching statuses from backend...');
+        const fetchedStatuses = await enumService.getUserStatus();
+        console.log('[UserForm] Statuses fetched:', fetchedStatuses);
+        setStatusOptions(fetchedStatuses);
+      } catch (error) {
+        console.error('[UserForm] Error fetching statuses:', error);
+      } finally {
+        setLoadingStatuses(false);
+      }
+    };
+
     fetchRoles();
+    fetchStatuses();
   }, []);
 
     }
@@ -338,8 +355,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
             value={(formData as UpdateUserDTO).statusDescription || 'ACTIVE'}
             onChange={(e) => handleChange('statusDescription', e.target.value)}
             helperText="Current user status"
+            disabled={loadingStatuses}
           >
-            {STATUS_OPTIONS.map((option) => (
+            {statusOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
               </MenuItem>

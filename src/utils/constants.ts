@@ -1,47 +1,43 @@
 /**
- * Application constants
+ * Application constants - UI Passthrough Mode
+ * 
+ * ⚠️ IMPORTANT: All dropdown values are now fetched dynamically from the backend.
+ * DO NOT add hardcoded dropdown options here. Use enumService.ts instead.
+ * 
+ * Migration from hardcoded to dynamic:
+ * - Roles: roleService.getAllRoles()
+ * - User Status: enumService.getUserStatus()
+ * - Organization Status: enumService.getOrganizationStatus()
+ * - Organization Type: enumService.getOrganizationType()
+ * - Document Type: enumService.getDocumentType()
+ * - Document Status: enumService.getDocumentStatus()
+ * - Verification Status: enumService.getVerificationStatus()
+ * - Address Type: enumService.getAddressType()
+ * - Verification Level: enumService.getVerificationLevel()
+ * - Screening Type: enumService.getScreeningType()
+ * - Risk Level: enumService.getRiskLevel()
+ * - Question Category: enumService.getQuestionCategory()
+ * 
+ * This file only contains:
+ * - UI configuration constants (pagination, date formats)
+ * - Protected role identifiers for security checks
+ * - Helper functions for role validation
  */
 
-export const STATUS_OPTIONS = [
-  { label: 'Active', value: 'ACTIVE' },
-  { label: 'Inactive', value: 'INACTIVE' },
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'Suspended', value: 'SUSPENDED' },
-];
-
+/**
+ * Gender options - not yet migrated to backend enum
+ * TODO: Create Gender enum in backend and migrate to enumService
+ */
 export const GENDER_OPTIONS = [
   { label: 'Male', value: 'MALE' },
   { label: 'Female', value: 'FEMALE' },
   { label: 'Other', value: 'OTHER' },
 ];
 
-export const DOCUMENT_TYPE_OPTIONS = [
-  { label: 'Passport', value: 'PASSPORT' },
-  { label: 'Driver License', value: 'DRIVER_LICENSE' },
-  { label: 'National ID', value: 'NATIONAL_ID' },
-  { label: 'Other', value: 'OTHER' },
-];
-
-export const DOCUMENT_STATUS_OPTIONS = [
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'Verified', value: 'VERIFIED' },
-  { label: 'Rejected', value: 'REJECTED' },
-];
-
-export const VERIFICATION_STATUS_OPTIONS = [
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'In Review', value: 'IN_REVIEW' },
-  { label: 'Approved', value: 'APPROVED' },
-  { label: 'Rejected', value: 'REJECTED' },
-];
-
-export const ORGANIZATION_TYPE_OPTIONS = [
-  { label: 'Government', value: 'GOVERNMENT' },
-  { label: 'Private', value: 'PRIVATE' },
-  { label: 'Non-Profit', value: 'NON_PROFIT' },
-  { label: 'Public', value: 'PUBLIC' },
-];
-
+/**
+ * Question type options - not yet migrated to backend enum
+ * TODO: Create QuestionType enum in backend and migrate to enumService
+ */
 export const QUESTION_TYPE_OPTIONS = [
   { label: 'Text', value: 'TEXT' },
   { label: 'Multiple Choice', value: 'MULTIPLE_CHOICE' },

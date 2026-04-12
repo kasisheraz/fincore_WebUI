@@ -37,8 +37,8 @@ import kycDocumentService from '../../services/kycDocumentService';
 import { KYCDocument, KYCDocumentFilters } from '../../types/kycDocument.types';
 import { formatDate, formatFileSize } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { DOCUMENT_TYPE_OPTIONS, VERIFICATION_STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
+import enumService, { EnumOption } from '../../services/enumService';
 
 const KYCDocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<KYCDocument[]>([]);
@@ -69,6 +69,10 @@ const KYCDocumentsPage: React.FC = () => {
   const pagination = usePagination();
   const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
 
+  // Enum options
+  const [documentTypeOptions, setDocumentTypeOptions] = useState<EnumOption[]>([]);
+  const [verificationStatusOptions, setVerificationStatusOptions] = useState<EnumOption[]>([]);
+
   const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
@@ -97,6 +101,23 @@ const KYCDocumentsPage: React.FC = () => {
     fetchDocuments();
   }, [fetchDocuments]);
 
+  // Fetch enum options on mount
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const [docTypes, verStatuses] = await Promise.all([
+          enumService.getDocumentType(),
+          enumService.getVerificationStatus()
+        ]);
+        setDocumentTypeOptions(docTypes);
+        setVerificationStatusOptions(verStatuses);
+      } catch (error) {
+        console.error('Failed to fetch enum options:', error);
+      }
+    };
+    fetchEnums();
+  }, []);
+
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbar({ open: true, message, severity });
   };
@@ -110,7 +131,7 @@ const KYCDocumentsPage: React.FC = () => {
       sortable: true,
       minWidth: 150,
       format: (value) => {
-        const option = DOCUMENT_TYPE_OPTIONS.find(opt => opt.value === value);
+        const option = documentTypeOptions.find(opt => opt.value === value);
         return option?.label || value;
       }
     },
@@ -175,8 +196,8 @@ const KYCDocumentsPage: React.FC = () => {
 
   const filterFields: FilterField[] = [
     { name: 'userId', label: 'User ID', type: 'text' },
-    { name: 'documentType', label: 'Document Type', type: 'select', options: DOCUMENT_TYPE_OPTIONS },
-    { name: 'status', label: 'Status', type: 'select', options: VERIFICATION_STATUS_OPTIONS },
+    { name: 'documentType', label: 'Document Type', type: 'select', options: documentTypeOptions },
+    { name: 'status', label: 'Status', type: 'select', options: verificationStatusOptions },
     { name: 'uploadDateFrom', label: 'Upload Date From', type: 'date' },
     { name: 'uploadDateTo', label: 'Upload Date To', type: 'date' }
   ];
@@ -355,7 +376,7 @@ const KYCDocumentsPage: React.FC = () => {
                 label="Document Type"
                 onChange={(e) => setUploadForm({ ...uploadForm, documentType: e.target.value as any })}
               >
-                {DOCUMENT_TYPE_OPTIONS.map(opt => (
+                {documentTypeOptions.map(opt => (
                   <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                 ))}
               </Select>

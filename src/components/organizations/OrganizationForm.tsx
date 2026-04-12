@@ -15,9 +15,9 @@ import {
 } from '@mui/material';
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, CreateAddressDTO } from '../../types/organization.types';
 import { isRequired, isValidURL } from '../../utils/validators';
-import { ORGANIZATION_TYPE_OPTIONS } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
 import AddressForm from '../common/AddressForm';
+import enumService, { EnumOption } from '../../services/enumService';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -139,6 +139,8 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     business: true,
     correspondence: true
   });
+  const [organizationTypeOptions, setOrganizationTypeOptions] = useState<EnumOption[]>([]);
+  const [loadingOrgTypes, setLoadingOrgTypes] = useState<boolean>(true);
 
   // Initialize form with organization data in edit mode
   useEffect(() => {
@@ -189,6 +191,26 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
       setFormData(prev => ({ ...prev, ownerId: user.id }));
     }
   }, [organization, mode, user]);
+
+  // Fetch organization types from backend
+  useEffect(() => {
+    const fetchOrganizationTypes = async () => {
+      try {
+        setLoadingOrgTypes(true);
+        console.log('[OrganizationForm] Fetching organization types from backend...');
+        const fetchedTypes = await enumService.getOrganizationType();
+        console.log('[OrganizationForm] Organization types fetched:', fetchedTypes);
+        setOrganizationTypeOptions(fetchedTypes);
+      } catch (error) {
+        console.error('[OrganizationForm] Error fetching organization types:', error);
+        // Keep empty array on error - form will still work
+      } finally {
+        setLoadingOrgTypes(false);
+      }
+    };
+
+    fetchOrganizationTypes();
+  }, []);
 
   // Validate form
   const validateForm = (): boolean => {
@@ -353,8 +375,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
               error={!!errors.organisationType}
               helperText={errors.organisationType || 'Select organization type'}
               required
+              disabled={loadingOrgTypes}
             >
-              {ORGANIZATION_TYPE_OPTIONS.map((option) => (
+              {organizationTypeOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>

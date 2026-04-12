@@ -26,8 +26,9 @@ import { PaginatedResponse, Status } from '../../types/common.types';
 import userService from '../../services/userService';
 import { usePagination } from '../../hooks/usePagination';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
-import { STATUS_OPTIONS, isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
+import { isProtectedRole, canManageUsers, canDeleteUsers } from '../../utils/constants';
 import { useAuth } from '../../context/AuthContext';
+import enumService, { EnumOption } from '../../services/enumService';
 
 const UsersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -62,6 +63,9 @@ const UsersPage: React.FC = () => {
     message: '',
     severity: 'success',
   });
+
+  // Enum options
+  const [statusOptions, setStatusOptions] = useState<EnumOption[]>([]);
 
   const { page, rowsPerPage, setPage, setRowsPerPage, getPaginationParams } = usePagination();
 
@@ -116,6 +120,19 @@ const UsersPage: React.FC = () => {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Fetch enum options on mount
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const statuses = await enumService.getUserStatus();
+        setStatusOptions(statuses);
+      } catch (error) {
+        console.error('Failed to fetch enum options:', error);
+      }
+    };
+    fetchEnums();
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -318,7 +335,7 @@ const UsersPage: React.FC = () => {
       name: 'status',
       label: 'Status',
       type: 'select',
-      options: STATUS_OPTIONS,
+      options: statusOptions,
     },
     {
       name: 'dateOfBirth',

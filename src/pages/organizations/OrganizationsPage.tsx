@@ -26,8 +26,8 @@ import organizationService from '../../services/organizationService';
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationFilters } from '../../types/organization.types';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
-import { ORGANIZATION_TYPE_OPTIONS, STATUS_OPTIONS } from '../../utils/constants';
 import StatusChip from '../../components/common/StatusChip';
+import enumService, { EnumOption } from '../../services/enumService';
 
 const OrganizationsPage: React.FC = () => {
   // State management
@@ -63,6 +63,10 @@ const OrganizationsPage: React.FC = () => {
   const pagination = usePagination();
   const { page, rowsPerPage, setPage, setRowsPerPage } = pagination;
 
+  // Enum options
+  const [organizationTypeOptions, setOrganizationTypeOptions] = useState<EnumOption[]>([]);
+  const [statusOptions, setStatusOptions] = useState<EnumOption[]>([]);
+
   // Fetch organizations
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -96,6 +100,23 @@ const OrganizationsPage: React.FC = () => {
     fetchOrganizations();
   }, [fetchOrganizations]);
 
+  // Fetch enum options on mount
+  useEffect(() => {
+    const fetchEnums = async () => {
+      try {
+        const [orgTypes, statuses] = await Promise.all([
+          enumService.getOrganizationType(),
+          enumService.getOrganizationStatus()
+        ]);
+        setOrganizationTypeOptions(orgTypes);
+        setStatusOptions(statuses);
+      } catch (error) {
+        console.error('Failed to fetch enum options:', error);
+      }
+    };
+    fetchEnums();
+  }, []);
+
   // Snackbar helper
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbar({ open: true, message, severity });
@@ -119,7 +140,7 @@ const OrganizationsPage: React.FC = () => {
       sortable: true,
       minWidth: 120,
       format: (value) => {
-        const option = ORGANIZATION_TYPE_OPTIONS.find(opt => opt.value === value);
+        const option = organizationTypeOptions.find(opt => opt.value === value);
         return option?.label || value;
       }
     },
@@ -184,13 +205,13 @@ const OrganizationsPage: React.FC = () => {
       name: 'organisationType',
       label: 'Type',
       type: 'select',
-      options: ORGANIZATION_TYPE_OPTIONS
+      options: organizationTypeOptions
     },
     {
       name: 'statusDescription',
       label: 'Status',
       type: 'select',
-      options: STATUS_OPTIONS
+      options: statusOptions
     },
     {
       name: 'registrationDateFrom',
