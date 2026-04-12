@@ -7,10 +7,12 @@ A modern React-based financial application built with TypeScript, Material-UI, a
 - **Modern UI/UX**: Built with Material-UI and custom Fuji-inspired theme
 - **TypeScript**: Full TypeScript support for better development experience
 - **Responsive Design**: Mobile-first responsive design
+- **Dynamic Data Architecture**: All dropdown values fetched dynamically from backend (zero hardcoded values)
+- **Role-Based Access Control**: 4 business roles (Admin, Compliance, Operational, Business User) with data filtering
+- **User Management**: Complete CRUD with dynamic role assignment and status management
+- **Organization Management**: Multi-type organizations with dynamic enum-driven forms
+- **KYC & Compliance**: Document verification with dynamic document types and status workflows
 - **Dashboard Analytics**: Comprehensive dashboard with key metrics
-- **Application Management**: Complete CRUD operations for financial applications
-- **User Profiles**: User management and profile customization
-- **Reports & Analytics**: Advanced reporting capabilities
 - **Settings Management**: Comprehensive settings and preferences
 
 ## 🛠️ Tech Stack
@@ -64,8 +66,54 @@ A modern React-based financial application built with TypeScript, Material-UI, a
 
 - `npm start` - Start development server
 - `npm run build` - Build for production
+- `npm run build:ci` - Build with CI settings (recommended for testing before commit)
 - `npm test` - Run tests
 - `npm run eject` - Eject from Create React App (not recommended)
+
+## 🏗️ Dynamic Architecture
+
+### Enum Service
+All dropdown values (user status, organization types, document types, etc.) are fetched dynamically from the backend via `/api/enums` endpoint. This eliminates hardcoded values and ensures UI stays in sync with backend.
+
+```typescript
+// services/enumService.ts
+import apiService from './apiService';
+
+// Fetches all enums once and caches them
+export const getAllEnums = async () => {
+  const response = await apiService.get('/enums');
+  return response.data;
+};
+
+// Individual enum getters with caching
+export const getUserStatus = async () => { /* ... */ };
+export const getOrganizationType = async () => { /* ... */ };
+export const getDocumentType = async () => { /* ... */ };
+```
+
+### Role Service
+User roles are fetched dynamically from `/api/roles` endpoint, supporting database-driven role management.
+
+```typescript
+// services/roleService.ts
+import apiService from './apiService';
+
+export const getAllRoles = async () => {
+  const response = await apiService.get('/roles');
+  return response.data;
+};
+```
+
+### Components Using Dynamic Data
+- **UserForm**: Fetches roles and user statuses on mount
+- **OrganizationForm**: Fetches organization types dynamically
+- **UsersPage**: Dynamic status filters
+- **OrganizationsPage**: Dynamic type and status dropdowns
+- **KYCDocumentsPage**: Dynamic document types and verification statuses
+- **KYCVerificationPage**: Dynamic verification status options
+
+### Migration Notes
+Previously hardcoded constants (STATUS_OPTIONS, ORGANIZATION_TYPE_OPTIONS, etc.) have been removed from `constants.ts`. All dropdown values now come from backend endpoints.
 
 ## 🐳 Docker Deployment
 
