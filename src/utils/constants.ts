@@ -64,7 +64,10 @@ export const DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export const USER_ROLES = {
   USER: 'USER',
   MANAGER: 'MANAGER',
-  ADMIN: 'ADMIN',
+  BUSINESS_USER: 'Business User',
+  OPERATIONAL: 'Operational',
+  COMPLIANCE: 'Compliance',
+  ADMIN: 'Admin',
   SUPER_ADMIN: 'SUPER_ADMIN',
   SYSTEM_ADMINISTRATOR: 'SYSTEM_ADMINISTRATOR',
 } as const;
@@ -74,18 +77,21 @@ export const USER_ROLES = {
  * These roles can only be managed through special admin endpoints
  */
 export const PROTECTED_ROLES = [
-  USER_ROLES.ADMIN,
   USER_ROLES.SUPER_ADMIN,
   USER_ROLES.SYSTEM_ADMINISTRATOR,
 ];
 
 /**
  * Roles available for user creation in the UI
- * Only non-admin roles can be created through the standard UI
+ * Includes all business roles
  */
 export const CREATABLE_ROLES = [
-  { label: 'User', value: USER_ROLES.USER },
-  { label: 'Manager', value: USER_ROLES.MANAGER },
+  { label: 'User', value: 'USER' },
+  { label: 'Manager', value: 'MANAGER' },
+  { label: 'Business User', value: 'Business User' },
+  { label: 'Operational', value: 'Operational' },
+  { label: 'Compliance', value: 'Compliance' },
+  { label: 'Admin', value: 'Admin' },
 ];
 
 /**
@@ -102,8 +108,9 @@ export const isProtectedRole = (role?: string): boolean => {
 export const canManageUsers = (userRole?: string): boolean => {
   if (!userRole) return false;
   return [
-    USER_ROLES.MANAGER,
-    USER_ROLES.ADMIN,
+    'MANAGER',
+    'Operational',
+    'Admin',
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.SYSTEM_ADMINISTRATOR,
   ].includes(userRole as any);
@@ -115,7 +122,7 @@ export const canManageUsers = (userRole?: string): boolean => {
 export const canDeleteUsers = (userRole?: string): boolean => {
   if (!userRole) return false;
   return [
-    USER_ROLES.ADMIN,
+    'Admin',
     USER_ROLES.SUPER_ADMIN,
     USER_ROLES.SYSTEM_ADMINISTRATOR,
   ].includes(userRole as any);
