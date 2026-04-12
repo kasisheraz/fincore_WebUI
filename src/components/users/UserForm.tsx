@@ -74,6 +74,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
           user.residentialAddress.country === user.postalAddress.country;
         setSameAsResidential(isSame);
       }
+    }
+  }, [user, mode]);
+
   // Fetch roles and statuses from backend on component mount
   useEffect(() => {
     const fetchRoles = async () => {
@@ -109,9 +112,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
     fetchRoles();
     fetchStatuses();
   }, []);
-
-    }
-  }, [user, mode]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -291,7 +291,28 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
         />
       </Grid>
 
-      {/* Row 4: Date of Birth and Role/Status */}''}''}
+      {/* Row 4: Date of Birth and Role/Status */}
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Date of Birth"
+          type="date"
+          value={formData.dateOfBirth || ''}
+          onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+          error={!!errors.dateOfBirth}
+          helperText={errors.dateOfBirth}
+          InputLabelProps={{ shrink: true }}
+          required
+        />
+      </Grid>
+
+      {mode === 'create' && (
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            select
+            label="Role"
+            value={(formData as CreateUserDTO).role || ''}
             onChange={(e) => handleChange('role', e.target.value)}
             helperText={rolesError || "User role determines access permissions"}
             error={!!errors.role || !!rolesError}
@@ -308,38 +329,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
             )}
             {roles.map((role) => (
               <MenuItem key={role.id} value={role.name}>
-                {role.nameoadingRoles ? <CircularProgress size={20} /> : null,
-            }}
-          >
-            {!loadingRoles && roles.length === 0 && (
-              <MenuItem disabled value="">
-                No roles available
-              </MenuItem>
-            )}
-            {roles.map((role) => (
-              <MenuItem key={role.id} value={role.name}>
-                {role.namendleChange('dateOfBirth', e.target.value)}
-          error={!!errors.dateOfBirth}
-          helperText={errors.dateOfBirth}
-          InputLabelProps={{ shrink: true }}
-          required
-        />
-      </Grid>
-
-      {mode === 'create' && (
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            select
-            label="Role"
-            value={(formData as CreateUserDTO).role || USER_ROLES.USER}
-            onChange={(e) => handleChange('role', e.target.value)}
-            helperText="User role determines access permissions"
-            required
-          >
-            {CREATABLE_ROLES.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
+                {role.name}
               </MenuItem>
             ))}
           </TextField>
