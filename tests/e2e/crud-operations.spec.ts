@@ -3,12 +3,23 @@ import { test, expect } from '@playwright/test';
 test.describe('CRUD Operations - All Pages', () => {
   
   test.beforeEach(async ({ page }) => {
-    // Login before each test
+    // Login before each test using OTP flow with ADMIN user
     await page.goto('/login');
-    await page.fill('input[name="phoneNumber"]', '+1234567890');
-    await page.fill('input[name="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL('/dashboard');
+    
+    // Use admin phone number (5555555555) for full access
+    await page.fill('input[name="phoneNumber"]', '5555555555');
+    await page.click('button:has-text("Request OTP")');
+    
+    // Wait for OTP field to appear
+    await expect(page.locator('input[name="otp"]')).toBeVisible({ timeout: 5000 });
+    
+    // Fill OTP and verify (mock mode accepts 123456)
+    await page.fill('input[name="otp"]', '123456');
+    await page.click('button:has-text("Verify OTP")');
+    
+    // Wait for dashboard redirect and ensure page is fully loaded
+    await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test.describe('Users CRUD Operations', () => {
@@ -16,16 +27,16 @@ test.describe('CRUD Operations - All Pages', () => {
       await page.goto('/users');
       await expect(page.getByText('User Management')).toBeVisible();
       
-      // Verify Create User button exists and is clickable
-      const createButton = page.getByRole('button', { name: /create user/i });
-      await expect(createButton).toBeVisible();
-      await createButton.click();
-      await expect(page.getByText('Create User')).toBeVisible();
+      // Verify Add User button exists and is clickable
+      const addButton = page.getByRole('button', { name: /add user/i });
+      await expect(addButton).toBeVisible();
+      await addButton.click();
+      await expect(page.getByText('Create New User')).toBeVisible();
     });
 
     test('should create a new user', async ({ page }) => {
       await page.goto('/users');
-      await page.getByRole('button', { name: /create user/i }).click();
+      await page.getByRole('button', { name: /add user/i }).click();
       
       // Fill form
       await page.fill('input[name="firstName"]', 'Test');
@@ -89,22 +100,30 @@ test.describe('CRUD Operations - All Pages', () => {
       await page.goto('/organizations');
       await expect(page.getByText('Organization Management')).toBeVisible();
       
-      const createButton = page.getByRole('button', { name: /create organization/i });
-      await expect(createButton).toBeVisible();
-      await createButton.click();
+      const addButton = page.getByRole('button', { name: /add organization/i });
+      await expect(addButton).toBeVisible();
+      await addButton.click();
       await expect(page.getByText('Create Organization')).toBeVisible();
     });
 
     test('should create a new organization', async ({ page }) => {
       await page.goto('/organizations');
-      await page.getByRole('button', { name: /create organization/i }).click();
+      await page.getByRole('button', { name: /add organization/i }).click();
       
-      // Fill basic info tab
+      // Fill basic info tab (Tab 0)
       await page.fill('input[name="legalName"]', 'Test Corporation');
       await page.selectOption('select[name="organisationType"]', 'MONEY_SERVICE_BUSINESS');
       await page.fill('input[name="registrationNumber"]', 'REG123456');
       
-      await page.getByRole('button', { name: /^create$/i }).click();
+      // Navigate to last tab and save using the wizard navigation
+      // Click Next through tabs until we reach the last tab
+      for (let i = 0; i < 8; i++) {
+        await page.getByRole('button', { name: /next/i }).click({ timeout: 2000 }).catch(() => {});
+        await page.waitForTimeout(300);
+      }
+      
+      // On the last tab, click Save Organization
+      await page.getByRole('button', { name: /save organization/i }).click();
       await expect(page.getByText(/organization created successfully/i)).toBeVisible({ timeout: 5000 });
     });
 
@@ -136,7 +155,7 @@ test.describe('CRUD Operations - All Pages', () => {
 
   test.describe('KYC Documents Operations', () => {
     test('should navigate to KYC documents and verify upload button', async ({ page }) => {
-      await page.goto('/kyc/documents');
+      await page.goto('/kyc-documents');
       await expect(page.getByText('KYC Document Management')).toBeVisible();
       
       const uploadButton = page.getByRole('button', { name: /upload document/i });
@@ -148,7 +167,7 @@ test.describe('CRUD Operations - All Pages', () => {
     });
 
     test('should approve a pending document', async ({ page }) => {
-      await page.goto('/kyc/documents');
+      await page.goto('/kyc-documents');
       
       // Find approve button
       const approveButton = page.locator('button[aria-label="Approve"]').first();
@@ -159,7 +178,7 @@ test.describe('CRUD Operations - All Pages', () => {
     });
 
     test('should reject a pending document', async ({ page }) => {
-      await page.goto('/kyc/documents');
+      await page.goto('/kyc-documents');
       
       const rejectButton = page.locator('button[aria-label="Reject"]').first();
       if (await rejectButton.isVisible()) {
@@ -169,7 +188,7 @@ test.describe('CRUD Operations - All Pages', () => {
     });
 
     test('should delete a document', async ({ page }) => {
-      await page.goto('/kyc/documents');
+      await page.goto('/kyc-documents');
       
       const deleteButton = page.locator('button[aria-label="Delete"]').first();
       await deleteButton.click();
@@ -181,7 +200,7 @@ test.describe('CRUD Operations - All Pages', () => {
     });
 
     test('should refresh documents list', async ({ page }) => {
-      await page.goto('/kyc/documents');
+      await page.goto('/kyc-documents');
       const refreshButton = page.getByRole('button', { name: /refresh/i });
       await refreshButton.click();
       await page.waitForTimeout(1000);
