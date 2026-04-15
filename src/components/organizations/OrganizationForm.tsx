@@ -11,8 +11,18 @@ import {
   Divider,
   Chip,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Button,
+  Stack,
+  LinearProgress
 } from '@mui/material';
+import {
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  NavigateNext as NavigateNextIcon,
+  NavigateBefore as NavigateBeforeIcon,
+  Save as SaveIcon
+} from '@mui/icons-material';
 import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, CreateAddressDTO } from '../../types/organization.types';
 import { isRequired, isValidURL } from '../../utils/validators';
 import { useAuth } from '../../context/AuthContext';
@@ -50,6 +60,7 @@ interface OrganizationFormProps {
   mode: 'create' | 'edit';
   onValidationChange?: (isValid: boolean) => void;
   onDataChange?: (data: CreateOrganizationDTO | UpdateOrganizationDTO) => void;
+  onClose?: () => void;
 }
 
 const OrganizationForm: React.FC<OrganizationFormProps> = ({
@@ -57,10 +68,13 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   onSubmit,
   mode,
   onValidationChange,
-  onDataChange
+  onDataChange,
+  onClose
 }) => {
   const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tabsCompleted, setTabsCompleted] = useState<boolean[]>(new Array(9).fill(false));
   
   const [formData, setFormData] = useState<CreateOrganizationDTO>({
     // Required fields
@@ -236,6 +250,44 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Validate current tab
+  const validateCurrentTab = (): boolean => {
+    if (currentTab === 0) {
+      // Tab 0: Basic Info - Required fields
+      return validateForm();
+    }
+    // All other tabs are optional, always valid
+    return true;
+  };
+
+  // Check if tab has any data entered
+  const isTabComplete = (tabIndex: number): boolean => {
+    switch (tabIndex) {
+      case 0: // Basic Info - validate required fields
+        return isRequired(formData.legalName) && 
+               isRequired(formData.organisationType) && 
+               formData.ownerId > 0;
+      case 1: // Regulatory
+        return !!(formData.hmrcMlrNumber || formData.fcaNumber || formData.icoNumber);
+      case 2: // Business Structure
+        return !!(formData.numberOfBranches || formData.numberOfAgents || formData.mlroDetails);
+      case 3: // Registration
+        return !!(formData.companyNumber || formData.businessLicenseNumber || formData.registrationInformation);
+      case 4: // Remittance
+        return !!(formData.primaryRemittanceDestinationCountry || formData.secondaryRemittanceDestinationCountry);
+      case 5: // Transactions
+        return !!(formData.monthlyTurnoverRange || formData.numberOfIncomingTransactions || formData.numberOfOutgoingTransactions);
+      case 6: // Addresses
+        return !!(formData.registeredAddress || formData.businessAddress || formData.correspondenceAddress);
+      case 7: // KYC Documents
+        return true; // Always complete as it's placeholder for now
+      case 8: // Other
+        return !!(formData.legacyIdentifier);
+      default:
+        return false;
+    }
+  };
+
   // Auto-validate on form data change
   useEffect(() => {
     const basicFormValid = validateForm();
@@ -252,6 +304,10 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     if (onDataChange) {
       onDataChange(formData as any);
     }
+    
+    // Update tab completion status
+    const newTabsCompleted = Array.from({ length: 9 }, (_, i) => isTabComplete(i));
+    setTabsCompleted(newTabsCompleted);
   }, [formData, addressValidation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (field: keyof CreateOrganizationDTO) => (
@@ -266,6 +322,59 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
+
+  const handleNext = () => {
+    if (!validateCurrentTab()) {
+      return;
+    }
+    if (currentTab < 8) {
+      setCurrentTab(currentTab + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentTab > 0) {
+      setCurrentTab(currentTab - 1);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      setCurrentTab(0); // Go back to first tab if validation fails
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData as any);
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getTabIcon = (tabIndex: number): React.ReactElement | undefined => {
+    if (tabIndex === 0) {
+      // Required tab
+      return tabsCompleted[tabIndex] ? 
+        <CheckCircleIcon fontSize="small" color="success" /> : 
+        <WarningIcon fontSize="small" color="error" />;
+    } else {
+      // Optional tabs
+      return tabsCompleted[tabIndex] ? 
+        <CheckCircleIcon fontSize="small" color="success" /> : 
+        undefined;
+    }
+  };
+
+  const totalTabs = 9;
+  const completedTabs = tabsCompleted.filter(Boolean).length;
+  const progressPercentage = (completedTabs / totalTabs) * 100;
+  const isLastTab = currentTab === totalTabs - 1;
 
   const handleAddressChange = (addressType: 'registered' | 'business' | 'correspondence') => 
     (addressData: CreateAddressDTO, isValid: boolean) => {
@@ -308,6 +417,23 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
   return (
     <Box sx={{ width: '100%' }}>
+      {/* Progress Bar */}
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Tab {currentTab + 1} of {totalTabs}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {completedTabs} of {totalTabs} completed
+          </Typography>
+        </Box>
+        <LinearProgress 
+          variant="determinate" 
+          value={progressPercentage} 
+          sx={{ height: 6, borderRadius: 3 }}
+        />
+      </Box>
+
       {/* Tab Navigation */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs 
@@ -317,15 +443,51 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           scrollButtons="auto"
           aria-label="Organization form tabs"
         >
-          <Tab label="Basic Info *" />
-          <Tab label="Regulatory" />
-          <Tab label="Business Structure" />
-          <Tab label="Registration" />
-          <Tab label="Remittance" />
-          <Tab label="Transactions" />
-          <Tab label="Addresses" />
-          <Tab label="KYC Documents" />
-          <Tab label="Other" />
+          <Tab 
+            label="Basic Info *" 
+            icon={getTabIcon(0)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Regulatory" 
+            icon={getTabIcon(1)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Business Structure" 
+            icon={getTabIcon(2)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Registration" 
+            icon={getTabIcon(3)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Remittance" 
+            icon={getTabIcon(4)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Transactions" 
+            icon={getTabIcon(5)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Addresses" 
+            icon={getTabIcon(6)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="KYC Documents" 
+            icon={getTabIcon(7)}
+            iconPosition="end"
+          />
+          <Tab 
+            label="Other" 
+            icon={getTabIcon(8)}
+            iconPosition="end"
+          />
         </Tabs>
       </Box>
 
@@ -1004,6 +1166,69 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Please fix the errors in the Basic Info tab before submitting.
         </Alert>
       )}
+
+      {/* Navigation Buttons */}
+      <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+        <Stack direction="row" spacing={2} justifyContent="space-between">
+          <Box>
+            {currentTab > 0 && (
+              <Button
+                variant="outlined"
+                startIcon={<NavigateBeforeIcon />}
+                onClick={handleBack}
+                disabled={isSubmitting}
+              >
+                Back
+              </Button>
+            )}
+          </Box>
+          <Stack direction="row" spacing={2}>
+            {!isLastTab ? (
+              <Button
+                variant="contained"
+                endIcon={<NavigateNextIcon />}
+                onClick={handleNext}
+                disabled={currentTab === 0 && !tabsCompleted[0]}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<SaveIcon />}
+                onClick={handleSave}
+                disabled={!tabsCompleted[0] || isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Organization'}
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+        
+        {/* Helper Text */}
+        <Box sx={{ mt: 2 }}>
+          {currentTab === 0 && !tabsCompleted[0] && (
+            <Alert severity="warning">
+              Please complete the required fields in Basic Info to proceed.
+            </Alert>
+          )}
+          {currentTab !== 0 && (
+            <Alert severity="info" icon={false}>
+              <Typography variant="body2">
+                This tab is optional. Click <strong>Next</strong> to continue or use the tabs above to navigate.
+              </Typography>
+            </Alert>
+          )}
+          {isLastTab && (
+            <Alert severity="success">
+              <Typography variant="body2">
+                You're on the last tab! Review your information and click <strong>Save Organization</strong> when ready.
+              </Typography>
+            </Alert>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 };

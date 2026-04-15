@@ -14,13 +14,14 @@ interface FormDialogProps {
   open: boolean;
   title: string;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   children: React.ReactNode;
   submitText?: string;
   cancelText?: string;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   disableSubmit?: boolean;
+  hideActions?: boolean;
 }
 
 const FormDialog: React.FC<FormDialogProps> = ({
@@ -34,7 +35,15 @@ const FormDialog: React.FC<FormDialogProps> = ({
   maxWidth = 'sm',
   loading = false,
   disableSubmit = false,
+  hideActions = false,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSubmit) {
+      onSubmit();
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -43,10 +52,7 @@ const FormDialog: React.FC<FormDialogProps> = ({
       fullWidth
       PaperProps={{
         component: 'form',
-        onSubmit: (e: React.FormEvent) => {
-          e.preventDefault();
-          onSubmit();
-        },
+        onSubmit: handleSubmit,
       }}
     >
       <DialogTitle>
@@ -66,18 +72,20 @@ const FormDialog: React.FC<FormDialogProps> = ({
 
       <DialogContent dividers>{children}</DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} disabled={loading}>
-          {cancelText}
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={loading || disableSubmit}
-        >
-          {loading ? 'Saving...' : submitText}
-        </Button>
-      </DialogActions>
+      {!hideActions && (
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={onClose} disabled={loading}>
+            {cancelText}
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading || disableSubmit}
+          >
+            {loading ? 'Saving...' : submitText}
+          </Button>
+        </DialogActions>
+      )}
     </Dialog>
   );
 };

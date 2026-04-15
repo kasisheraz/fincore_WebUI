@@ -366,9 +366,8 @@ const OrganizationsPage: React.FC = () => {
         open={createDialogOpen}
         title="Create Organization"
         onClose={() => setCreateDialogOpen(false)}
-        onSubmit={() => { if (createFormDataRef.current) handleCreate(createFormDataRef.current); }}
         maxWidth="md"
-        disableSubmit={!isFormValid}
+        hideActions={true}
       >
         <OrganizationForm
           organization={null}
@@ -376,6 +375,7 @@ const OrganizationsPage: React.FC = () => {
           mode="create"
           onValidationChange={setIsFormValid}
           onDataChange={(data) => { createFormDataRef.current = data; }}
+          onClose={() => setCreateDialogOpen(false)}
         />
       </FormDialog>
 
@@ -387,9 +387,8 @@ const OrganizationsPage: React.FC = () => {
           setEditDialogOpen(false);
           setSelectedOrganization(null);
         }}
-        onSubmit={() => { if (editFormDataRef.current) handleUpdate(editFormDataRef.current); }}
         maxWidth="md"
-        disableSubmit={!isFormValid}
+        hideActions={true}
       >
         <OrganizationForm
           organization={selectedOrganization}
@@ -397,6 +396,10 @@ const OrganizationsPage: React.FC = () => {
           mode="edit"
           onValidationChange={setIsFormValid}
           onDataChange={(data) => { editFormDataRef.current = data; }}
+          onClose={() => {
+            setEditDialogOpen(false);
+            setSelectedOrganization(null);
+          }}
         />
       </FormDialog>
 
