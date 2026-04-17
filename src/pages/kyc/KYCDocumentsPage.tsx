@@ -27,7 +27,8 @@ import {
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CheckCircle as ApproveIcon,
-  Cancel as RejectIcon
+  Cancel as RejectIcon,
+  AttachFile as AttachFileIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -64,8 +65,7 @@ const KYCDocumentsPage: React.FC = () => {
   const [uploadForm, setUploadForm] = useState({
     organisationId: 0,
     documentType: 'PASSPORT' as const,
-    fileName: '',
-    fileUrl: '',
+    file: undefined as File | undefined,
     verificationIdentifier: undefined as number | undefined,
     sumsubDocumentIdentifier: ''
   });
@@ -293,7 +293,7 @@ const KYCDocumentsPage: React.FC = () => {
       organisationId: 0,
       documentType: 'PASSPORT',
       fileName: '',
-      fileUrl: '',
+      file: undefined,
       verificationIdentifier: undefined,
       sumsubDocumentIdentifier: ''
     });
@@ -305,6 +305,11 @@ const KYCDocumentsPage: React.FC = () => {
       return;
     }
     
+    if (!uploadForm.file) {
+      showSnackbar('Please select a file to upload', 'error');
+      return;
+    }
+    
     try {
       await kycDocumentService.upload(uploadForm);
       showSnackbar('Document uploaded successfully', 'success');
@@ -312,9 +317,7 @@ const KYCDocumentsPage: React.FC = () => {
       setUploadForm({
         organisationId: 0,
         documentType: 'PASSPORT',
-        fileName: '',
-        fileUrl: '',
-        verificationIdentifier: undefined,
+        file: undefinednIdentifier: undefined,
         sumsubDocumentIdentifier: ''
       });
       fetchDocuments();
@@ -380,9 +383,7 @@ const KYCDocumentsPage: React.FC = () => {
         <DialogTitle>Upload KYC Document</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Autocomplete
-              options={organizations}
-              getOptionLabel={(option) => `${option.legalName} (ID: ${option.id})`}
+            <Autocomplete • ${option.status}`}
               value={organizations.find(o => o.id === uploadForm.organisationId) || null}
               onChange={(_, newValue) => setUploadForm({ 
                 ...uploadForm, 
@@ -391,7 +392,7 @@ const KYCDocumentsPage: React.FC = () => {
               renderInput={(params) => (
                 <TextField 
                   {...params} 
-                  label="Organisation" 
+                  label="Organisation *" 
                   required
                   helperText="Select the organization for this KYC document"
                 />
@@ -412,21 +413,38 @@ const KYCDocumentsPage: React.FC = () => {
               </Select>
             </FormControl>
             
-            <TextField
-              fullWidth
-              label="File Name"
-              value={uploadForm.fileName}
-              onChange={(e) => setUploadForm({ ...uploadForm, fileName: e.target.value })}
-              helperText="Optional: Name of the document file"
-            />
-            
-            <TextField
-              fullWidth
-              label="File URL"
-              value={uploadForm.fileUrl}
-              onChange={(e) => setUploadForm({ ...uploadForm, fileUrl: e.target.value })}
-              helperText="Optional: URL where the document is stored"
-            />
+            <Box>
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                startIcon={<AttachFileIcon />}
+                sx={{ 
+                  py: 2, 
+                  borderStyle: 'dashed',
+                  borderWidth: 2,
+                  '&:hover': { borderStyle: 'dashed', borderWidth: 2 }
+                }}
+              >
+                {uploadForm.file ? uploadForm.file.name : 'Choose File to Upload *'}
+                <input
+                  type="file"
+                  hidden
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setUploadForm({ ...uploadForm, file });
+                    }
+                  }}
+                />
+              </Button>
+              {uploadForm.file && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Size: {(uploadForm.file.size / 1024 / 1024).toFixed(2)} MB
+                </Typography>
+              )}
+            </Box>
             
             <TextField
               fullWidth
@@ -450,6 +468,14 @@ const KYCDocumentsPage: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
+          <Button onClick={handleUploadClose}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleUpload}
+            disabled={!uploadForm.organisationId || !uploadForm.file}
+          >
+            Upload
+          
           <Button onClick={handleUploadClose}>Cancel</Button>
           <Button variant="contained" onClick={handleUpload}>Upload</Button>
         </DialogActions>

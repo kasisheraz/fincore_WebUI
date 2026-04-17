@@ -24,10 +24,9 @@ export interface KYCDocument {
 }
 
 export interface CreateKYCDocumentDTO {
-  organisationId: number; // Required by backend (British spelling!)
-  documentType: DocumentType;
-  fileName?: string;
-  fileUrl?: string;
+  organisationId: number; // Required
+  documentType: DocumentType; // Required
+  file?: File; // File to upload
   verificationIdentifier?: number;
   sumsubDocumentIdentifier?: string;
 }

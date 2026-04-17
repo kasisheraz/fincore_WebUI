@@ -38,20 +38,35 @@ class KYCDocumentService {
   }
 
   /**
-   * Upload KYC document
+   * Upload KYC document with file
    */
   async upload(data: CreateKYCDocumentDTO): Promise<KYCDocument> {
-    // Backend expects JSON with specific fields only
-    const payload = {
-      organisationId: data.organisationId,
-      documentType: data.documentType,
-      fileName: data.fileName,
-      fileUrl: data.fileUrl,
-      verificationIdentifier: data.verificationIdentifier,
-      sumsubDocumentIdentifier: data.sumsubDocumentIdentifier
-    };
+    const formData = new FormData();
+    
+    // Required fields
+    formData.append('organisationId', data.organisationId.toString());
+    formData.append('documentType', data.documentType);
+    
+    // File upload
+    if (data.file) {
+      formData.append('file', data.file);
+    }
+    
+    // Optional fields
+    if (data.verificationIdentifier) {
+      formData.append('verificationIdentifier', data.verificationIdentifier.toString());
+    }
+    if (data.sumsubDocumentIdentifier) {
+      formData.append('sumsubDocumentIdentifier', data.sumsubDocumentIdentifier);
+    }
 
-    const response = await apiService.post<KYCDocument>(this.BASE_PATH, payload);
+    const response = await apiService.getAxiosInstance().post<KYCDocument>(
+      `${this.BASE_PATH}/upload`, 
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
     return response.data;
   }
 
