@@ -180,6 +180,31 @@ const KYCDocumentsPage: React.FC = () => {
       format: (value) => <StatusChip status={value as any} />
     },
     {
+      id: 'rejectionReason',
+      label: 'Admin Feedback',
+      sortable: false,
+      minWidth: 200,
+      format: (value, row) => {
+        if (!value || row.status !== 'REJECTED') return '-';
+        return (
+          <Tooltip title={value as string}>
+            <Typography
+              variant="body2"
+              sx={{
+                maxWidth: 200,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                color: 'error.main'
+              }}
+            >
+              {value as string}
+            </Typography>
+          </Tooltip>
+        );
+      }
+    },
+    {
       id: 'uploadedAt',
       label: 'Uploaded',
       sortable: true,
@@ -331,6 +356,26 @@ const KYCDocumentsPage: React.FC = () => {
     <Box>
       <PageHeader title="KYC Document Management" />
       <Box sx={{ px: 2, py: 2 }}>
+      
+      {/* Rejection Feedback Alert */}
+      {documents.some(doc => doc.status === 'REJECTED' && doc.rejectionReason) && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Some documents have been rejected and require attention:
+          </Typography>
+          {documents
+            .filter(doc => doc.status === 'REJECTED' && doc.rejectionReason)
+            .map(doc => (
+              <Typography key={doc.id} variant="body2" sx={{ ml: 2 }}>
+                • <strong>{doc.documentType} ({doc.documentNumber || 'No number'}):</strong> {doc.rejectionReason}
+              </Typography>
+            ))}
+          <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+            Please upload corrected documents and submit your organization for review again.
+          </Typography>
+        </Alert>
+      )}
+
       <Box sx={{ 
         mb: 3, 
         display: 'flex', 

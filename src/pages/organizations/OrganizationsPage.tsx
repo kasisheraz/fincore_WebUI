@@ -5,7 +5,8 @@ import {
   IconButton,
   Tooltip,
   Snackbar,
-  Alert
+  Alert,
+  Typography
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -382,6 +383,25 @@ const OrganizationsPage: React.FC = () => {
     <Box>
       <PageHeader title="Organization Management" />
       <Box sx={{ px: 2, py: 2 }}>
+
+      {/* Rejection Feedback Alert */}
+      {organizations.some(org => org.statusDescription === 'REQUIRES_RESUBMISSION' && org.reasonDescription) && !isAdmin && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Some organizations were rejected and require resubmission:
+          </Typography>
+          {organizations
+            .filter(org => org.statusDescription === 'REQUIRES_RESUBMISSION' && org.reasonDescription)
+            .map(org => (
+              <Typography key={org.id} variant="body2" sx={{ ml: 2 }}>
+                • <strong>{org.legalName}:</strong> {org.reasonDescription}
+              </Typography>
+            ))}
+          <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+            Please review the detailed feedback in the KYC Documents section, fix the issues, and submit for review again.
+          </Typography>
+        </Alert>
+      )}
 
       <Box sx={{ 
         mb: 3, 
