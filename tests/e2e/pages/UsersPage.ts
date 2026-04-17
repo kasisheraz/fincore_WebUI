@@ -34,11 +34,18 @@ export class UsersPage {
       // Use sidebar navigation (React Router) instead of hard page reload
       // to preserve authentication state
       const sidebarUsersBtn = this.page.locator('button:has-text("Users")');
-      if (await sidebarUsersBtn.count() > 0) {
+      const count = await sidebarUsersBtn.count();
+      
+      if (count > 0) {
         await sidebarUsersBtn.click();
+        // Wait for URL change
+        await this.page.waitForURL('**/users', { timeout: 10000 });
+        // Wait for page to be fully loaded
+        await this.page.waitForLoadState('networkidle', { timeout: 10000 });
       } else {
-        await this.page.goto('/users');
+        await this.page.goto('/users', { waitUntil: 'networkidle' });
       }
+      
       // Wait for users page content to appear
       await this.page.waitForSelector('h5:has-text("User Management"), h1:has-text("User Management")', { timeout: 15000 });
     }

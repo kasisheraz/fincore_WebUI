@@ -36,25 +36,25 @@ export class OrganizationsPage {
       const sidebarOrgBtn = this.page.getByRole('button', { name: 'Organizations' });
       const count = await sidebarOrgBtn.count();
       console.log(`[ORG_GOTO] Current URL: ${this.page.url()}, sidebar btn count: ${count}`);
+      
       if (count > 0) {
         await sidebarOrgBtn.click();
         console.log(`[ORG_GOTO] Clicked Organizations btn, waiting for URL...`);
+        
+        // Wait for URL change with timeout
         await this.page.waitForURL('**/organizations', { timeout: 10000 });
         console.log(`[ORG_GOTO] URL after click: ${this.page.url()}`);
-        await this.page.waitForTimeout(2000);
-        const urlAfterWait = this.page.url();
-        const h5sNow = await this.page.locator('h5').allTextContents();
-        const allHeadings = await this.page.locator('h1,h2,h3,h4,h5,h6').allTextContents();
-        const mainContent = await this.page.locator('main').textContent().catch(() => 'no main');
-        console.log(`[ORG_GOTO] URL=${urlAfterWait}, h5s=${JSON.stringify(h5sNow)}`);
-        console.log(`[ORG_GOTO] All headings: ${JSON.stringify(allHeadings)}`);
-        console.log(`[ORG_GOTO] Main content (first 200): ${mainContent?.substring(0, 200)}`);
+        
+        // Wait for page to be fully loaded - use networkidle to ensure API calls complete
+        await this.page.waitForLoadState('networkidle', { timeout: 10000 });
       } else {
         console.log(`[ORG_GOTO] No sidebar btn found, using page.goto`);
-        await this.page.goto('/organizations');
+        await this.page.goto('/organizations', { waitUntil: 'networkidle' });
       }
+      
       // Wait for organizations page content to appear
       await this.page.waitForSelector('h5:has-text("Organization Management"), h1:has-text("Organization Management")', { timeout: 15000 });
+      console.log(`[ORG_GOTO] Page ready, final URL: ${this.page.url()}`);
     }
   }
 

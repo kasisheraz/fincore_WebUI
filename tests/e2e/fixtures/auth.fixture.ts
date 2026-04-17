@@ -39,6 +39,7 @@ if (!fs.existsSync(authDir)) {
  */
 export async function setupMocks(page: Page) {
   const apiMock = new ApiMockHelper(page);
+  await apiMock.mockAuthEndpoints(); // Mock auth endpoints to prevent token validation failures
   await apiMock.mockDashboardEndpoints();
   await apiMock.mockOrganizationsEndpoints();
   await apiMock.mockUsersEndpoints();

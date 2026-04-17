@@ -4,6 +4,8 @@ import { testOrganization, generateUniqueId } from '../helpers/test-data';
 
 test.describe('Organizations Management Tests', () => {
   test.beforeEach(async ({ authenticatedPage }) => {
+    // Navigate to organizations page before each test
+    // This ensures we start from a known state
     const orgPage = new OrganizationsPage(authenticatedPage);
     await orgPage.goto();
   });

@@ -13,8 +13,8 @@ export default defineConfig({
   // Test execution configuration
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 4, // Use 4 workers locally for faster tests
+  retries: process.env.CI ? 1 : 0, // Reduced from 2 to 1 for faster CI
+  workers: process.env.CI ? 2 : 4, // Increased from 1 to 2 for parallel execution
   
   // Stop after N failures to save time
   maxFailures: process.env.CI ? undefined : 10,
