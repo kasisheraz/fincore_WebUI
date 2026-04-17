@@ -292,7 +292,6 @@ const KYCDocumentsPage: React.FC = () => {
     setUploadForm({
       organisationId: 0,
       documentType: 'PASSPORT',
-      fileName: '',
       file: undefined,
       verificationIdentifier: undefined,
       sumsubDocumentIdentifier: ''
@@ -317,7 +316,8 @@ const KYCDocumentsPage: React.FC = () => {
       setUploadForm({
         organisationId: 0,
         documentType: 'PASSPORT',
-        file: undefinednIdentifier: undefined,
+        file: undefined,
+        verificationIdentifier: undefined,
         sumsubDocumentIdentifier: ''
       });
       fetchDocuments();
@@ -383,7 +383,9 @@ const KYCDocumentsPage: React.FC = () => {
         <DialogTitle>Upload KYC Document</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Autocomplete • ${option.status}`}
+            <Autocomplete
+              options={organizations}
+              getOptionLabel={(option) => `${option.legalName} (ID: ${option.id})`}
               value={organizations.find(o => o.id === uploadForm.organisationId) || null}
               onChange={(_, newValue) => setUploadForm({ 
                 ...uploadForm, 
@@ -475,9 +477,7 @@ const KYCDocumentsPage: React.FC = () => {
             disabled={!uploadForm.organisationId || !uploadForm.file}
           >
             Upload
-          
-          <Button onClick={handleUploadClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpload}>Upload</Button>
+          </Button>
         </DialogActions>
       </Dialog>
 
