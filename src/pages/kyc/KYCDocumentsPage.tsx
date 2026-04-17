@@ -17,7 +17,8 @@ import {
   Select,
   MenuItem,
   Typography,
-  Input
+  Input,
+  Autocomplete
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -34,7 +35,11 @@ import SearchBar from '../../components/common/SearchBar';
 import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import kycDocumentService from '../../services/kycDocumentService';
+import userService from '../../services/userService';
+import organizationService from '../../services/organizationService';
 import { KYCDocument, KYCDocumentFilters } from '../../types/kycDocument.types';
+import { User } from '../../types/user.types';
+import { Organization } from '../../types/organization.types';
 import { formatDate, formatFileSize } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
 import StatusChip from '../../components/common/StatusChip';
@@ -51,13 +56,18 @@ const KYCDocumentsPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null);
+  
+  // Lists for dropdowns
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  
   const [uploadForm, setUploadForm] = useState({
-    userId: 0,
     organisationId: 0,
     documentType: 'PASSPORT' as const,
-    documentNumber: '',
-    file: undefined as File | undefined,
-    notes: ''
+    fileName: '',
+    fileUrl: '',
+    verificationIdentifier: undefined as number | undefined,
+    sumsubDocumentIdentifier: ''
   });
 
   const [snackbar, setSnackbar] = useState<{
@@ -116,6 +126,23 @@ const KYCDocumentsPage: React.FC = () => {
       }
     };
     fetchEnums();
+  }, []);
+
+  // Fetch organizations and users for dropdowns
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const [orgsResponse, usersResponse] = await Promise.all([
+          organizationService.getAll({ page: 0, size: 1000 }),
+          userService.getAll({ page: 0, size: 1000 })
+        ]);
+        setOrganizations(orgsResponse.content);
+        setUsers(usersResponse.content);
+      } catch (error) {
+        console.error('Failed to fetch dropdown data:', error);
+      }
+    };
+    fetchDropdownData();
   }, []);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
@@ -263,18 +290,18 @@ const KYCDocumentsPage: React.FC = () => {
   const handleUploadClose = () => {
     setUploadDialogOpen(false);
     setUploadForm({
-      userId: 0,
       organisationId: 0,
       documentType: 'PASSPORT',
-      documentNumber: '',
-      file: undefined,
-      notes: ''
+      fileName: '',
+      fileUrl: '',
+      verificationIdentifier: undefined,
+      sumsubDocumentIdentifier: ''
     });
   };
 
   const handleUpload = async () => {
-    if (!uploadForm.userId || !uploadForm.organisationId || !uploadForm.documentNumber) {
-      showSnackbar('Please fill in all required fields', 'error');
+    if (!uploadForm.organisationId || !uploadForm.documentType) {
+      showSnackbar('Please select an organization and document type', 'error');
       return;
     }
     
@@ -283,12 +310,12 @@ const KYCDocumentsPage: React.FC = () => {
       showSnackbar('Document uploaded successfully', 'success');
       setUploadDialogOpen(false);
       setUploadForm({
-        userId: 0,
         organisationId: 0,
         documentType: 'PASSPORT',
-        documentNumber: '',
-        file: undefined,
-        notes: ''
+        fileName: '',
+        fileUrl: '',
+        verificationIdentifier: undefined,
+        sumsubDocumentIdentifier: ''
       });
       fetchDocuments();
     } catch (error: any) {
@@ -353,23 +380,26 @@ const KYCDocumentsPage: React.FC = () => {
         <DialogTitle>Upload KYC Document</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              fullWidth
-              label="User ID"
-              type="number"
-              value={uploadForm.userId || ''}
-              onChange={(e) => setUploadForm({ ...uploadForm, userId: parseInt(e.target.value) || 0 })}
-              required
+            <Autocomplete
+              options={organizations}
+              getOptionLabel={(option) => `${option.legalName} (ID: ${option.id})`}
+              value={organizations.find(o => o.id === uploadForm.organisationId) || null}
+              onChange={(_, newValue) => setUploadForm({ 
+                ...uploadForm, 
+                organisationId: newValue?.id || 0 
+              })}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  label="Organisation" 
+                  required
+                  helperText="Select the organization for this KYC document"
+                />
+              )}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
             />
-            <TextField
-              fullWidth
-              label="Organisation ID"
-              type="number"
-              value={uploadForm.organisationId || ''}
-              onChange={(e) => setUploadForm({ ...uploadForm, organisationId: parseInt(e.target.value) || 0 })}
-              required
-            />
-            <FormControl fullWidth>
+            
+            <FormControl fullWidth required>
               <InputLabel>Document Type</InputLabel>
               <Select
                 value={uploadForm.documentType}
@@ -381,28 +411,41 @@ const KYCDocumentsPage: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
+            
             <TextField
               fullWidth
-              label="Document Number"
-              value={uploadForm.documentNumber}
-              onChange={(e) => setUploadForm({ ...uploadForm, documentNumber: e.target.value })}
-              required
+              label="File Name"
+              value={uploadForm.fileName}
+              onChange={(e) => setUploadForm({ ...uploadForm, fileName: e.target.value })}
+              helperText="Optional: Name of the document file"
             />
-            <Box>
-              <Typography variant="body2" sx={{ mb: 1 }}>Upload File:</Typography>
-              <Input
-                type="file"
-                onChange={(e: any) => setUploadForm({ ...uploadForm, file: e.target.files[0] })}
-                fullWidth
-              />
-            </Box>
+            
             <TextField
               fullWidth
-              label="Notes"
-              multiline
-              rows={3}
-              value={uploadForm.notes}
-              onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
+              label="File URL"
+              value={uploadForm.fileUrl}
+              onChange={(e) => setUploadForm({ ...uploadForm, fileUrl: e.target.value })}
+              helperText="Optional: URL where the document is stored"
+            />
+            
+            <TextField
+              fullWidth
+              label="Verification Identifier"
+              type="number"
+              value={uploadForm.verificationIdentifier || ''}
+              onChange={(e) => setUploadForm({ 
+                ...uploadForm, 
+                verificationIdentifier: e.target.value ? parseInt(e.target.value) : undefined 
+              })}
+              helperText="Optional: Link to verification record"
+            />
+            
+            <TextField
+              fullWidth
+              label="Sumsub Document Identifier"
+              value={uploadForm.sumsubDocumentIdentifier}
+              onChange={(e) => setUploadForm({ ...uploadForm, sumsubDocumentIdentifier: e.target.value })}
+              helperText="Optional: External Sumsub identifier"
             />
           </Box>
         </DialogContent>

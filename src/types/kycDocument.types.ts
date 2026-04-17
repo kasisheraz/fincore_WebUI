@@ -24,16 +24,12 @@ export interface KYCDocument {
 }
 
 export interface CreateKYCDocumentDTO {
-  userId: number;
   organisationId: number; // Required by backend (British spelling!)
   documentType: DocumentType;
-  documentNumber: string;
-  file?: File;
-  issuingCountry?: string;
-  issueDate?: string;
-  expiryDate?: string;
-  notes?: string;
-  status?: string; // PENDING, VERIFIED, REJECTED
+  fileName?: string;
+  fileUrl?: string;
+  verificationIdentifier?: number;
+  sumsubDocumentIdentifier?: string;
 }
 
 export interface UpdateKYCDocumentDTO {
