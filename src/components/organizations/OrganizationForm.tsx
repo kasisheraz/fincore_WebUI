@@ -28,6 +28,7 @@ import { isRequired, isValidURL } from '../../utils/validators';
 import { useAuth } from '../../context/AuthContext';
 import AddressForm from '../common/AddressForm';
 import enumService, { EnumOption } from '../../services/enumService';
+import organizationService from '../../services/organizationService';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,6 +77,10 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tabsCompleted, setTabsCompleted] = useState<boolean[]>(new Array(9).fill(false));
   const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([0])); // Track visited tabs, start with tab 0
+  const [savedOrganizationId, setSavedOrganizationId] = useState<number | null>(organization?.id || null);
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [draftSaveError, setDraftSaveError] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   
   const [formData, setFormData] = useState<CreateOrganizationDTO>({
     // Required fields
@@ -320,17 +325,27 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     }));
   };
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = async (_event: React.SyntheticEvent, newValue: number) => {
+    // Auto-save as draft when navigating TO KYC Documents tab (index 7)
+    if (newValue === 7 && !savedOrganizationId && mode === 'create' && tabsCompleted[0]) {
+      await saveDraft();
+    }
     setCurrentTab(newValue);
     setVisitedTabs(prev => new Set(prev).add(newValue)); // Mark tab as visited
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!validateCurrentTab()) {
       return;
     }
     if (currentTab < 8) {
       const nextTab = currentTab + 1;
+      
+      // Auto-save as draft when navigating TO KYC Documents tab (index 7)
+      if (nextTab === 7 && !savedOrganizationId && mode === 'create' && tabsCompleted[0]) {
+        await saveDraft();
+      }
+      
       setCurrentTab(nextTab);
       setVisitedTabs(prev => new Set(prev).add(nextTab)); // Mark next tab as visited
     }
@@ -342,22 +357,69 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
     }
   };
 
-  const handleSave = async () => {
-    if (!validateForm()) {
-      setCurrentTab(0); // Go back to first tab if validation fails
+  const saveDraft = async () => {
+    if (!tabsCompleted[0]) {
+      setDraftSaveError('Please complete Basic Info tab before proceeding to KYC Documents');
       return;
     }
-    
-    setIsSubmitting(true);
+
+    setIsSavingDraft(true);
+    setDraftSaveError(null);
+
     try {
-      await onSubmit(formData as any);
-      if (onClose) {
-        onClose();
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
+      const savedOrg = await organizationService.create(formData as CreateOrganizationDTO);
+      setSavedOrganizationId(savedOrg.id);
+      setIsDraftSaved(true);
+      
+      // Update formData with saved organization details
+      setFormData(prev => ({
+        ...prev,
+        ...savedOrg
+      }));
+      
+      console.log('Organization saved as draft with ID:', savedOrg.id);
+    } catch (error: any) {
+      console.error('Error saving draft:', error);
+      setDraftSaveError(error.message || 'Failed to save organization as draft');
+      setCurrentTab(0); // Go back to first tab on error
     } finally {
-      setIsSubmitting(false);
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleSave = async () => {
+    // If already saved as draft, update it; otherwise create new
+    if (savedOrganizationId && mode === 'create') {
+      // Organization already exists, just update it
+      setIsSubmitting(true);
+      try {
+        await organizationService.update(savedOrganizationId, formData as UpdateOrganizationDTO);
+        if (onClose) {
+          onClose();
+        }
+      } catch (error) {
+        console.error('Error updating organization:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Normal save flow
+      if (!validateForm()) {
+        setCurrentTab(0); // Go back to first tab if validation fails
+        return;
+      }
+      
+      setIsSubmitting(true);
+      try {
+        await onSubmit(formData as any);
+        if (onClose) {
+          onClose();
+        }
+      } catch (error) {
+        console.error('Error submitting form:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -1097,11 +1159,48 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         </Typography>
         <Divider sx={{ mb: 3 }} />
         
+        {/* Draft Save Status */}
+        {isSavingDraft && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              💾 Saving organization as draft...
+            </Typography>
+          </Alert>
+        )}
+        
+        {isDraftSaved && savedOrganizationId && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              ✓ <strong>Organization saved as draft</strong> (ID: {savedOrganizationId}). You can now upload KYC documents.
+            </Typography>
+          </Alert>
+        )}
+        
+        {draftSaveError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Error:</strong> {draftSaveError}
+            </Typography>
+          </Alert>
+        )}
+        
+        {!savedOrganizationId && !isSavingDraft && mode === 'create' && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Note:</strong> The organization will be automatically saved as a draft when you navigate to this tab, 
+              enabling you to upload KYC documents immediately.
+            </Typography>
+          </Alert>
+        )}
+        
         <Alert severity="warning" sx={{ mb: 3 }}>
           <Typography variant="body2">
             <strong>Important:</strong> KYC documents are required for organization approval. 
-            You must upload documents through the organization details page after creation.
-            The organization status will remain "Pending" until documents are submitted for admin review.
+            {savedOrganizationId ? (
+              <>Upload documents below, then submit for admin review.</>  
+            ) : (
+              <>You can upload documents after the organization is saved.</>  
+            )}
           </Typography>
         </Alert>
         
@@ -1129,14 +1228,23 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
             </Box>
           </Grid>
           
-          {/* Placeholder for future file upload component */}
+          {/* File upload section */}
           <Grid item xs={12}>
-            <Alert severity="info">
-              <Typography variant="body2">
-                After creating this organization, navigate to the organization details page to upload KYC documents, 
-                then submit for admin review.
-              </Typography>
-            </Alert>
+            {savedOrganizationId ? (
+              <Alert severity="info">
+                <Typography variant="body2">
+                  <strong>Organization ID: {savedOrganizationId}</strong><br />
+                  Navigate to the organization details page after saving to upload KYC documents, 
+                  then submit for admin review.
+                </Typography>
+              </Alert>
+            ) : (
+              <Alert severity="info">
+                <Typography variant="body2">
+                  After saving this organization, you can upload KYC documents from the organization details page.
+                </Typography>
+              </Alert>
+            )}
           </Grid>
         </Grid>
       </TabPanel>
@@ -1203,9 +1311,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
                 variant="contained"
                 endIcon={<NavigateNextIcon />}
                 onClick={handleNext}
-                disabled={currentTab === 0 && !tabsCompleted[0]}
+                disabled={(currentTab === 0 && !tabsCompleted[0]) || isSavingDraft}
               >
-                Next
+                {currentTab === 6 && !savedOrganizationId && mode === 'create' ? 'Next (Auto-save)' : 'Next'}
               </Button>
             ) : (
               <Button
@@ -1215,7 +1323,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
                 onClick={handleSave}
                 disabled={!tabsCompleted[0] || !tabsCompleted[7] || isSubmitting}
               >
-                {isSubmitting ? 'Saving...' : 'Save Organization'}
+                {isSubmitting ? 'Saving...' : (savedOrganizationId && mode === 'create' ? 'Update Organization' : 'Save Organization')}
               </Button>
             )}
           </Stack>
@@ -1250,7 +1358,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           {isLastTab && tabsCompleted[0] && tabsCompleted[7] && (
             <Alert severity="success">
               <Typography variant="body2">
-                You're on the last tab! Review your information and click <strong>Save Organization</strong> when ready.
+                You're on the last tab! Review your information and click <strong>{savedOrganizationId && mode === 'create' ? 'Update Organization' : 'Save Organization'}</strong> when ready.
               </Typography>
             </Alert>
           )}
