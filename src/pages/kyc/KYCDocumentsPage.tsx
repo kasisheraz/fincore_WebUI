@@ -28,7 +28,8 @@ import {
   Refresh as RefreshIcon,
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
-  AttachFile as AttachFileIcon
+  AttachFile as AttachFileIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -380,7 +381,12 @@ const KYCDocumentsPage: React.FC = () => {
 
       {/* Upload Document Dialog */}
       <Dialog open={uploadDialogOpen} onClose={handleUploadClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Upload KYC Document</DialogTitle>
+        <DialogTitle>
+          Upload KYC Document
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 'normal' }}>
+            Upload supporting documents for organization verification
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Autocomplete
@@ -415,20 +421,44 @@ const KYCDocumentsPage: React.FC = () => {
               </Select>
             </FormControl>
             
-            <Box>
+            <Box sx={{ position: 'relative' }}>
               <Button
                 variant="outlined"
                 component="label"
                 fullWidth
                 startIcon={<AttachFileIcon />}
                 sx={{ 
-                  py: 2, 
+                  py: uploadForm.file ? 1.5 : 3, 
                   borderStyle: 'dashed',
                   borderWidth: 2,
-                  '&:hover': { borderStyle: 'dashed', borderWidth: 2 }
+                  borderColor: uploadForm.file ? 'success.main' : 'grey.400',
+                  backgroundColor: uploadForm.file ? 'success.50' : 'transparent',
+                  '&:hover': { 
+                    borderStyle: 'dashed', 
+                    borderWidth: 2,
+                    backgroundColor: uploadForm.file ? 'success.100' : 'grey.50'
+                  }
                 }}
               >
-                {uploadForm.file ? uploadForm.file.name : 'Choose File to Upload *'}
+                {uploadForm.file ? (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <Typography variant="body2" noWrap sx={{ maxWidth: '80%', fontWeight: 500 }}>
+                      ✓ {uploadForm.file.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {(uploadForm.file.size / 1024 / 1024).toFixed(2)} MB · Click to change
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      Browse Files *
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                      PDF, JPG, PNG, DOC (Max 10MB)
+                    </Typography>
+                  </Box>
+                )}
                 <input
                   type="file"
                   hidden
@@ -436,37 +466,71 @@ const KYCDocumentsPage: React.FC = () => {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Validate file size (10MB limit)
+                      if (file.size > 10 * 1024 * 1024) {
+                        showSnackbar('File size must be less than 10MB', 'error');
+                        return;
+                      }
                       setUploadForm({ ...uploadForm, file });
                     }
                   }}
                 />
               </Button>
+              
+              {/* Clear file button */}
               {uploadForm.file && (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Size: {(uploadForm.file.size / 1024 / 1024).toFixed(2)} MB
-                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setUploadForm({ ...uploadForm, file: undefined })}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    backgroundColor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': { backgroundColor: 'error.light', color: 'white' }
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
               )}
             </Box>
             
-            <TextField
-              fullWidth
-              label="Verification Identifier"
-              type="number"
-              value={uploadForm.verificationIdentifier || ''}
-              onChange={(e) => setUploadForm({ 
-                ...uploadForm, 
-                verificationIdentifier: e.target.value ? parseInt(e.target.value) : undefined 
-              })}
-              helperText="Optional: Link to verification record"
-            />
-            
-            <TextField
-              fullWidth
-              label="Sumsub Document Identifier"
-              value={uploadForm.sumsubDocumentIdentifier}
-              onChange={(e) => setUploadForm({ ...uploadForm, sumsubDocumentIdentifier: e.target.value })}
-              helperText="Optional: External Sumsub identifier"
-            />
+            {/* Optional Fields - Less Prominent */}
+            <Box sx={{ 
+              mt: 2, 
+              pt: 2, 
+              borderTop: '1px solid', 
+              borderColor: 'divider' 
+            }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block', fontWeight: 600 }}>
+                Advanced Options (Optional)
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <TextField
+                  fullWidth
+                  label="Verification Identifier"
+                  type="number"
+                  size="small"
+                  value={uploadForm.verificationIdentifier || ''}
+                  onChange={(e) => setUploadForm({ 
+                    ...uploadForm, 
+                    verificationIdentifier: e.target.value ? parseInt(e.target.value) : undefined 
+                  })}
+                  helperText="Link to existing verification record"
+                />
+                
+                <TextField
+                  fullWidth
+                  label="Sumsub Document Identifier"
+                  size="small"
+                  value={uploadForm.sumsubDocumentIdentifier}
+                  onChange={(e) => setUploadForm({ ...uploadForm, sumsubDocumentIdentifier: e.target.value })}
+                  helperText="External Sumsub system identifier"
+                />
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
