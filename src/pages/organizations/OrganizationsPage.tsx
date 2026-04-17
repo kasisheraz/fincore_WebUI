@@ -13,7 +13,8 @@ import {
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  Send as SendIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -191,7 +192,7 @@ const OrganizationsPage: React.FC = () => {
       minWidth: 150,
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {isAdmin && row.status === 'UNDER_REVIEW' && (
+          {isAdmin && row.statusDescription === 'UNDER_REVIEW' && (
             <>
               <Tooltip title="Approve">
                 <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
@@ -204,6 +205,13 @@ const OrganizationsPage: React.FC = () => {
                 </IconButton>
               </Tooltip>
             </>
+          )}
+          {!isAdmin && (row.statusDescription === 'PENDING' || row.statusDescription === 'REQUIRES_RESUBMISSION') && (
+            <Tooltip title="Submit for Review">
+              <IconButton size="small" color="info" onClick={() => handleSubmit(row)}>
+                <SendIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
           <Tooltip title="Edit">
             <IconButton 
@@ -356,6 +364,17 @@ const OrganizationsPage: React.FC = () => {
     } catch (error: any) {
       showSnackbar(error.message || 'Failed to reject organization', 'error');
       throw error; // Re-throw to let dialog handle it
+    }
+  };
+
+  // Submit organization for review (Organization owner)
+  const handleSubmit = async (organization: Organization) => {
+    try {
+      await organizationService.submitForReview(organization.id);
+      showSnackbar('Organization submitted for review successfully', 'success');
+      fetchOrganizations();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to submit organization for review', 'error');
     }
   };
 
