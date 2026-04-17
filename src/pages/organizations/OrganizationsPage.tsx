@@ -5,15 +5,15 @@ import {
   IconButton,
   Tooltip,
   Snackbar,
-  Alert,
-  Chip
+  Alert
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
-  LocationOn as LocationIcon
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -22,14 +22,20 @@ import FilterPanel, { FilterField } from '../../components/common/FilterPanel';
 import FormDialog from '../../components/common/FormDialog';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import OrganizationForm from '../../components/organizations/OrganizationForm';
+import { OrganizationRejectDialog } from '../../components/organizations/OrganizationRejectDialog';
 import organizationService from '../../services/organizationService';
-import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationFilters } from '../../types/organization.types';
+import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationFilters, OrganizationRejectionRequest } from '../../types/organization.types';
 import { formatDate, formatPhoneNumber } from '../../utils/formatters';
 import { usePagination } from '../../hooks/usePagination';
 import StatusChip from '../../components/common/StatusChip';
 import enumService, { EnumOption } from '../../services/enumService';
+import { useAuth } from '../../context/AuthContext';
 
 const OrganizationsPage: React.FC = () => {
+  // Auth context
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SYSTEM_ADMINISTRATOR';
+
   // State management
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [totalElements, setTotalElements] = useState(0);
@@ -43,6 +49,7 @@ const OrganizationsPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
   const createFormDataRef = useRef<any>(null);
@@ -181,11 +188,30 @@ const OrganizationsPage: React.FC = () => {
       id: 'actions',
       label: 'Actions',
       sortable: false,
-      minWidth: 120,
+      minWidth: 150,
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
+          {isAdmin && row.statusDescription === 'UNDER_REVIEW' && (
+            <>
+              <Tooltip title="Approve">
+                <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
+                  <CheckCircleIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Reject">
+                <IconButton size="small" color="error" onClick={() => handleReject(row)}>
+                  <CancelIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
           <Tooltip title="Edit">
-            <IconButton size="small" color="primary" onClick={() => handleEdit(row)}>
+            <IconButton 
+              size="small" 
+              color="primary" 
+              onClick={() => handleEdit(row)}
+              disabled={row.statusDescription === 'UNDER_REVIEW' || row.statusDescription === 'ACTIVE'}
+            >
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -302,6 +328,37 @@ const OrganizationsPage: React.FC = () => {
     }
   };
 
+  // Approve organization (Admin only)
+  const handleApprove = async (organization: Organization) => {
+    try {
+      await organizationService.approve(organization.id);
+      showSnackbar('Organization approved successfully', 'success');
+      fetchOrganizations();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to approve organization', 'error');
+    }
+  };
+
+  // Reject organization (Admin only)
+  const handleReject = (organization: Organization) => {
+    setSelectedOrganization(organization);
+    setRejectDialogOpen(true);
+  };
+
+  // Handle rejection submission
+  const handleRejectSubmit = async (rejections: OrganizationRejectionRequest) => {
+    if (!selectedOrganization) return;
+
+    try {
+      await organizationService.reject(selectedOrganization.id, rejections);
+      showSnackbar('Organization rejected successfully', 'success');
+      fetchOrganizations();
+    } catch (error: any) {
+      showSnackbar(error.message || 'Failed to reject organization', 'error');
+      throw error; // Re-throw to let dialog handle it
+    }
+  };
+
   return (
     <Box>
       <PageHeader title="Organization Management" />
@@ -414,6 +471,18 @@ const OrganizationsPage: React.FC = () => {
           setSelectedOrganization(null);
         }}
         severity="error"
+      />
+
+      {/* Reject Organization Dialog */}
+      <OrganizationRejectDialog
+        open={rejectDialogOpen}
+        organizationId={selectedOrganization?.id || null}
+        organizationName={selectedOrganization?.legalName}
+        onClose={() => {
+          setRejectDialogOpen(false);
+          setSelectedOrganization(null);
+        }}
+        onReject={handleRejectSubmit}
       />
 
       {/* Snackbar */}

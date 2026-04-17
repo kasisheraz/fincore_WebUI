@@ -7,7 +7,9 @@ import {
   Address,
   CreateAddressDTO,
   UpdateAddressDTO,
-  OrganizationStatus
+  OrganizationStatus,
+  KYCDocument,
+  OrganizationRejectionRequest
 } from '../types/organization.types';
 import { PaginationParams, PaginatedResponse } from '../types/common.types';
 import { normalizePaginatedResponse } from '../utils/paginationUtils';
@@ -60,6 +62,38 @@ class OrganizationService {
    */
   async updateStatus(id: number, status: OrganizationStatus): Promise<Organization> {
     const response = await apiService.patch<Organization>(`${this.BASE_PATH}/${id}/status`, { status });
+    return response.data;
+  }
+
+  /**
+   * Submit organization for admin review
+   */
+  async submitForReview(id: number): Promise<Organization> {
+    const response = await apiService.put<Organization>(`${this.BASE_PATH}/${id}/submit`, {});
+    return response.data;
+  }
+
+  /**
+   * Approve organization (Admin only)
+   */
+  async approve(id: number): Promise<Organization> {
+    const response = await apiService.put<Organization>(`${this.BASE_PATH}/${id}/approve`, {});
+    return response.data;
+  }
+
+  /**
+   * Reject organization (Admin only)
+   */
+  async reject(id: number, rejections: OrganizationRejectionRequest): Promise<Organization> {
+    const response = await apiService.put<Organization>(`${this.BASE_PATH}/${id}/reject`, rejections);
+    return response.data;
+  }
+
+  /**
+   * Get KYC documents for an organization
+   */
+  async getKycDocuments(orgId: number): Promise<KYCDocument[]> {
+    const response = await apiService.get<KYCDocument[]>(`${this.BASE_PATH}/${orgId}/kyc-documents`);
     return response.data;
   }
 

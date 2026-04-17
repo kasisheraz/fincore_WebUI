@@ -75,6 +75,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   const [currentTab, setCurrentTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tabsCompleted, setTabsCompleted] = useState<boolean[]>(new Array(9).fill(false));
+  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([0])); // Track visited tabs, start with tab 0
   
   const [formData, setFormData] = useState<CreateOrganizationDTO>({
     // Required fields
@@ -279,8 +280,8 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         return !!(formData.monthlyTurnoverRange || formData.numberOfIncomingTransactions || formData.numberOfOutgoingTransactions);
       case 6: // Addresses
         return !!(formData.registeredAddress || formData.businessAddress || formData.correspondenceAddress);
-      case 7: // KYC Documents
-        return true; // Always complete as it's placeholder for now
+      case 7: // KYC Documents - Required tab, considered complete when visited
+        return visitedTabs.has(7);
       case 8: // Other
         return !!(formData.legacyIdentifier);
       default:
@@ -321,6 +322,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
+    setVisitedTabs(prev => new Set(prev).add(newValue)); // Mark tab as visited
   };
 
   const handleNext = () => {
@@ -328,7 +330,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
       return;
     }
     if (currentTab < 8) {
-      setCurrentTab(currentTab + 1);
+      const nextTab = currentTab + 1;
+      setCurrentTab(nextTab);
+      setVisitedTabs(prev => new Set(prev).add(nextTab)); // Mark next tab as visited
     }
   };
 
@@ -358,8 +362,8 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   };
 
   const getTabIcon = (tabIndex: number): React.ReactElement | undefined => {
-    if (tabIndex === 0) {
-      // Required tab
+    if (tabIndex === 0 || tabIndex === 7) {
+      // Required tabs (Basic Info and KYC Documents)
       return tabsCompleted[tabIndex] ? 
         <CheckCircleIcon fontSize="small" color="success" /> : 
         <WarningIcon fontSize="small" color="error" />;
@@ -479,7 +483,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
             iconPosition="end"
           />
           <Tab 
-            label="KYC Documents" 
+            label="KYC Documents *" 
             icon={getTabIcon(7)}
             iconPosition="end"
           />
@@ -1086,28 +1090,36 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
       <TabPanel value={currentTab} index={7}>
         <Typography variant="h6" gutterBottom>
           KYC & Compliance Documents
-          <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
+          <Chip label="Required" color="error" size="small" sx={{ ml: 1 }} />
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Upload supporting documents for organization verification and compliance.
         </Typography>
         <Divider sx={{ mb: 3 }} />
         
-        <Alert severity="info" sx={{ mb: 3 }}>
+        <Alert severity="warning" sx={{ mb: 3 }}>
           <Typography variant="body2">
-            <strong>Note:</strong> KYC document upload functionality will be integrated after organization creation. 
-            You can upload documents through the organization details page after completing this form.
+            <strong>Important:</strong> KYC documents are required for organization approval. 
+            You must upload documents through the organization details page after creation.
+            The organization status will remain "Pending" until documents are submitted for admin review.
           </Typography>
         </Alert>
         
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="subtitle2" gutterBottom>
-              Recommended Documents:
+            <Typography variant="subtitle2" gutterBottom color="error">
+              Required Documents (upload after creation):
             </Typography>
             <Box component="ul" sx={{ mt: 1, pl: 3 }}>
-              <li>Certificate of Incorporation</li>
-              <li>Proof of Registered Address</li>
+              <li><strong>Certificate of Incorporation</strong></li>
+              <li><strong>Proof of Registered Address</strong></li>
+              <li><strong>Director/Owner ID Proof</strong></li>
+            </Box>
+            
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+              Optional Documents:
+            </Typography>
+            <Box component="ul" sx={{ mt: 1, pl: 3 }}>
               <li>Memorandum of Association</li>
               <li>Articles of Association</li>
               <li>Directors' Register</li>
@@ -1119,9 +1131,12 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           
           {/* Placeholder for future file upload component */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              Document upload interface will be available in the organization management page.
-            </Typography>
+            <Alert severity="info">
+              <Typography variant="body2">
+                After creating this organization, navigate to the organization details page to upload KYC documents, 
+                then submit for admin review.
+              </Typography>
+            </Alert>
           </Grid>
         </Grid>
       </TabPanel>
@@ -1198,7 +1213,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
                 color="primary"
                 startIcon={<SaveIcon />}
                 onClick={handleSave}
-                disabled={!tabsCompleted[0] || isSubmitting}
+                disabled={!tabsCompleted[0] || !tabsCompleted[7] || isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : 'Save Organization'}
               </Button>
@@ -1213,14 +1228,26 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
               Please complete the required fields in Basic Info to proceed.
             </Alert>
           )}
-          {currentTab !== 0 && (
+          {currentTab === 7 && !tabsCompleted[7] && (
+            <Alert severity="warning">
+              Please review the KYC documents requirements. This tab is required.
+            </Alert>
+          )}
+          {currentTab !== 0 && currentTab !== 7 && (
             <Alert severity="info" icon={false}>
               <Typography variant="body2">
                 This tab is optional. Click <strong>Next</strong> to continue or use the tabs above to navigate.
               </Typography>
             </Alert>
           )}
-          {isLastTab && (
+          {isLastTab && (!tabsCompleted[0] || !tabsCompleted[7]) && (
+            <Alert severity="warning">
+              <Typography variant="body2">
+                Please complete required tabs: Basic Info and KYC Documents before saving.
+              </Typography>
+            </Alert>
+          )}
+          {isLastTab && tabsCompleted[0] && tabsCompleted[7] && (
             <Alert severity="success">
               <Typography variant="body2">
                 You're on the last tab! Review your information and click <strong>Save Organization</strong> when ready.

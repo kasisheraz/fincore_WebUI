@@ -1,7 +1,42 @@
 // Organization Types
 
 export type OrganizationType = 'GOVERNMENT' | 'PRIVATE' | 'NON_PROFIT' | 'PUBLIC';
-export type OrganizationStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+export type OrganizationStatus = 
+  | 'PENDING'              // Draft - editable by user
+  | 'UNDER_REVIEW'         // Submitted for admin review - read-only
+  | 'REQUIRES_RESUBMISSION' // Rejected by admin - editable by user
+  | 'ACTIVE'               // Approved by admin
+  | 'SUSPENDED'            // Temporarily suspended
+  | 'REJECTED'             // Permanently rejected
+  | 'CLOSED';              // Permanently closed
+
+export type DocumentStatus = 
+  | 'PENDING'
+  | 'UNDER_REVIEW'
+  | 'VERIFIED'
+  | 'REJECTED'
+  | 'EXPIRED'
+  | 'REQUIRES_UPDATE';
+
+export interface KYCDocument {
+  id: number;
+  documentType: string;
+  fileName?: string;
+  fileUrl?: string;
+  status: DocumentStatus;
+  reasonDescription?: string;  // Admin's rejection feedback
+  createdDatetime?: string;
+  lastModifiedDatetime?: string;
+}
+
+export interface DocumentRejection {
+  documentId: number;
+  rejectionReason: string;
+}
+
+export interface OrganizationRejectionRequest {
+  documentRejections: DocumentRejection[];
+}
 
 export interface Address {
   id: number;
