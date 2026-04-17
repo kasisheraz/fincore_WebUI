@@ -1,25 +1,23 @@
 import { test, expect } from '@playwright/test';
+import { setupMocks } from './fixtures/auth.fixture';
 
 test.describe('CRUD Operations - All Pages', () => {
   
   test.beforeEach(async ({ page }) => {
-    // Login before each test using OTP flow with ADMIN user
-    await page.goto('/login');
+    // Setup API mocks (auth state already loaded from storage)
+    await setupMocks(page);
     
-    // Use admin phone number (5555555555) for full access
-    await page.fill('input[name="phoneNumber"]', '5555555555');
-    await page.click('button:has-text("Request OTP")');
+    // Navigate to dashboard (we're already authenticated)
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     
-    // Wait for OTP field to appear
-    await expect(page.locator('input[name="otp"]')).toBeVisible({ timeout: 5000 });
+    // Verify we're authenticated
+    const isAuthenticated = await page.evaluate(() => {
+      return !!localStorage.getItem('authToken') && !!localStorage.getItem('user');
+    });
     
-    // Fill OTP and verify (mock mode accepts 123456)
-    await page.fill('input[name="otp"]', '123456');
-    await page.click('button:has-text("Verify OTP")');
-    
-    // Wait for dashboard redirect and ensure page is fully loaded
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
+    if (!isAuthenticated) {
+      throw new Error('Auth state not loaded - global setup failed');
+    }
   });
 
   test.describe('Users CRUD Operations', () => {

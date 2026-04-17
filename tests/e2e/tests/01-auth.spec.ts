@@ -4,6 +4,13 @@ import { testUsers } from '../fixtures/auth.fixture';
 
 test.describe('Authentication Tests', () => {
   test.beforeEach(async ({ page }) => {
+    // Clear storage state for auth tests (we want to test login flow)
+    await page.context().clearCookies();
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    
     const loginPage = new LoginPage(page);
     await loginPage.goto();
   });

@@ -136,67 +136,49 @@ export async function logout(page: Page) {
 
 /**
  * Custom fixture that provides authenticated context
- * Each test gets a fresh login to ensure auth state is reliable
+ * Auth state is loaded from storage (set by global setup)
+ * Each test just needs to set up API mocks
  */
 export const test = base.extend<{
   authenticatedPage: Page;
   adminPage: Page;
 }>({
   authenticatedPage: async ({ page }, use) => {
-    console.log('[FIXTURE] Starting authentication for test');
+    console.log('[FIXTURE] Setting up mocks for test (auth state already loaded from storage)');
     
-    // Setup mocks
+    // Setup mocks only - authentication is already loaded from storageState
     await setupMocks(page);
     console.log('[FIXTURE] Mocks setup complete');
     
-    // Login as MANAGER (has user management permissions)
-    try {
-      await login(page, testUsers.manager.phoneNumber, testUsers.manager.otp);
-      console.log('[FIXTURE] Login complete, current URL:', page.url());
-      
-      // Verify auth state
-      const authCheck = await page.evaluate(() => ({
-        token: !!localStorage.getItem('authToken'),
-        user: !!localStorage.getItem('user'),
-        url: window.location.href
-      }));
-      console.log('[FIXTURE] Auth state after login:', authCheck);
-      
-      // The page is now authenticated and on /dashboard
-      // Pass it to the test
-      await use(page);
-    } catch (error) {
-      console.error('[FIXTURE] Login failed:', error);
-      throw error;
+    // Navigate to dashboard to ensure we start from a known state
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    console.log('[FIXTURE] Navigated to dashboard, current URL:', page.url());
+    
+    // Verify auth state is present (should be loaded from storage)
+    const authCheck = await page.evaluate(() => ({
+      token: !!localStorage.getItem('authToken'),
+      user: !!localStorage.getItem('user'),
+      url: window.location.href
+    }));
+    console.log('[FIXTURE] Auth state:', authCheck);
+    
+    if (!authCheck.token || !authCheck.user) {
+      throw new Error('Auth state not loaded - global setup may have failed');
     }
     
-    // Cleanup - logout removed to maintain auth state across tests
-    // Only explicit logout tests will actually logout
-    // This prevents "Logout failed" errors and is faster
-    // try {
-    //   await logout(page);
-    // } catch (error) {
-    //   console.log('Logout error during cleanup:', error);
-    // }
+    // Page is ready with authentication
+    await use(page);
   },
   
   adminPage: async ({ page }, use) => {
     // Setup mocks
     await setupMocks(page);
     
-    // Login as admin for this test
-    await login(page, testUsers.admin.phoneNumber, testUsers.admin.otp);
+    // Navigate to dashboard
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     
-    // The page is now authenticated and on /dashboard
-    // Pass it to the test
+    // Page is ready with authentication
     await use(page);
-    
-    // Cleanup - logout removed to maintain auth state across tests
-    // try {
-    //   await logout(page);
-    // } catch (error) {
-    //   console.log('Logout error during cleanup:', error);
-    // }
   }
 });
 

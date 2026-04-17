@@ -7,6 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   
+  // Global setup - authenticate once before all tests
+  globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
+  
   // Maximum time one test can run for
   timeout: 30 * 1000,
   
@@ -31,6 +34,9 @@ export default defineConfig({
   use: {
     // Base URL for tests
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    
+    // Reuse authenticated state from global setup
+    storageState: 'tests/e2e/.auth/storageState.json',
     
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
