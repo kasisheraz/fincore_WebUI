@@ -191,7 +191,7 @@ const OrganizationsPage: React.FC = () => {
       minWidth: 150,
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {isAdmin && row.statusDescription === 'UNDER_REVIEW' && (
+          {isAdmin && row.status === 'UNDER_REVIEW' && (
             <>
               <Tooltip title="Approve">
                 <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
