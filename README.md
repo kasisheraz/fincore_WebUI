@@ -11,6 +11,12 @@ A modern React-based financial application built with TypeScript, Material-UI, a
 - **Role-Based Access Control**: 4 business roles (Admin, Compliance, Operational, Business User) with data filtering
 - **User Management**: Complete CRUD with dynamic role assignment and status management
 - **Organization Management**: Multi-type organizations with dynamic enum-driven forms
+  - **NEW**: One organization per user restriction with UI enforcement
+  - **NEW**: Integrated KYC document upload during organization creation (7-step wizard)
+  - **NEW**: Admin approval workflow with status-based button visibility and debugging
+  - Multi-step organization creation form with validation
+  - Required field validation preventing tab navigation
+  - Submit for review capability with real-time status updates
 - **KYC & Compliance**: Document verification with dynamic document types and status workflows
 - **Dashboard Analytics**: Comprehensive dashboard with key metrics
 - **Settings Management**: Comprehensive settings and preferences
