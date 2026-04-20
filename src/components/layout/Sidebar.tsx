@@ -21,7 +21,6 @@ import {
   Business,
   VerifiedUser,
   Quiz,
-  Description,
   QuestionAnswer,
 } from '@mui/icons-material';
 
@@ -34,7 +33,6 @@ const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Users', icon: <People />, path: '/users' },
   { text: 'Organizations', icon: <Business />, path: '/organizations' },
-  { text: 'KYC Documents', icon: <Description />, path: '/kyc-documents' },
   { text: 'KYC Verification', icon: <VerifiedUser />, path: '/kyc-verification' },
   { text: 'Questionnaire', icon: <Quiz />, path: '/questionnaire' },
   { text: 'Customer Answers', icon: <QuestionAnswer />, path: '/customer-answers' },
