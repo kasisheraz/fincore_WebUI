@@ -27,6 +27,7 @@ import { Organization, CreateOrganizationDTO, UpdateOrganizationDTO, CreateAddre
 import { isRequired, isValidURL } from '../../utils/validators';
 import { useAuth } from '../../context/AuthContext';
 import AddressForm from '../common/AddressForm';
+import KYCDocumentsUploadTab from './KYCDocumentsUploadTab';
 import enumService, { EnumOption } from '../../services/enumService';
 import organizationService from '../../services/organizationService';
 
@@ -1150,28 +1151,11 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
       {/* Tab 7: KYC Documents */}
       <TabPanel value={currentTab} index={7}>
-        <Typography variant="h6" gutterBottom>
-          KYC & Compliance Documents
-          <Chip label="Required" color="error" size="small" sx={{ ml: 1 }} />
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Upload supporting documents for organization verification and compliance.
-        </Typography>
-        <Divider sx={{ mb: 3 }} />
-        
         {/* Draft Save Status */}
         {isSavingDraft && (
           <Alert severity="info" sx={{ mb: 3 }}>
             <Typography variant="body2">
               💾 Saving organization as draft...
-            </Typography>
-          </Alert>
-        )}
-        
-        {isDraftSaved && savedOrganizationId && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              ✓ <strong>Organization saved as draft</strong> (ID: {savedOrganizationId}). You can now upload KYC documents.
             </Typography>
           </Alert>
         )}
@@ -1184,69 +1168,19 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           </Alert>
         )}
         
-        {!savedOrganizationId && !isSavingDraft && mode === 'create' && (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              <strong>Note:</strong> The organization will be automatically saved as a draft when you navigate to this tab, 
-              enabling you to upload KYC documents immediately.
-            </Typography>
-          </Alert>
-        )}
-        
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          <Typography variant="body2">
-            <strong>Important:</strong> KYC documents are required for organization approval. 
-            {savedOrganizationId ? (
-              <>Upload documents below, then submit for admin review.</>  
-            ) : (
-              <>You can upload documents after the organization is saved.</>  
-            )}
-          </Typography>
-        </Alert>
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="subtitle2" gutterBottom color="error">
-              Required Documents (upload after creation):
-            </Typography>
-            <Box component="ul" sx={{ mt: 1, pl: 3 }}>
-              <li><strong>Certificate of Incorporation</strong></li>
-              <li><strong>Proof of Registered Address</strong></li>
-              <li><strong>Director/Owner ID Proof</strong></li>
-            </Box>
-            
-            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-              Optional Documents:
-            </Typography>
-            <Box component="ul" sx={{ mt: 1, pl: 3 }}>
-              <li>Memorandum of Association</li>
-              <li>Articles of Association</li>
-              <li>Directors' Register</li>
-              <li>Shareholders' Register</li>
-              <li>Tax Registration Certificate</li>
-              <li>Regulatory License (if applicable)</li>
-            </Box>
-          </Grid>
-          
-          {/* File upload section */}
-          <Grid item xs={12}>
-            {savedOrganizationId ? (
-              <Alert severity="info">
-                <Typography variant="body2">
-                  <strong>Organization ID: {savedOrganizationId}</strong><br />
-                  Navigate to the organization details page after saving to upload KYC documents, 
-                  then submit for admin review.
-                </Typography>
-              </Alert>
-            ) : (
-              <Alert severity="info">
-                <Typography variant="body2">
-                  After saving this organization, you can upload KYC documents from the organization details page.
-                </Typography>
-              </Alert>
-            )}
-          </Grid>
-        </Grid>
+        {/* KYC Documents Upload Component */}
+        <KYCDocumentsUploadTab
+          organizationId={savedOrganizationId}
+          onDocumentsChange={(count) => {
+            // Update tab completion status based on document count
+            setTabsCompleted(prev => {
+              const newState = [...prev];
+              newState[7] = count > 0;  // Tab complete if at least 1 document uploaded
+              return newState;
+            });
+          }}
+          disabled={isSubmitting}
+        />
       </TabPanel>
 
       {/* Tab 8: Other Information */}

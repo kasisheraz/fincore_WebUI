@@ -38,6 +38,16 @@ class KYCDocumentService {
   }
 
   /**
+   * Get KYC documents by organization ID
+   */
+  async getByOrganizationId(organisationId: number, params?: PaginationParams): Promise<PaginatedResponse<KYCDocument>> {
+    const response = await apiService.get<any>(this.BASE_PATH, {
+      params: { organisationId, ...params }
+    });
+    return normalizePaginatedResponse<KYCDocument>(response.data);
+  }
+
+  /**
    * Upload KYC document with file
    */
   async upload(data: CreateKYCDocumentDTO): Promise<KYCDocument> {

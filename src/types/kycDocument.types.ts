@@ -1,7 +1,25 @@
 // KYC Document Types
 
-export type DocumentType = 'PASSPORT' | 'DRIVERS_LICENSE' | 'NATIONAL_ID' | 'UTILITY_BILL' | 'BANK_STATEMENT' | 'TAX_RETURN' | 'OTHER';
-export type DocumentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
+export type DocumentType = 
+  | 'PASSPORT' 
+  | 'DRIVERS_LICENSE' 
+  | 'NATIONAL_ID' 
+  | 'NATIONAL_ID_CARD'
+  | 'BIRTH_CERTIFICATE'
+  | 'UTILITY_BILL' 
+  | 'BANK_STATEMENT' 
+  | 'TAX_RETURN' 
+  | 'PROOF_OF_ADDRESS'
+  | 'CERTIFICATE_OF_INCORPORATION'
+  | 'MEMORANDUM_OF_ASSOCIATION'
+  | 'ARTICLES_OF_ASSOCIATION'
+  | 'DIRECTORS_REGISTER'
+  | 'SHAREHOLDERS_REGISTER'
+  | 'TAX_REGISTRATION'
+  | 'REGULATORY_LICENSE'
+  | 'OTHER';
+
+export type DocumentStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED' | 'UNDER_REVIEW';
 
 export interface KYCDocument {
   id: number;
