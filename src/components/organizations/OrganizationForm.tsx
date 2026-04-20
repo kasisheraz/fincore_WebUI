@@ -327,6 +327,15 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   };
 
   const handleTabChange = async (_event: React.SyntheticEvent, newValue: number) => {
+    // Prevent navigation from incomplete required tabs
+    if (currentTab === 0 && newValue > 0) {
+      if (!validateForm()) {
+        // Show error feedback and prevent navigation
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    
     // Auto-save as draft when navigating TO KYC Documents tab (index 7)
     if (newValue === 7 && !savedOrganizationId && mode === 'create' && tabsCompleted[0]) {
       await saveDraft();
@@ -336,7 +345,13 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   };
 
   const handleNext = async () => {
+    // Validate current tab before proceeding
     if (!validateCurrentTab()) {
+      // Show error feedback
+      if (currentTab === 0 && !validateForm()) {
+        // Scroll to top to show errors
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       return;
     }
     if (currentTab < 8) {

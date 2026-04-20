@@ -61,10 +61,6 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
   const [documentToDelete, setDocumentToDelete] = useState<KYCDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  // Table pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Enum options
   const [documentTypeOptions, setDocumentTypeOptions] = useState<EnumOption[]>([]);
@@ -486,18 +482,20 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
             <CircularProgress />
           </Box>
         ) : uploadedDocuments.length > 0 ? (
-          <DataTable
-            columns={columns}
-            data={uploadedDocuments}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            totalElements={uploadedDocuments.length}
-            onPageChange={setPage}
-            onRowsPerPageChange={setRowsPerPage}
-            loading={loading}
-            emptyMessage="No documents uploaded yet"
-            getRowId={(row) => row.id}
-          />
+          <Box sx={{ overflowX: 'auto' }}>
+            <DataTable
+              columns={columns}
+              data={uploadedDocuments}
+              page={0}
+              rowsPerPage={100}
+              totalElements={uploadedDocuments.length}
+              onPageChange={() => {}}
+              onRowsPerPageChange={() => {}}
+              loading={loading}
+              emptyMessage="No documents uploaded yet"
+              getRowId={(row) => row.id}
+            />
+          </Box>
         ) : (
           <Alert severity="info">
             <Typography variant="body2">
