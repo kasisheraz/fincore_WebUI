@@ -46,6 +46,7 @@ const OrganizationsPage: React.FC = () => {
   const [filters, setFilters] = useState<OrganizationFilters>({});
   const [sortBy, setSortBy] = useState<keyof Organization>('createdDatetime');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [userHasOrganization, setUserHasOrganization] = useState(false);
 
   // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -93,6 +94,24 @@ const OrganizationsPage: React.FC = () => {
 
       setOrganizations(response.content);
       setTotalElements(response.totalElements);
+      
+      // Check if current user already has an organization (for non-admins)
+      if (!isAdmin && user?.id) {
+        const userOrg = response.content.find(org => org.ownerId === user.id);
+        setUserHasOrganization(!!userOrg);
+        
+        // Debug logging for approve button issue
+        if (isAdmin) {
+          response.content.forEach(org => {
+            console.log(`Organization ${org.legalName}:`, {
+              id: org.id,
+              statusDescription: org.statusDescription,
+              isUnderReview: org.statusDescription === 'UNDER_REVIEW',
+              willShowApproveButton: org.statusDescription === 'UNDER_REVIEW'
+            });
+          });
+        }
+      }
     } catch (error: any) {
       console.error('Failed to fetch organizations:', error);
       // Don't show error in mock mode - just keep empty state
@@ -101,7 +120,7 @@ const OrganizationsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, rowsPerPage, sortBy, sortDirection, searchQuery, filters]);
+  }, [page, rowsPerPage, sortBy, sortDirection, searchQuery, filters, isAdmin, user]);
 
   // Fetch on mount and when dependencies change
   useEffect(() => {
@@ -191,9 +210,19 @@ const OrganizationsPage: React.FC = () => {
       label: 'Actions',
       sortable: false,
       minWidth: 150,
-      format: (_, row) => (
+      format: (_, row) => {
+        // Debug logging for approve button visibility
+        const shouldShowApprove = isAdmin && row.statusDescription === 'UNDER_REVIEW';
+        console.log(`Actions for ${row.legalName}:`, {
+          isAdmin,
+          statusDescription: row.statusDescription,
+          shouldShowApprove,
+          fullRow: row
+        });
+        
+        return (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {isAdmin && row.statusDescription === 'UNDER_REVIEW' && (
+          {shouldShowApprove && (
             <>
               <Tooltip title="Approve">
                 <IconButton size="small" color="success" onClick={() => handleApprove(row)}>
@@ -231,6 +260,7 @@ const OrganizationsPage: React.FC = () => {
           </Tooltip>
         </Box>
       )
+      }
     }
   ];
 
@@ -402,6 +432,15 @@ const OrganizationsPage: React.FC = () => {
           </Typography>
         </Alert>
       )}
+      
+      {/* One Organization Per User Alert */}
+      {!isAdmin && userHasOrganization && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2">
+            You already have an organization. Each user can only create one organization.
+          </Typography>
+        </Alert>
+      )}
 
       <Box sx={{ 
         mb: 3, 
@@ -419,14 +458,21 @@ const OrganizationsPage: React.FC = () => {
           />
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
-            sx={{ whiteSpace: 'nowrap' }}
+          <Tooltip 
+            title={!isAdmin && userHasOrganization ? "You can only create one organization" : ""}
           >
-            Add Organization
-          </Button>
+            <span>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setCreateDialogOpen(true)}
+                disabled={!isAdmin && userHasOrganization}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                Add Organization
+              </Button>
+            </span>
+          </Tooltip>
           <Tooltip title="Refresh">
             <IconButton onClick={fetchOrganizations}>
               <RefreshIcon />
