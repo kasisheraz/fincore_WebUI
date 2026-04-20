@@ -109,7 +109,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [organizationId, onDocumentsChange]);
+  }, [organizationId]); // Removed onDocumentsChange from dependencies to prevent re-render loops
 
   // Load documents on mount and when organizationId changes
   useEffect(() => {

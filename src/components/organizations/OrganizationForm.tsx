@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid,
   TextField,
@@ -457,6 +457,15 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
   const completedTabs = tabsCompleted.filter(Boolean).length;
   const progressPercentage = (completedTabs / totalTabs) * 100;
   const isLastTab = currentTab === totalTabs - 1;
+
+  // Memoized handler for KYC documents change to prevent re-render loops
+  const handleDocumentsChange = useCallback((count: number) => {
+    setTabsCompleted(prev => {
+      const newState = [...prev];
+      newState[7] = count > 0;  // Tab complete if at least 1 document uploaded
+      return newState;
+    });
+  }, []);
 
   const handleAddressChange = (addressType: 'registered' | 'business' | 'correspondence') => 
     (addressData: CreateAddressDTO, isValid: boolean) => {
@@ -1186,14 +1195,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
         {/* KYC Documents Upload Component */}
         <KYCDocumentsUploadTab
           organizationId={savedOrganizationId}
-          onDocumentsChange={(count) => {
-            // Update tab completion status based on document count
-            setTabsCompleted(prev => {
-              const newState = [...prev];
-              newState[7] = count > 0;  // Tab complete if at least 1 document uploaded
-              return newState;
-            });
-          }}
+          onDocumentsChange={handleDocumentsChange}
           disabled={isSubmitting}
         />
       </TabPanel>
