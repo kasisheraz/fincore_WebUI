@@ -1,6 +1,14 @@
 import { test, expect } from '../fixtures/auth.fixture';
 
 /**
+ * Navigation Tests
+ * 
+ * IMPORTANT: Sidebar Layout Changes (Latest Update)
+ * - Sidebar is now ALWAYS VISIBLE (permanent drawer, not toggleable)
+ * - No hamburger menu button in header (removed)
+ * - New Navigation dropdown menu in header with all menu items
+ * - Tests updated to reflect permanent sidebar visibility
+ * 
  * Helper to navigate via sidebar (avoids hard page reload, preserves auth)
  */
 async function navigateTo(page: any, buttonText: string, expectedUrlPart: string): Promise<void> {
@@ -15,10 +23,15 @@ async function navigateTo(page: any, buttonText: string, expectedUrlPart: string
 }
 
 test.describe('Navigation Tests', () => {
-  test('should display sidebar navigation', async ({ authenticatedPage }) => {
-    // Already on dashboard after login - check sidebar renders  
-    await authenticatedPage.waitForTimeout(2500);
-    // Sidebar contains navigation buttons (ListItemButton) - check for menu items
+  test('should display sidebar navigation (always visible)', async ({ authenticatedPage }) => {
+    // Sidebar is now always visible - verify it's permanently shown
+    await authenticatedPage.waitForTimeout(1000);
+    
+    // Verify sidebar drawer is permanently visible
+    const sidebar = authenticatedPage.locator('.MuiDrawer-root[class*="MuiDrawer-docked"]');
+    await expect(sidebar).toBeVisible({ timeout: 10000 });
+    
+    // Verify navigation menu items are visible
     const sidebarItem = authenticatedPage.locator('[role="button"]:has-text("Dashboard"), [role="button"]:has-text("Organizations"), [role="button"]:has-text("Users")').first();
     await expect(sidebarItem).toBeVisible({ timeout: 10000 });
   });
@@ -71,18 +84,60 @@ test.describe('Navigation Tests', () => {
     }
   });
 
-  test('should toggle sidebar', async ({ authenticatedPage }) => {
-    // Already on dashboard - find menu toggle button in header
-    const menuButton = authenticatedPage.locator('button[aria-label*="menu"], button[aria-label*="Menu"]').first();
+  test('should have navigation dropdown menu in header', async ({ authenticatedPage }) => {
+    // Check for new Navigation dropdown button in header
+    const navDropdownButton = authenticatedPage.locator('button:has-text("Navigation")');
+    await expect(navDropdownButton).toBeVisible({ timeout: 10000 });
     
-    if (await menuButton.count() > 0) {
-      await menuButton.click();
-      await authenticatedPage.waitForTimeout(500);
-      
-      // Sidebar should still be present
-      const sidebar = authenticatedPage.locator('nav, aside, .MuiDrawer-root');
-      await expect(sidebar).toBeVisible();
+    // Click to open dropdown
+    await navDropdownButton.click();
+    await authenticatedPage.waitForTimeout(500);
+    
+    // Verify menu items are visible in dropdown
+    const menuItems = [
+      'Dashboard',
+      'Users',
+      'Organizations',
+      'KYC Verification',
+      'Questionnaire',
+      'Customer Answers',
+      'Profile',
+      'Settings'
+    ];
+    
+    for (const item of menuItems) {
+      const menuItem = authenticatedPage.locator(`li[role="menuitem"]:has-text("${item}")`);
+      await expect(menuItem).toBeVisible();
     }
+  });
+  
+  test('should navigate via dropdown menu', async ({ authenticatedPage }) => {
+    // Open navigation dropdown
+    const navDropdownButton = authenticatedPage.locator('button:has-text("Navigation")');
+    await navDropdownButton.click();
+    await authenticatedPage.waitForTimeout(500);
+    
+    // Click Users menu item
+    const usersMenuItem = authenticatedPage.locator('li[role="menuitem"]:has-text("Users")');
+    await usersMenuItem.click();
+    
+    // Verify navigation
+    await expect(authenticatedPage).toHaveURL(/.*users/, { timeout: 10000 });
+  });
+  
+  test('should highlight active page in dropdown menu', async ({ authenticatedPage }) => {
+    // Navigate to organizations
+    await navigateTo(authenticatedPage, 'Organizations', 'organizations');
+    
+    // Open navigation dropdown
+    const navDropdownButton = authenticatedPage.locator('button:has-text("Navigation")');
+    await navDropdownButton.click();
+    await authenticatedPage.waitForTimeout(500);
+    
+    // Verify Organizations menu item is selected
+    const organizationsMenuItem = authenticatedPage.locator('li[role="menuitem"].Mui-selected:has-text("Organizations")');
+    const count = await organizationsMenuItem.count();
+    expect(count).toBeGreaterThanOrEqual(1);
   });
 
   test('should show active route in sidebar', async ({ authenticatedPage }) => {

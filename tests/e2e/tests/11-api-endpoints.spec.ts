@@ -1,6 +1,10 @@
 import { test, expect } from '../fixtures/auth.fixture';
 
 /**
+ * API Endpoints Tests
+ * 
+ * NOTE: Sidebar is permanently visible (no toggle functionality)
+ * 
  * Helper to navigate via sidebar (avoids hard page reload, preserves auth)
  */
 async function navigateTo(page: any, buttonText: string, expectedUrlPart: string): Promise<void> {

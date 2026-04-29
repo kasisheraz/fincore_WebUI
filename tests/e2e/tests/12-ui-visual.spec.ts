@@ -1,6 +1,13 @@
 import { test, expect } from '../fixtures/auth.fixture';
 
 /**
+ * UI Visual Tests
+ * 
+ * NOTE: Sidebar is now permanently visible (no toggle)
+ * - Layout width: calc(100% - 220px) for main content
+ * - Sidebar is always 220px wide
+ * - Tests verify consistent spacing with permanent sidebar
+ * 
  * Helper to navigate via sidebar button (React Router, no hard reload)
  */
 async function navigateViaSidebar(page: any, buttonText: string, expectedUrlPart: string): Promise<void> {

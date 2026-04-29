@@ -6,6 +6,11 @@ import { setupMocks } from './fixtures/auth.fixture';
  * Fast subset of tests to run before push (< 1 minute)
  * Full E2E suite runs in CI/CD pipeline
  * 
+ * NOTE: Sidebar Layout Update
+ * - Sidebar is now ALWAYS VISIBLE (permanent, no toggle)
+ * - Navigation dropdown added to header
+ * - Tests updated to work with new layout
+ * 
  * Note: Auth state is loaded from storage (global setup)
  */
 test.describe('Smoke Tests - Critical Paths', () => {

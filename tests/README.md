@@ -2,6 +2,19 @@
 
 This directory contains comprehensive end-to-end tests for the FinCore WebUI application using Playwright.
 
+## ⚠️ Important Test Maintenance Guidelines
+
+**CRITICAL**: When making UI changes, **ALWAYS update corresponding tests**. Tests must be updated alongside feature development to:
+- Prevent CI/CD pipeline failures
+- Maintain test coverage accuracy
+- Ensure reliable deployments
+- Document expected behavior
+
+### Recent UI Changes Reflected in Tests:
+- **Sidebar**: Now always visible (permanent drawer, no toggle)
+- **Header**: Navigation dropdown added, hamburger menu removed
+- **Layout**: Fixed sidebar width (220px), adjusted main content area
+
 ## 📁 Structure
 
 ```
@@ -48,11 +61,146 @@ tests/
 - Create new organization
 - Edit existing organization
 - Delete organization
-- Search functionality
-- Filter by type
-- Sort by columns
-- Pagination
-- Form validation
+- Search and filter
+- Status management
+
+### 4. **Users Tests** (`04-users.spec.ts`)
+- Users list display
+- Create new user
+- Edit existing user
+- Delete user
+- Role management
+
+### 5. **KYC Tests** (`05-kyc.spec.ts`)
+- KYC documents list
+- Upload documents
+- Approve/reject documents
+- Document verification flow
+
+### 6. **Questionnaire Tests** (`06-questionnaire.spec.ts`)
+- Question management
+- Create/edit questions
+- Question activation/deactivation
+
+### 7. **Applications Tests** (`07-applications.spec.ts`)
+- Application list display
+- Create new application
+- Application workflow
+- Status transitions
+
+### 8. **Navigation Tests** (`08-navigation.spec.ts`) ⚠️ **UPDATED**
+- **Sidebar always visible (permanent drawer)**
+- **Navigation dropdown menu in header**
+- **All navigation paths work correctly**
+- Active route highlighting
+- User menu functionality
+- **Note**: Removed sidebar toggle tests (feature removed)
+
+### 9. **Theme Tests** (`09-theme.spec.ts`)
+- Consistent UI theme
+- Color scheme validation
+- Loading states
+- Toast notifications
+
+### 10. **Accessibility Tests** (`10-accessibility.spec.ts`)
+- Proper page titles
+- Heading hierarchy
+- Alt text for images
+- ARIA labels on interactive elements
+
+### 11. **API Endpoints Tests** (`11-api-endpoints.spec.ts`)
+- API response validation
+- Error handling
+- Data integrity
+
+### 12. **UI Visual Tests** (`12-ui-visual.spec.ts`) ⚠️ **UPDATED**
+- **Consistent spacing with permanent sidebar**
+- **Layout validation (220px sidebar + content)**
+- Responsive design
+- No horizontal overflow
+- Mobile/tablet viewport testing
+
+## 🔄 Recent Test Updates
+
+### Sidebar Layout Changes (Latest)
+**Date**: Current
+**Changes Made**:
+- ✅ Replaced sidebar toggle test with navigation dropdown tests
+- ✅ Added tests for new Navigation dropdown menu in header
+- ✅ Updated all navigation tests to work with always-visible sidebar
+- ✅ Documented layout changes in affected test files
+- ✅ Verified all navigation paths work with new structure
+
+**Files Updated**:
+- `tests/e2e/tests/08-navigation.spec.ts` - Major updates
+- `tests/e2e/tests/12-ui-visual.spec.ts` - Layout notes added
+- `tests/e2e/tests/11-api-endpoints.spec.ts` - Documentation updated
+- `tests/e2e/smoke.spec.ts` - Notes added
+- `tests/README.md` - Comprehensive documentation
+
+**Tests Removed**: 
+- Sidebar toggle functionality test (feature no longer exists)
+
+**Tests Added**:
+- Navigation dropdown menu visibility test
+- Navigation via dropdown menu test
+- Active page highlighting in dropdown test
+- All menu items presence validation
+
+## 📝 Test Development Guidelines
+
+### ⚠️ CRITICAL: Keep Tests in Sync with Development
+
+**ALWAYS update tests when making UI/feature changes!**
+
+1. **Before Starting Development**:
+   - Review existing tests for the feature you'll modify
+   - Understand current test coverage
+   - Plan test updates needed
+
+2. **During Development**:
+   - Update tests as you change functionality
+   - Don't wait until the end to fix tests
+   - Run tests locally before committing
+
+3. **After Development**:
+   - Verify all affected tests pass
+   - Add new tests for new functionality
+   - Update test documentation
+   - Run full test suite before pushing
+
+4. **Test Update Checklist**:
+   - [ ] Update tests for removed features
+   - [ ] Add tests for new features
+   - [ ] Update selectors if UI changed
+   - [ ] Update expected behaviors
+   - [ ] Update test documentation
+   - [ ] Run tests locally and verify they pass
+   - [ ] Update this README if coverage changes
+
+### Example: Recent Sidebar Changes
+
+When we made the sidebar always visible:
+- ✅ Removed sidebar toggle test (feature removed)
+- ✅ Added navigation dropdown tests (new feature)
+- ✅ Updated layout-dependent tests
+- ✅ Documented changes in affected files
+- ✅ Updated this README
+
+### Best Practices for Test Maintenance
+
+1. **Use Page Object Models** - Centralize selectors for easy updates
+2. **Use Fixtures** - Reuse authentication and setup logic
+3. **Generate Unique Data** - Avoid test data conflicts
+4. **Wait Appropriately** - Use `waitFor` methods instead of fixed timeouts
+5. **Test User Flows** - Test complete scenarios, not just individual actions
+6. **Handle API Responses** - Mock or intercept as needed
+7. **Clean Up** - Remove test data after tests
+8. **Make Tests Independent** - Each test should run standalone
+9. **Use Descriptive Names** - Test names should explain what they test
+10. **Group Related Tests** - Use `test.describe` blocks
+11. **Update Tests with Code** - Never bypass failing tests, fix them!
+12. **Document Breaking Changes** - Add notes in test files about major changes
 
 ### 4. **Users Tests** (`04-users.spec.ts`)
 - Users list display
