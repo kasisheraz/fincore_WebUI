@@ -12,6 +12,7 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  Button,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -20,19 +21,23 @@ import {
   Logout,
   Settings,
   Person,
+  Apps,
+  KeyboardArrowDown,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { menuItems } from './Sidebar';
 
 interface HeaderProps {
-  onMenuToggle: () => void;
   title?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) => {
+const Header: React.FC<HeaderProps> = ({ title = 'Dashboard' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [navMenuAnchorEl, setNavMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -40,6 +45,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleNavMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNavMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleNavMenuClose = () => {
+    setNavMenuAnchorEl(null);
+  };
+
+  const handleNavigation = (path: string) => {
+    handleNavMenuClose();
+    navigate(path);
   };
 
   const handleProfileClick = () => {
@@ -89,22 +107,25 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
         px: 2,
         py: 1.5
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+            {title}
+          </Typography>
+          
+          <Button
             color="inherit"
-            onClick={onMenuToggle}
+            onClick={handleNavMenuOpen}
+            startIcon={<Apps />}
+            endIcon={<KeyboardArrowDown />}
             sx={{
-              mr: 2,
+              textTransform: 'none',
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
               },
             }}
           >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
-            {title}
-          </Typography>
+            Navigation
+          </Button>
         </Box>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -195,6 +216,52 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'Dashboard' }) =>
               </ListItemIcon>
               <ListItemText>Logout</ListItemText>
             </MenuItem>
+          </Menu>
+
+          <Menu
+            anchorEl={navMenuAnchorEl}
+            open={Boolean(navMenuAnchorEl)}
+            onClose={handleNavMenuClose}
+            transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+            PaperProps={{
+              elevation: 3,
+              sx: { width: 250, mt: 1.5 },
+            }}
+          >
+            <Box sx={{ px: 2, py: 1.5, backgroundColor: '#f5f5f5' }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
+                Quick Navigation
+              </Typography>
+            </Box>
+            <Divider />
+            {menuItems.map((item) => (
+              <MenuItem 
+                key={item.path}
+                onClick={() => handleNavigation(item.path)}
+                selected={location.pathname === item.path}
+                sx={{
+                  py: 1.5,
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(0, 61, 42, 0.08)',
+                    fontWeight: 600,
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 61, 42, 0.12)',
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: location.pathname === item.path ? '#003D2A' : 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontWeight: location.pathname === item.path ? 600 : 400,
+                  }}
+                />
+              </MenuItem>
+            ))}
           </Menu>
         </Box>
       </Box>

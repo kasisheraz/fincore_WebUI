@@ -26,12 +26,10 @@ import LoadingSpinner from './components/common/LoadingSpinner';
  * Layout component for authenticated pages
  */
 const AppLayout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
-
   return (
     <ProtectedRoute>
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar />
         <Box
           component="main"
           sx={{
@@ -39,7 +37,7 @@ const AppLayout: React.FC = () => {
             p: 0,
             m: 0,
             pt: '64px',
-            transition: 'margin-left 0.3s ease',
+            marginLeft: '220px',
             backgroundColor: '#F8F9FA',
             minHeight: '100vh',
             width: 'calc(100% - 220px)',
@@ -49,7 +47,7 @@ const AppLayout: React.FC = () => {
             flexDirection: 'column',
           }}
         >
-          <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} title="FinCore" />
+          <Header title="FinCore" />
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Outlet />
           </Box>

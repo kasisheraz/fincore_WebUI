@@ -24,12 +24,7 @@ import {
   QuestionAnswer,
 } from '@mui/icons-material';
 
-interface SidebarProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const menuItems = [
+export const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Users', icon: <People />, path: '/users' },
   { text: 'Organizations', icon: <Business />, path: '/organizations' },
@@ -40,7 +35,7 @@ const menuItems = [
   { text: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
+const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { themeMode } = useThemeContext();
@@ -56,8 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   return (
     <Drawer
-      variant="persistent"
-      open={open}
+      variant="permanent"
       sx={{
         width: 220,
         flexShrink: 0,
