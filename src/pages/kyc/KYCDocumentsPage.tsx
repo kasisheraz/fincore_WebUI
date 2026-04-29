@@ -355,7 +355,7 @@ const KYCDocumentsPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="KYC Document Management" />
-      <Box sx={{ px: 2, py: 2 }}>
+      <Box sx={{ px: 1, py: 1.5 }}>
       
       {/* Rejection Feedback Alert */}
       {documents.some(doc => doc.status === 'REJECTED' && doc.rejectionReason) && (

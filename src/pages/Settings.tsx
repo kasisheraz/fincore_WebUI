@@ -130,7 +130,7 @@ const Settings: React.FC = () => {
         buttonIcon={<Save />}
         onButtonClick={() => showSnackbar('Settings saved successfully', 'success')}
       />
-      <Box sx={{ px: 2, py: 2 }}>      
+      <Box sx={{ px: 1, py: 1.5 }}>
         <Grid container spacing={3}>
           {/* Notifications */}
         <Grid item xs={12} md={6}>

@@ -150,7 +150,7 @@ const DiagnosticsPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="System Diagnostics" />
-      <Box sx={{ px: 2, py: 2 }}>
+      <Box sx={{ px: 1, py: 1.5 }}>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Run diagnostics to check system health and connectivity
       </Typography>

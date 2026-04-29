@@ -286,7 +286,7 @@ const QuestionnairePage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Questionnaire Management" />
-      <Box sx={{ px: 2, py: 2 }}>
+      <Box sx={{ px: 1, py: 1.5 }}>
       <Box sx={{ 
         mb: 3, 
         display: 'flex', 
