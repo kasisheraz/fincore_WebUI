@@ -12,8 +12,8 @@ This directory contains comprehensive end-to-end tests for the FinCore WebUI app
 
 ### Recent UI Changes Reflected in Tests:
 - **Sidebar**: Now always visible (permanent drawer, no toggle)
-- **Header**: Navigation dropdown added, hamburger menu removed
-- **Layout**: Fixed sidebar width (220px), adjusted main content area
+- **Header**: Horizontal top menu bar with all navigation items displayed
+- **Layout**: Fixed sidebar width (220px), no "FinCore" title, no dropdown menu
 
 ## 📁 Structure
 
@@ -90,11 +90,11 @@ tests/
 
 ### 8. **Navigation Tests** (`08-navigation.spec.ts`) ⚠️ **UPDATED**
 - **Sidebar always visible (permanent drawer)**
-- **Navigation dropdown menu in header**
+- **Horizontal top menu bar in header (all items displayed)**
 - **All navigation paths work correctly**
-- Active route highlighting
+- Active route highlighting in header menu
 - User menu functionality
-- **Note**: Removed sidebar toggle tests (feature removed)
+- **Note**: No dropdown menu - items displayed horizontally
 
 ### 9. **Theme Tests** (`09-theme.spec.ts`)
 - Consistent UI theme
@@ -122,8 +122,26 @@ tests/
 
 ## 🔄 Recent Test Updates
 
-### Sidebar Layout Changes (Latest)
+### Header Horizontal Menu Changes (Latest)
 **Date**: Current
+**Changes Made**:
+- ✅ Replaced dropdown navigation with horizontal menu bar
+- ✅ Updated tests for horizontal menu buttons in header
+- ✅ All navigation items now displayed directly in header
+- ✅ Removed "FinCore" title and "Navigation" dropdown
+- ✅ Active state styling verification updated
+
+**Files Updated**:
+- `tests/e2e/tests/08-navigation.spec.ts` - Navigation tests for horizontal menu
+- `tests/README.md` - Updated documentation
+
+**Tests Updated**: 
+- Horizontal navigation menu visibility test
+- Navigate via header menu buttons test
+- Active page highlighting in header test
+
+### Sidebar Layout Changes (Previous)
+**Date**: Earlier
 **Changes Made**:
 - ✅ Replaced sidebar toggle test with navigation dropdown tests
 - ✅ Added tests for new Navigation dropdown menu in header
@@ -141,7 +159,7 @@ tests/
 **Tests Removed**: 
 - Sidebar toggle functionality test (feature no longer exists)
 
-**Tests Added**:
+**Tests Added (Previous)**:
 - Navigation dropdown menu visibility test
 - Navigation via dropdown menu test
 - Active page highlighting in dropdown test

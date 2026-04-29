@@ -13,6 +13,8 @@ import {
   ListItemIcon,
   ListItemText,
   Button,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -21,8 +23,6 @@ import {
   Logout,
   Settings,
   Person,
-  Apps,
-  KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -37,7 +37,6 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard' }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [navMenuAnchorEl, setNavMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -47,16 +46,7 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard' }) => {
     setAnchorEl(null);
   };
 
-  const handleNavMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setNavMenuAnchorEl(event.currentTarget);
-  };
-
-  const handleNavMenuClose = () => {
-    setNavMenuAnchorEl(null);
-  };
-
   const handleNavigation = (path: string) => {
-    handleNavMenuClose();
     navigate(path);
   };
 
@@ -102,30 +92,52 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard' }) => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
         gap: 2,
         px: 2,
-        py: 1.5
+        py: 0.5,
+        minHeight: '64px',
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
-            {title}
-          </Typography>
-          
-          <Button
-            color="inherit"
-            onClick={handleNavMenuOpen}
-            startIcon={<Apps />}
-            endIcon={<KeyboardArrowDown />}
-            sx={{
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          >
-            Navigation
-          </Button>
+        {/* Left side - Horizontal Navigation Menu */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 0.5,
+          flexGrow: 1,
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            borderRadius: '2px',
+          },
+        }}>
+          {menuItems.map((item) => (
+            <Button
+              key={item.path}
+              onClick={() => handleNavigation(item.path)}
+              startIcon={item.icon}
+              sx={{
+                color: '#ffffff',
+                textTransform: 'none',
+                px: 2,
+                py: 1,
+                minWidth: 'auto',
+                whiteSpace: 'nowrap',
+                borderRadius: 1,
+                fontSize: '0.9rem',
+                fontWeight: location.pathname === item.path ? 600 : 400,
+                backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                borderBottom: location.pathname === item.path ? '2px solid #F59E0B' : '2px solid transparent',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              {item.text}
+            </Button>
+          ))}
         </Box>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -216,52 +228,6 @@ const Header: React.FC<HeaderProps> = ({ title = 'Dashboard' }) => {
               </ListItemIcon>
               <ListItemText>Logout</ListItemText>
             </MenuItem>
-          </Menu>
-
-          <Menu
-            anchorEl={navMenuAnchorEl}
-            open={Boolean(navMenuAnchorEl)}
-            onClose={handleNavMenuClose}
-            transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-            PaperProps={{
-              elevation: 3,
-              sx: { width: 250, mt: 1.5 },
-            }}
-          >
-            <Box sx={{ px: 2, py: 1.5, backgroundColor: '#f5f5f5' }}>
-              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">
-                Quick Navigation
-              </Typography>
-            </Box>
-            <Divider />
-            {menuItems.map((item) => (
-              <MenuItem 
-                key={item.path}
-                onClick={() => handleNavigation(item.path)}
-                selected={location.pathname === item.path}
-                sx={{
-                  py: 1.5,
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(0, 61, 42, 0.08)',
-                    fontWeight: 600,
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 61, 42, 0.12)',
-                    },
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ color: location.pathname === item.path ? '#003D2A' : 'inherit' }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                  }}
-                />
-              </MenuItem>
-            ))}
           </Menu>
         </Box>
       </Box>
