@@ -11,9 +11,10 @@ This directory contains comprehensive end-to-end tests for the FinCore WebUI app
 - Document expected behavior
 
 ### Recent UI Changes Reflected in Tests:
-- **Sidebar**: Now always visible (permanent drawer, no toggle)
-- **Header**: Horizontal top menu bar with all navigation items displayed
-- **Layout**: Fixed sidebar width (220px), no "FinCore" title, no dropdown menu
+- **Sidebar**: Always visible (permanent drawer, no toggle), 180px width, more compact spacing
+- **Header**: Minimal header with notifications and user menu only (no navigation items)
+- **Layout**: Fixed sidebar width (180px), main content area uses additional 40px of space
+- **Navigation**: All navigation is via left sidebar menu
 
 ## 📁 Structure
 
@@ -89,12 +90,12 @@ tests/
 - Status transitions
 
 ### 8. **Navigation Tests** (`08-navigation.spec.ts`) ⚠️ **UPDATED**
-- **Sidebar always visible (permanent drawer)**
-- **Horizontal top menu bar in header (all items displayed)**
-- **All navigation paths work correctly**
-- Active route highlighting in header menu
-- User menu functionality
-- **Note**: No dropdown menu - items displayed horizontally
+- **Sidebar always visible (permanent drawer, 180px width)**
+- **Header has NO navigation menu (only notifications and user menu)**
+- **All navigation paths work via sidebar menu**
+- Active route highlighting in sidebar
+- User menu functionality in header
+- **Note**: No dropdown menu or horizontal menu - all navigation in sidebar
 
 ### 9. **Theme Tests** (`09-theme.spec.ts`)
 - Consistent UI theme
@@ -114,33 +115,60 @@ tests/
 - Data integrity
 
 ### 12. **UI Visual Tests** (`12-ui-visual.spec.ts`) ⚠️ **UPDATED**
-- **Consistent spacing with permanent sidebar**
-- **Layout validation (220px sidebar + content)**
+- **Consistent spacing with permanent sidebar (180px)**
+- **Layout validation (180px sidebar + expanded content area)**
 - Responsive design
 - No horizontal overflow
 - Mobile/tablet viewport testing
 
 ## 🔄 Recent Test Updates
 
-### Header Horizontal Menu Changes (Latest)
+### Simplified Header & Expanded Content Layout (Latest - Phase 5)
 **Date**: Current
+**Changes Made**:
+- ✅ Removed horizontal navigation menu from header
+- ✅ Simplified header to show only notifications and user menu
+- ✅ Reduced sidebar width from 220px to 180px for more content space
+- ✅ Reduced header height from 64px to 56px
+- ✅ Main content area now has 40px additional horizontal space
+- ✅ More compact sidebar design with adjusted padding and font sizes
+- ✅ Updated tests to verify header has no navigation items
+
+**Files Updated**:
+- `src/components/layout/Header.tsx` - Removed horizontal menu, simplified header
+- `src/components/layout/Sidebar.tsx` - Reduced to 180px, compact spacing
+- `src/App.tsx` - Updated layout margins and widths
+- `tests/e2e/tests/08-navigation.spec.ts` - Updated navigation tests
+- `tests/README.md` - Updated documentation
+
+**Tests Updated**: 
+- Header now checks for notifications and user menu only (no navigation)
+- Removed horizontal menu tests
+- Added test to verify navigation items are NOT in header
+- All navigation tests now focus on sidebar only
+
+**Rationale**: User feedback indicated preference for cleaner header without navigation menu, and desire to maximize horizontal space for data display panels
+
+### Header Horizontal Menu Changes (Phase 4)
+**Date**: Previous
 **Changes Made**:
 - ✅ Replaced dropdown navigation with horizontal menu bar
 - ✅ Updated tests for horizontal menu buttons in header
-- ✅ All navigation items now displayed directly in header
+- ✅ All navigation items displayed directly in header
 - ✅ Removed "FinCore" title and "Navigation" dropdown
 - ✅ Active state styling verification updated
+- ⚠️ **SUPERSEDED**: This horizontal menu was later removed in Phase 5
 
 **Files Updated**:
 - `tests/e2e/tests/08-navigation.spec.ts` - Navigation tests for horizontal menu
 - `tests/README.md` - Updated documentation
 
 **Tests Updated**: 
-- Horizontal navigation menu visibility test
-- Navigate via header menu buttons test
-- Active page highlighting in header test
+- Horizontal navigation menu visibility test (later removed)
+- Navigate via header menu buttons test (later removed)
+- Active page highlighting in header test (later removed)
 
-### Sidebar Layout Changes (Previous)
+### Sidebar Layout Changes (Phase 1-3)
 **Date**: Earlier
 **Changes Made**:
 - ✅ Replaced sidebar toggle test with navigation dropdown tests

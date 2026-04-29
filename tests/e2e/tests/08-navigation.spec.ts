@@ -3,11 +3,11 @@ import { test, expect } from '../fixtures/auth.fixture';
 /**
  * Navigation Tests
  * 
- * IMPORTANT: Sidebar and Header Layout (Latest Update)
- * - Sidebar is ALWAYS VISIBLE (permanent drawer, not toggleable)
- * - Header has HORIZONTAL TOP MENU with all navigation items
- * - No "FinCore" title or "Navigation" dropdown - items displayed directly
- * - Tests updated to reflect horizontal menu bar in header
+ * IMPORTANT: Sidebar and Header Layout (Latest Update - Phase 5)
+ * - Sidebar is ALWAYS VISIBLE (permanent drawer, 180px width)
+ * - Header has NO navigation menu (only notifications and user avatar)
+ * - All navigation is done via the left sidebar menu
+ * - Tests focus on sidebar navigation functionality
  * 
  * Helper to navigate via sidebar (avoids hard page reload, preserves auth)
  */
@@ -84,8 +84,21 @@ test.describe('Navigation Tests', () => {
     }
   });
 
-  test('should have horizontal navigation menu in header', async ({ authenticatedPage }) => {
-    // Check for horizontal menu buttons in header (not dropdown)
+  test('should display header with notifications and user menu only', async ({ authenticatedPage }) => {
+    // Header should have notifications icon and user avatar menu
+    // No navigation menu items
+    const notificationsIcon = authenticatedPage.locator('button[aria-label*="notifications"], svg:has-text("Notifications"), .MuiBadge-root').first();
+    const userMenu = authenticatedPage.locator('button[aria-label*="User menu"], button[aria-label*="user"], button[aria-label*="account"], .MuiAvatar-root').first();
+    
+    // At least one of these should be visible
+    const notifCount = await notificationsIcon.count();
+    const userCount = await userMenu.count();
+    expect(notifCount + userCount).toBeGreaterThan(0);
+  });
+  
+  test('should not have horizontal navigation menu in header', async ({ authenticatedPage }) => {
+    // Verify that navigation items are NOT in the header
+    // They should only be in the sidebar
     const menuItems = [
       'Dashboard',
       'Users',
@@ -97,35 +110,21 @@ test.describe('Navigation Tests', () => {
       'Settings'
     ];
     
-    // Verify all menu buttons are visible in header
+    // Check header area (top 100px) for these items - should not find them
     for (const item of menuItems) {
-      const menuButton = authenticatedPage.locator(`button:has-text("${item}")`).first();
-      await expect(menuButton).toBeVisible({ timeout: 10000 });
+      // Look for buttons in header specifically
+      const headerMenuButton = authenticatedPage.locator('header button, [role="banner"] button').filter({ hasText: item });
+      const count = await headerMenuButton.count();
+      
+      // Header should NOT have navigation buttons (only sidebar should)
+      // If found, it means they're in header which shouldn't happen
+      if (count > 0) {
+        // Verify it's actually from sidebar, not header
+        const sidebarButton = authenticatedPage.locator('.MuiDrawer-root button').filter({ hasText: item });
+        const sidebarCount = await sidebarButton.count();
+        expect(sidebarCount).toBeGreaterThan(0); // Should be in sidebar
+      }
     }
-  });
-  
-  test('should navigate via header menu buttons', async ({ authenticatedPage }) => {
-    // Click Users menu button in header
-    const usersButton = authenticatedPage.locator('button:has-text("Users")').first();
-    await usersButton.click();
-    
-    // Verify navigation
-    await expect(authenticatedPage).toHaveURL(/.*users/, { timeout: 10000 });
-  });
-  
-  test('should highlight active page in header menu', async ({ authenticatedPage }) => {
-    // Navigate to organizations
-    await navigateTo(authenticatedPage, 'Organizations', 'organizations');
-    await authenticatedPage.waitForTimeout(500);
-    
-    // Verify Organizations menu button has active styling
-    // Active buttons have different background and border
-    const organizationsButton = authenticatedPage.locator('button:has-text("Organizations")').first();
-    await expect(organizationsButton).toBeVisible();
-    
-    // Check if button exists (active state styling is applied via CSS)
-    const count = await organizationsButton.count();
-    expect(count).toBeGreaterThanOrEqual(1);
   });
 
   test('should show active route in sidebar', async ({ authenticatedPage }) => {

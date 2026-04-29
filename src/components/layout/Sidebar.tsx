@@ -53,10 +53,10 @@ const Sidebar: React.FC = () => {
     <Drawer
       variant="permanent"
       sx={{
-        width: 220,
+        width: 180,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: 220,
+          width: 180,
           boxSizing: 'border-box',
           backgroundColor: sidebarColors[themeMode],
           color: '#ffffff',
@@ -70,17 +70,17 @@ const Sidebar: React.FC = () => {
       }}
     >
       <Box sx={{ 
-        p: 2.5, 
+        p: 1.5, 
         borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
         background: sidebarColors[themeMode]
       }}>
         <Typography 
-          variant="h4" 
+          variant="h5" 
           sx={{ 
             fontWeight: 'bold', 
             color: '#ffffff',
             letterSpacing: '-1px',
-            fontSize: '1.75rem',
+            fontSize: '1.4rem',
           }}
         >
           F
@@ -108,11 +108,11 @@ const Sidebar: React.FC = () => {
           </Box>
           nCore
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mt: 0.5, fontSize: '0.85rem' }}>
+        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mt: 0.25, fontSize: '0.75rem' }}>
           Financial Management
         </Typography>
       </Box>
-      <Box sx={{ overflow: 'auto', pt: 2 }}>
+      <Box sx={{ overflow: 'auto', pt: 1.5 }}>
         <List>
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
@@ -122,8 +122,8 @@ const Sidebar: React.FC = () => {
                 sx={{
                   borderRadius: 0,
                   mx: 0,
-                  px: 3,
-                  py: 1.5,
+                  px: 2,
+                  py: 1.2,
                   mb: 0.5,
                   color: '#ffffff',
                   position: 'relative',
@@ -158,7 +158,7 @@ const Sidebar: React.FC = () => {
                 <ListItemIcon
                   sx={{
                     color: 'inherit',
-                    minWidth: 40,
+                    minWidth: 36,
                   }}
                 >
                   {item.icon}
@@ -167,7 +167,7 @@ const Sidebar: React.FC = () => {
                   primary={item.text}
                   primaryTypographyProps={{
                     fontWeight: location.pathname === item.path ? 600 : 500,
-                    fontSize: '0.95rem',
+                    fontSize: '0.875rem',
                     color: 'inherit',
                   }}
                 />
