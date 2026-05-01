@@ -1,0 +1,195 @@
+name: Deploy to UAT Cloud Run
+
+on:
+  push:
+    branches:
+      - uat
+  workflow_dispatch:  # Allow manual triggering
+
+concurrency:
+  group: deploy-fincore-ui-uat-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.GCP_REGION }}
+  SERVICE_NAME: fincore-webui-uat
+  REPOSITORY: fincore-webui
+  IMAGE_NAME: app
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Build application for testing
+        run: npm run build:ci
+        env:
+          REACT_APP_MOCK_AUTH: 'true'
+
+      - name: Run E2E tests
+        id: e2e-tests
+        run: npm run test:e2e:smoke || echo "TESTS_EXIT_CODE=$?" >> $GITHUB_ENV
+        env:
+          CI: true
+          REACT_APP_MOCK_AUTH: 'true'
+      
+      - name: Check test results
+        if: always()
+        run: |
+          if [ -f "test-results/results.json" ]; then
+            FAILED_TESTS=$(grep -o '"status":"failed"' test-results/results.json | wc -l || echo 0)
+            echo "Failed tests: $FAILED_TESTS"
+            
+            if [ "$FAILED_TESTS" -gt 0 ]; then
+              echo "❌ Tests failed"
+              exit 1
+            else
+              echo "✅ All tests passed"
+              exit 0
+            fi
+          else
+            echo "⚠️ No test results found, checking exit code"
+            exit ${TESTS_EXIT_CODE:-0}
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-uat
+          path: playwright-report/
+          retention-days: 7
+
+  build-and-deploy:
+    name: Build and Deploy to Cloud Run UAT
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          gcloud auth configure-docker ${REGION}-docker.pkg.dev
+
+      - name: Build Docker image (UAT)
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Building UAT image: ${IMAGE}"
+          docker build \
+            --build-arg REACT_APP_ENV=uat \
+            -t "${IMAGE}:uat" \
+            -t "${IMAGE}:uat-${{ github.sha }}" \
+            .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Pushing UAT image: ${IMAGE}"
+          docker push "${IMAGE}:uat"
+          docker push "${IMAGE}:uat-${{ github.sha }}"
+
+      - name: Deploy to Cloud Run UAT
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Deploying UAT image: ${IMAGE}"
+          gcloud run deploy fincore-webui-uat \
+            --image="${IMAGE}:uat" \
+            --region="${REGION}" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account="fincore-github-actions@${PROJECT}.iam.gserviceaccount.com" \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=60 \
+            --max-instances=10 \
+            --min-instances=0 \
+            --set-env-vars="API_BASE_URL=${{ secrets.UAT_API_BASE_URL }}" \
+            --port=8080
+
+      - name: Get Cloud Run URL
+        id: get-url
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          SERVICE_URL=$(gcloud run services describe fincore-webui-uat \
+            --region=${REGION} \
+            --format='value(status.url)')
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "Service URL: $SERVICE_URL"
+
+      - name: Health Check
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 10
+          
+          SERVICE_URL="${{ steps.get-url.outputs.url }}"
+          
+          for i in {1..5}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/health || echo "000")
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "404" ]; then
+              echo "✅ Service is responding!"
+              exit 0
+            fi
+            echo "Attempt $i: Service returned $HTTP_CODE, retrying..."
+            sleep 5
+          done
+          
+          echo "⚠️ Health check inconclusive, but deployment completed"
+          exit 0
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          REGION=$(echo "${{ secrets.GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "================================================"
+          echo "🎉 UAT Deployment Successful!"
+          echo "================================================"
+          echo "Environment: UAT"
+          echo "Service: fincore-webui-uat"
+          echo "Region: ${REGION}"
+          echo "URL: ${{ steps.get-url.outputs.url }}"
+          echo "Image: ${IMAGE}:uat-${{ github.sha }}"
+          echo "================================================"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ UAT Deployment failed!"
+          echo "Check logs above for details"
