@@ -1,0 +1,265 @@
+name: Deploy to UAT
+
+on:
+  push:
+    branches:
+      - uat
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch or tag to deploy to UAT'
+        required: false
+        default: 'uat'
+
+concurrency:
+  group: deploy-fincore-ui-uat-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.UAT_GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.UAT_GCP_REGION }}
+  SERVICE_NAME: fincore-webui-uat
+  REPOSITORY: fincore-webui
+  IMAGE_NAME: app
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1: Run E2E tests before any deployment
+  # ─────────────────────────────────────────────────────────────────────────────
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Build application for testing
+        run: npm run build:ci
+        env:
+          REACT_APP_MOCK_AUTH: 'true'
+
+      - name: Run E2E tests
+        id: e2e-tests
+        run: npm run test:e2e || echo "TESTS_EXIT_CODE=$?" >> $GITHUB_ENV
+        env:
+          CI: true
+          REACT_APP_MOCK_AUTH: 'true'
+
+      - name: Check test results
+        if: always()
+        run: |
+          if [ -f "test-results/results.json" ]; then
+            FAILED_TESTS=$(grep -o '"status":"failed"' test-results/results.json | wc -l || echo 0)
+            echo "Failed tests: $FAILED_TESTS"
+            if [ "$FAILED_TESTS" -gt 0 ]; then
+              echo "❌ Tests failed"
+              exit 1
+            else
+              echo "✅ All tests passed (flaky tests are acceptable)"
+              exit 0
+            fi
+          else
+            echo "⚠️ No test results found, checking exit code"
+            exit ${TESTS_EXIT_CODE:-0}
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-uat
+          path: playwright-report/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2: Build Docker image and deploy to Cloud Run UAT
+  # The `environment: uat` gate allows optional required-reviewer approval in
+  # GitHub repository settings before the deployment actually runs.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-and-deploy:
+    name: Build and Deploy to UAT Cloud Run
+    needs: test
+    runs-on: ubuntu-latest
+    environment: uat
+    permissions:
+      contents: read
+    outputs:
+      service_url: ${{ steps.get-url.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.UAT_GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          REGION=$(echo "${{ secrets.UAT_GCP_REGION }}" | tr -d '\n\r ')
+          gcloud auth configure-docker ${REGION}-docker.pkg.dev
+
+      - name: Build Docker image (UAT)
+        run: |
+          REGION=$(echo "${{ secrets.UAT_GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.UAT_GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Building image: ${IMAGE}"
+          docker build \
+            --build-arg BUILD_ENV=uat \
+            -t "${IMAGE}:uat-${{ github.sha }}" \
+            -t "${IMAGE}:uat-latest" \
+            .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          REGION=$(echo "${{ secrets.UAT_GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.UAT_GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Pushing image: ${IMAGE}"
+          docker push "${IMAGE}:uat-${{ github.sha }}"
+          docker push "${IMAGE}:uat-latest"
+
+      - name: Deploy to Cloud Run (UAT)
+        run: |
+          REGION=$(echo "${{ secrets.UAT_GCP_REGION }}" | tr -d '\n\r ')
+          PROJECT=$(echo "${{ secrets.UAT_GCP_PROJECT_ID }}" | tr -d '\n\r ')
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/fincore-webui/app"
+          echo "Deploying image: ${IMAGE}:uat-${{ github.sha }}"
+          gcloud run deploy fincore-webui-uat \
+            --image="${IMAGE}:uat-${{ github.sha }}" \
+            --region="${REGION}" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account="fincore-github-actions@${PROJECT}.iam.gserviceaccount.com" \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=60 \
+            --max-instances=5 \
+            --min-instances=0 \
+            --port=8080
+
+      - name: Get Cloud Run UAT URL
+        id: get-url
+        run: |
+          REGION=$(echo "${{ secrets.UAT_GCP_REGION }}" | tr -d '\n\r ')
+          SERVICE_URL=$(gcloud run services describe fincore-webui-uat \
+            --region=${REGION} \
+            --format='value(status.url)')
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "UAT Service URL: $SERVICE_URL"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3: Post-deployment smoke tests against the live UAT URL
+  # ─────────────────────────────────────────────────────────────────────────────
+  post-deploy-smoke:
+    name: Post-Deployment Smoke Tests
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for service to be ready
+        run: sleep 15
+
+      - name: Health check
+        run: |
+          SERVICE_URL="${{ needs.build-and-deploy.outputs.service_url }}"
+          echo "Running health check against: ${SERVICE_URL}"
+          for i in {1..10}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/health" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i: Health check returned $HTTP_CODE, retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Health check did not return 200 after 10 attempts"
+          exit 1
+
+      - name: Setup Node.js for smoke tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke tests against UAT
+        run: npm run test:e2e:smoke
+        env:
+          CI: true
+          REACT_APP_MOCK_AUTH: 'true'
+          BASE_URL: ${{ needs.build-and-deploy.outputs.service_url }}
+
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-report-uat
+          path: playwright-report/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 4: Deployment summary notification
+  # ─────────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Deployment Summary
+    needs: [build-and-deploy, post-deploy-smoke]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions: {}
+
+    steps:
+      - name: UAT Deployment Summary
+        run: |
+          DEPLOY_STATUS="${{ needs.build-and-deploy.result }}"
+          SMOKE_STATUS="${{ needs.post-deploy-smoke.result }}"
+          SERVICE_URL="${{ needs.build-and-deploy.outputs.service_url }}"
+
+          echo "=================================================="
+          echo "🚀 UAT Deployment Summary"
+          echo "=================================================="
+          echo "Branch/Ref  : ${{ github.ref_name }}"
+          echo "Commit SHA  : ${{ github.sha }}"
+          echo "Service URL : ${SERVICE_URL}"
+          echo "Deploy job  : ${DEPLOY_STATUS}"
+          echo "Smoke tests : ${SMOKE_STATUS}"
+          echo "=================================================="
+
+          if [ "$DEPLOY_STATUS" = "success" ]; then
+            echo "✅ UAT deployment completed successfully"
+            echo "🌐 UAT environment is available at: ${SERVICE_URL}"
+          else
+            echo "❌ UAT deployment failed — check build-and-deploy job logs"
+            exit 1
+          fi

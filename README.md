@@ -151,6 +151,88 @@ Set the following secrets in your GitHub repository:
 ### Deployment Process
 The application automatically deploys to GCP Cloud Run when code is pushed to the main branch through GitHub Actions.
 
+---
+
+## 🧪 UAT Environment
+
+The UAT (User Acceptance Testing) environment mirrors production and is used to validate features before they go live.
+
+### Architecture
+
+| Component | Service Name | Trigger |
+|-----------|-------------|---------|
+| Frontend (UI) | `fincore-webui-uat` (Cloud Run) | Push to `uat` branch or manual dispatch |
+| Backend (API) | `fincore-uat-api` (Cloud Run) | Deployed from the API repository |
+| Database | `fincore-uat` (Cloud SQL PostgreSQL) | One-time manual setup |
+
+### GitHub Secrets Required for UAT
+
+Add the following secrets to the GitHub repository (scoped to the `uat` environment or prefixed with `UAT_`):
+
+| Secret Name | Description |
+|---|---|
+| `UAT_GCP_PROJECT_ID` | GCP project ID (can be same project as NPE) |
+| `UAT_GCP_REGION` | GCP region (e.g. `europe-west2`) |
+| `UAT_GCP_SA_KEY` | Service account JSON key for CI/CD |
+| `UAT_API_BASE_URL` | URL of the UAT API Cloud Run service |
+
+### One-Time GCP Infrastructure Setup (Admin Task)
+
+Before the pipeline can run, a GCP admin must complete these steps once:
+
+1. **Cloud SQL** – Create a PostgreSQL instance named `fincore-uat` in the same region. Apply all DB migrations/seeds against the `uat` schema.
+2. **Cloud Run (API)** – Deploy the `fincore-uat-api` Cloud Run service from the API repository, configured to connect to the `fincore-uat` database.
+3. **Artifact Registry** – Re-use the existing `fincore-webui` repository. UAT images are tagged `uat-<sha>` and `uat-latest` to avoid overwriting NPE images.
+4. **Service Account** – Ensure `fincore-github-actions@<project>.iam.gserviceaccount.com` has `roles/run.admin` and `roles/artifactregistry.writer`.
+5. **GitHub Environment** – Create an environment named `uat` in repository Settings → Environments. Optionally add required reviewers for a manual approval gate before deployments proceed.
+
+### Deploying to UAT
+
+**Automatic:** Push commits to the `uat` branch:
+```bash
+git checkout uat
+git merge main          # or cherry-pick specific commits
+git push origin uat
+```
+
+**Manual (on-demand):** Trigger the workflow from the GitHub Actions UI:
+- Go to **Actions → Deploy to UAT → Run workflow**
+- Select the branch/tag to deploy
+
+### UAT Pipeline Stages
+
+```
+Push to uat branch (or manual dispatch)
+        ↓
+Job 1: Run E2E Tests
+        ↓ (pass)
+[Optional: UAT approver reviews in GitHub Environment]
+        ↓ (approved)
+Job 2: Build Docker image (BUILD_ENV=uat) → push uat-<sha> tag
+        ↓
+Job 3: Deploy to Cloud Run fincore-webui-uat
+        ↓
+Job 4: Health check + smoke tests against live UAT URL
+        ↓
+Deployment summary
+```
+
+### Environment File
+
+`.env.uat` in the repository root contains the UAT-specific configuration baked into the Docker image at build time. Update `REACT_APP_API_BASE_URL` to point to your UAT API URL before the first deployment.
+
+### Docker Build with Environment Override
+
+To build the UAT image locally:
+```bash
+docker build --build-arg BUILD_ENV=uat -t fincore-ui:uat .
+```
+
+To build the standard production image (default behaviour is unchanged):
+```bash
+docker build -t fincore-ui:latest .
+```
+
 ## 📁 Project Structure
 
 ```

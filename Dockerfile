@@ -1,5 +1,10 @@
 # Multi-stage build for production deployment
+# BUILD_ENV controls which .env file is used during the React build.
+# Supported values: production (default), uat
+ARG BUILD_ENV=production
 FROM node:18-alpine as build
+
+ARG BUILD_ENV=production
 
 # Set working directory
 WORKDIR /app
@@ -12,6 +17,13 @@ RUN npm install --prefer-offline --no-audit
 
 # Copy source code
 COPY . .
+
+# Copy the appropriate environment file so Create React App picks it up.
+# .env.production is the CRA default for `npm run build`; for other envs we
+# place the file as .env.production so the same build command is used.
+RUN if [ "$BUILD_ENV" != "production" ]; then \
+      cp .env.${BUILD_ENV} .env.production ; \
+    fi
 
 # Build the application (CI=false to not treat warnings as errors)
 ENV CI=false
