@@ -154,7 +154,7 @@ const Applications: React.FC = () => {
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      <Box sx={{ px: 1, py: 1.5 }}>
+      <Box sx={{ px: '2px', py: 1 }}>
         {/* Stats Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>

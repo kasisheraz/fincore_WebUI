@@ -85,7 +85,7 @@ const Reports: React.FC = () => {
         buttonIcon={<Add />}
         onButtonClick={() => console.log('Generate new report')}
       />
-      <Box sx={{ px: 1, py: 1.5 }}>
+      <Box sx={{ px: '2px', py: 1 }}>
         {/* Quick Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>

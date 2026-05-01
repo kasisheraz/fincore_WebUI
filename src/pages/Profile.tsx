@@ -103,7 +103,7 @@ const Profile: React.FC = () => {
         buttonIcon={<Edit />}
         onButtonClick={handleEditProfile}
       />
-      <Box sx={{ px: 1, py: 1.5 }}>
+      <Box sx={{ px: '2px', py: 1 }}>
         <Grid container spacing={3}>
           {/* Profile Header Card */}
           <Grid item xs={12}>

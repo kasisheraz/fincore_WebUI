@@ -34,7 +34,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         flexWrap: 'wrap',
         gap: 2,
         maxWidth: '100%',
-        px: 1,
+        px: '2px',
       }}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: '#003D2A' }}>
           {title}
