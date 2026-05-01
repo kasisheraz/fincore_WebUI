@@ -347,10 +347,11 @@ const UsersPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="User Management" />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 0, py: 1 }}>
 
       <Box sx={{ 
-        mb: 3, 
+
+        mb: 0.5, 
         display: 'flex', 
         gap: 2, 
         alignItems: 'center',

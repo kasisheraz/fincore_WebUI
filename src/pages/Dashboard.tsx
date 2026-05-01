@@ -107,9 +107,9 @@ const Dashboard: React.FC = () => {
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 0, py: 1 }}>
         {/* Step Indicator */}
-        <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0, 61, 42, 0.08)' }}>
+        <Paper sx={{ p: 2, mb: 0.5, borderRadius: 2, boxShadow: '0 2px 8px rgba(0, 61, 42, 0.08)' }}>
           <Typography variant="h6" sx={{ mb: 2, color: '#003D2A', fontWeight: 600 }}>
           Application Progress
         </Typography>
@@ -117,7 +117,7 @@ const Dashboard: React.FC = () => {
       </Paper>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={1} sx={{ mb: 0.5 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card 
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
         ))}
       </Grid>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={1}>
         {/* Recent Applications */}
         <Grid item xs={12} md={8}>
           <Card className="fincore-card-shadow">

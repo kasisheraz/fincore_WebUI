@@ -412,7 +412,7 @@ const OrganizationsPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Organization Management" />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 0, py: 1 }}>
 
       {/* Rejection Feedback Alert */}
       {organizations.some(org => org.statusDescription === 'REQUIRES_RESUBMISSION' && org.reasonDescription) && !isAdmin && (
@@ -443,7 +443,7 @@ const OrganizationsPage: React.FC = () => {
       )}
 
       <Box sx={{ 
-        mb: 3, 
+        mb: 0.5, 
         display: 'flex', 
         gap: 2, 
         alignItems: 'center',

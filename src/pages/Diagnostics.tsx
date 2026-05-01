@@ -150,12 +150,12 @@ const DiagnosticsPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="System Diagnostics" />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 0, py: 1 }}>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Run diagnostics to check system health and connectivity
       </Typography>
 
-      <Box sx={{ mt: 3, mb: 3 }}>
+      <Box sx={{ mt: 0.5, mb: 0.5 }}>
         <Button 
           variant="contained" 
           onClick={runDiagnostics}
@@ -166,7 +166,7 @@ const DiagnosticsPage: React.FC = () => {
       </Box>
 
       {results.length > 0 && (
-        <Stack spacing={2}>
+        <Stack spacing={1}>
           {results.map((result) => (
             <Card key={result.name}>
               <CardContent>
