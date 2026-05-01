@@ -143,12 +143,12 @@ const IndividualApplication: React.FC = () => {
       {/* Main Content */}
       <Box sx={{ p: 4 }}>
         {/* Step Progress Indicator */}
-        <Paper sx={{ p: 3, mb: 1, borderRadius: 2 }}>
+        <Paper sx={{ p: 4, mb: 4, borderRadius: 2 }}>
           <StepIndicator steps={steps} />
         </Paper>
 
         {/* Summary Cards */}
-        <Grid container spacing={2} sx={{ mb: 1 }}>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ border: '2px solid #2D8A6A', borderRadius: 2 }}>
               <CardContent>
@@ -229,10 +229,10 @@ const IndividualApplication: React.FC = () => {
             {/* Step 1: Contacts */}
             {currentStep === 1 && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#002A1A' }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#002A1A' }}>
                   Contact Information
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -324,13 +324,13 @@ const IndividualApplication: React.FC = () => {
             {/* Step 2: Monthly Volumes */}
             {currentStep === 2 && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#002A1A' }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#002A1A' }}>
                   Monthly Volumes
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <Card sx={{ p: 3, backgroundColor: '#F8F9FA', border: '1px solid #E5E7EB' }}>
-                      <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem' }}>
                         Monthly Turnover
                       </Typography>
                       <FormControl fullWidth>
@@ -375,7 +375,7 @@ const IndividualApplication: React.FC = () => {
             {/* Step 3: CDD & Documents */}
             {currentStep === 3 && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#002A1A' }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#002A1A' }}>
                   CDD & Documents
                 </Typography>
                 <Box sx={{ 
@@ -385,10 +385,10 @@ const IndividualApplication: React.FC = () => {
                   textAlign: 'center',
                   backgroundColor: '#F8F9FA',
                 }}>
-                  <Typography variant="h6" sx={{ mb: 1, color: '#4A5568' }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#4A5568' }}>
                     Drag & Drop Documents Here
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     or click to browse files
                   </Typography>
                   <input
@@ -412,8 +412,8 @@ const IndividualApplication: React.FC = () => {
                 
                 {/* Display uploaded files */}
                 {uploadedFiles.length > 0 && (
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 600 }}>
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
                       Uploaded Files ({uploadedFiles.length}):
                     </Typography>
                     {uploadedFiles.map((file, index) => (
@@ -443,11 +443,11 @@ const IndividualApplication: React.FC = () => {
             {/* Step 4: Review */}
             {currentStep === 4 && (
               <Box>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: '#002A1A' }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#002A1A' }}>
                   Review Application
                 </Typography>
-                <Box sx={{ p: 2, backgroundColor: '#E6F4F0', borderRadius: 2, border: '1px solid #2D8A6A', mb: 1 }}>
-                  <CheckCircle sx={{ fontSize: 48, color: '#2D8A6A', mb: 1 }} />
+                <Box sx={{ p: 3, backgroundColor: '#E6F4F0', borderRadius: 2, border: '1px solid #2D8A6A', mb: 3 }}>
+                  <CheckCircle sx={{ fontSize: 48, color: '#2D8A6A', mb: 2 }} />
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                     Application Ready for Submission
                   </Typography>
@@ -482,7 +482,7 @@ const IndividualApplication: React.FC = () => {
                     <Typography variant="body1">{formData.nationality}</Typography>
                   </Grid>
 
-                  <Grid item xs={12} sx={{ mt: 1 }}>
+                  <Grid item xs={12} sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Volume Information:</Typography>
                   </Grid>
                   <Grid item xs={6}>
@@ -494,7 +494,7 @@ const IndividualApplication: React.FC = () => {
                     <Typography variant="body1">{formData.transactionCount}</Typography>
                   </Grid>
 
-                  <Grid item xs={12} sx={{ mt: 1 }}>
+                  <Grid item xs={12} sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Documents:</Typography>
                     <Typography variant="body1">{uploadedFiles.length} file(s) uploaded</Typography>
                   </Grid>
@@ -503,7 +503,7 @@ const IndividualApplication: React.FC = () => {
             )}
 
             {/* Navigation Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, pt: 1, borderTop: '1px solid #E5E7EB' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3, borderTop: '1px solid #E5E7EB' }}>
               <Button
                 variant="text"
                 startIcon={<ArrowBack />}

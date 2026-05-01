@@ -103,8 +103,8 @@ const Profile: React.FC = () => {
         buttonIcon={<Edit />}
         onButtonClick={handleEditProfile}
       />
-      <Box sx={{ px: 0, py: 1 }}>
-        <Grid container spacing={2}>
+      <Box sx={{ px: '2px', py: 1 }}>
+        <Grid container spacing={3}>
           {/* Profile Header Card */}
           <Grid item xs={12}>
             <Card className="fincore-card-shadow">
@@ -128,7 +128,7 @@ const Profile: React.FC = () => {
                   <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                     {userInfo.position}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
                     {userInfo.department}
                   </Typography>
                   <Button 
@@ -149,7 +149,7 @@ const Profile: React.FC = () => {
           <Grid item xs={12} md={6} key={index}>
             <Card className="fincore-card-shadow" sx={{ height: '100%' }}>
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Box sx={{ color: 'primary.main', mr: 2 }}>
                     {section.icon}
                   </Box>
@@ -202,7 +202,7 @@ const Profile: React.FC = () => {
                       }}
                     >
                       <CardContent>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Box sx={{ color: 'primary.main', mr: 2 }}>
                             {action.icon}
                           </Box>
@@ -226,7 +226,7 @@ const Profile: React.FC = () => {
         <Grid item xs={12}>
           <Card className="fincore-card-shadow">
             <CardContent>
-              <Typography variant="h6" component="h3" gutterBottom sx={{ mb: 1 }}>
+              <Typography variant="h6" component="h3" gutterBottom sx={{ mb: 3 }}>
                 Recent Activity
               </Typography>
               <List>
@@ -276,7 +276,7 @@ const Profile: React.FC = () => {
         <DialogTitle>Edit Profile</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth

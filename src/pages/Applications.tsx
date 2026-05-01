@@ -154,9 +154,9 @@ const Applications: React.FC = () => {
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      <Box sx={{ px: 0, py: 1 }}>
+      <Box sx={{ px: '2px', py: 1 }}>
         {/* Stats Cards */}
-        <Grid container spacing={2} sx={{ mb: 0.5 }}>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card className="fincore-metric-card fincore-hover-lift">
               <CardContent>
@@ -228,7 +228,7 @@ const Applications: React.FC = () => {
       {/* Filters */}
       <Card className="fincore-card-shadow" sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={1} alignItems="center">
+          <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
@@ -366,7 +366,7 @@ const Applications: React.FC = () => {
         <DialogTitle>Create New Application</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Grid container spacing={1}>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth

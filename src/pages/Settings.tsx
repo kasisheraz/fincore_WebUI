@@ -130,13 +130,13 @@ const Settings: React.FC = () => {
         buttonIcon={<Save />}
         onButtonClick={() => showSnackbar('Settings saved successfully', 'success')}
       />
-      <Box sx={{ px: 0, py: 1 }}>
-        <Grid container spacing={2}>
+      <Box sx={{ px: '2px', py: 1 }}>
+        <Grid container spacing={3}>
           {/* Notifications */}
         <Grid item xs={12} md={6}>
           <Card className="fincore-card-shadow">
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Notifications sx={{ color: 'primary.main', mr: 2 }} />
                 <Typography variant="h6" component="h2">
                   Notification Preferences
@@ -220,14 +220,14 @@ const Settings: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card className="fincore-card-shadow">
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Palette sx={{ color: 'primary.main', mr: 2 }} />
                 <Typography variant="h6" component="h2">
                   Application Preferences
                 </Typography>
               </Box>
               
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <FormControl fullWidth>
                   <InputLabel>Theme</InputLabel>
                   <Select
@@ -292,7 +292,7 @@ const Settings: React.FC = () => {
           <Grid item xs={12} md={6} key={sectionIndex}>
             <Card className="fincore-card-shadow">
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Box sx={{ color: 'primary.main', mr: 2 }}>
                     {section.icon}
                   </Box>
@@ -343,14 +343,14 @@ const Settings: React.FC = () => {
         <Grid item xs={12}>
           <Card className="fincore-card-shadow">
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <Storage sx={{ color: 'primary.main', mr: 2 }} />
                 <Typography variant="h6" component="h2">
                   System Information
                 </Typography>
               </Box>
               
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
                   <Typography variant="body2" color="text.secondary">
                     Application Version
@@ -377,7 +377,7 @@ const Settings: React.FC = () => {
                 </Grid>
               </Grid>
               
-              <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                 <Button variant="outlined" sx={{ mr: 2 }}>
                   Check for Updates
                 </Button>
@@ -400,14 +400,14 @@ const Settings: React.FC = () => {
               label="Current Password"
               type="password"
               variant="outlined"
-              sx={{ mb: 1 }}
+              sx={{ mb: 3 }}
             />
             <TextField
               fullWidth
               label="New Password"
               type="password"
               variant="outlined"
-              sx={{ mb: 1 }}
+              sx={{ mb: 3 }}
             />
             <TextField
               fullWidth
