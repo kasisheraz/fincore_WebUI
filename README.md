@@ -2,6 +2,21 @@
 
 A modern React-based financial application built with TypeScript, Material-UI, and designed with the Fuji theme. This application provides a comprehensive platform for managing financial applications, portfolios, and reports.
 
+## 🌐 Live Deployments
+
+### NPE Environment (Non-Production)
+- **UI URL**: https://fincore-webui-npe-994490239798.europe-west2.run.app
+- **Backend API**: https://fincore-npe-api-994490239798.europe-west2.run.app/api
+- **Status**: ✅ Active
+- **Purpose**: Development and testing
+
+### UAT Environment (User Acceptance Testing)
+- **UI URL**: https://fincore-webui-uat-994490239798.europe-west2.run.app
+- **Backend API**: https://fincore-uat-api-994490239798.europe-west2.run.app/api
+- **Status**: ✅ Active
+- **Purpose**: User acceptance testing before production
+- **Deployed**: May 1, 2026
+
 ## 🚀 Features
 
 - **Modern UI/UX**: Built with Material-UI and custom Fuji-inspired theme

@@ -1,6 +1,9 @@
 # Multi-stage build for production deployment
 FROM node:18-alpine as build
 
+# Accept build argument for environment (default: uat)
+ARG BUILD_ENV=uat
+
 # Set working directory
 WORKDIR /app
 
@@ -12,6 +15,14 @@ RUN npm install --prefer-offline --no-audit
 
 # Copy source code
 COPY . .
+
+# Copy the appropriate .env file based on BUILD_ENV argument
+RUN if [ -f ".env.${BUILD_ENV}" ]; then \
+      cp ".env.${BUILD_ENV}" .env.production; \
+      echo "Using .env.${BUILD_ENV} for build"; \
+    else \
+      echo "Warning: .env.${BUILD_ENV} not found, using existing .env.production"; \
+    fi
 
 # Build the application (CI=false to not treat warnings as errors)
 ENV CI=false

@@ -38,6 +38,9 @@
     "test:e2e:report": "playwright show-report playwright-report",
     "test:e2e:codegen": "playwright codegen http://localhost:3000",
     "test:e2e:dev": "cross-env REACT_APP_MOCK_AUTH=true npm start",
+    "test:uat:smoke": "playwright test --config=playwright.uat.config.ts",
+    "test:uat:smoke:headed": "playwright test --config=playwright.uat.config.ts --headed",
+    "test:uat:smoke:report": "playwright show-report uat-smoke-report",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

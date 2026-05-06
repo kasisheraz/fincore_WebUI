@@ -1,0 +1,34 @@
+steps:
+  # Build the Docker image using the Dockerfile with UAT environment
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--build-arg', 'BUILD_ENV=uat',
+      '-t', 'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:latest',
+      '-t', 'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:$BUILD_ID',
+      '-f', 'Dockerfile',
+      '.'
+    ]
+    
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:latest'
+    ]
+    
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:$BUILD_ID'
+    ]
+
+images:
+  - 'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:latest'
+  - 'europe-west2-docker.pkg.dev/$PROJECT_ID/fincore-webui/app:$BUILD_ID'
+
+timeout: 1800s
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
