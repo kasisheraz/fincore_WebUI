@@ -11,11 +11,12 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 /**
- * Validate phone number (10 digits)
+ * Validate phone number (international format, 8-15 digits)
+ * Accepts formats like: +447700900000, 1234567890, +1234567890
  */
 export const isValidPhoneNumber = (phoneNumber: string): boolean => {
   const cleaned = phoneNumber.replace(/\D/g, '');
-  return cleaned.length === 10 || (cleaned.length === 11 && cleaned.startsWith('1'));
+  return cleaned.length >= 8 && cleaned.length <= 15;
 };
 
 /**

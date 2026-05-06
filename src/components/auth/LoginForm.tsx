@@ -30,7 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     setSuccess('');
 
     if (!isValidPhoneNumber(phoneNumber)) {
-      setError('Please enter a valid 10-digit phone number');
+      setError('Please enter a valid phone number (8-15 digits)');
       return;
     }
 
@@ -92,9 +92,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
         value={phoneNumber}
         onChange={(e) => setPhoneNumber(e.target.value)}
         onKeyPress={(e) => !otpSent && handleKeyPress(e, handleRequestOTP)}
-        placeholder="Enter your phone number"
+        placeholder="Enter your phone number (e.g., +447700900000)"
         disabled={otpSent || loading}
-        helperText="Enter 10-digit phone number"
+        helperText="Enter phone number with country code (e.g., +447700900000)"
         sx={{ mb: 2 }}
       />
 
