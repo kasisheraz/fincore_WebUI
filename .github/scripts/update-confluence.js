@@ -280,7 +280,8 @@ async function main() {
       { file: 'confluence/06-DEPLOYMENT.md', title: 'Deployment Guide' },
       { file: 'confluence/07-DEVELOPMENT-WORKFLOW.md', title: 'Development Workflow' },
       { file: 'confluence/08-TROUBLESHOOTING.md', title: 'Troubleshooting' },
-      { file: 'confluence/09-MANUAL-TESTING-PLAN.md', title: 'Manual Testing Plan' }
+      { file: 'confluence/09-MANUAL-TESTING-PLAN.md', title: 'Manual Testing Plan' },
+      { file: 'confluence/10-UAT-LOGIN-GUIDE.md', title: 'UAT Login Guide - DevTools' }
     ];
 
     console.log(`\n📚 Processing ${docFiles.length} documentation files...\n`);
