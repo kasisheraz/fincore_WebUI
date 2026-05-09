@@ -16,6 +16,9 @@ import Login from './pages/auth/Login';
 import UsersPage from './pages/users/UsersPage';
 import OrganizationsPage from './pages/organizations/OrganizationsPage';
 import KYCVerificationPage from './pages/kyc/KYCVerificationPage';
+import KycWorkflowStart from './pages/kyc/KycWorkflowStart';
+import KycWorkflowWizard from './pages/kyc/KycWorkflowWizard';
+import KycWorkflowStatusPage from './pages/kyc/KycWorkflowStatusPage';
 import QuestionnairePage from './pages/questionnaire/QuestionnairePage';
 import CustomerAnswersPage from './pages/answers/CustomerAnswersPage';
 import Diagnostics from './pages/Diagnostics';
@@ -80,6 +83,9 @@ const AppContent: React.FC = () => {
         <Route path="/users" element={<UsersPage />} />
         <Route path="/organizations" element={<OrganizationsPage />} />
         <Route path="/kyc-verification" element={<KYCVerificationPage />} />
+        <Route path="/kyc/start" element={<KycWorkflowStart />} />
+        <Route path="/kyc/workflow" element={<KycWorkflowWizard />} />
+        <Route path="/kyc/status/:verificationId" element={<KycWorkflowStatusPage />} />
         <Route path="/questionnaire" element={<QuestionnairePage />} />
         <Route path="/customer-answers" element={<CustomerAnswersPage />} />
         <Route path="/new-application" element={<IndividualApplication />} />
