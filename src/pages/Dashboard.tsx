@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import StepIndicator from '../components/common/StepIndicator';
 import PageHeader from '../components/common/PageHeader';
+import KycWidget from '../components/common/KycWidget';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -173,6 +174,13 @@ const Dashboard: React.FC = () => {
             </Card>
           </Grid>
         ))}
+      </Grid>
+
+      {/* KYC Widget */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6}>
+          <KycWidget />
+        </Grid>
       </Grid>
 
       <Grid container spacing={3}>
