@@ -25,14 +25,28 @@ A modern React-based financial application built with TypeScript, Material-UI, a
 - **Dynamic Data Architecture**: All dropdown values fetched dynamically from backend (zero hardcoded values)
 - **Role-Based Access Control**: 4 business roles (Admin, Compliance, Operational, Business User) with data filtering
 - **User Management**: Complete CRUD with dynamic role assignment and status management
-- **Organization Management**: Multi-type organizations with dynamic enum-driven forms
-  - **NEW**: One organization per user restriction with UI enforcement
-  - **NEW**: Integrated KYC document upload during organization creation (7-step wizard)
-  - **NEW**: Admin approval workflow with status-based button visibility and debugging
+- **Organization Management**: Multi-type organizations with dynamic enum-driven forms ✅ **COMPLETE**
+  - ✅ One organization per user restriction with UI enforcement
+  - ✅ **Integrated KYC document upload during organization creation** (7-step wizard)
+  - ✅ **Submit for Review** button with status-based visibility
+  - ✅ **Admin Approve/Reject** buttons with role-based access control
+  - ✅ **Document-level rejection** with detailed feedback
+  - ✅ **Rejection feedback display** (organization & document level)
+  - ✅ **Resubmission workflow** after fixing rejected documents
   - Multi-step organization creation form with validation
   - Required field validation preventing tab navigation
-  - Submit for review capability with real-time status updates
-- **KYC & Compliance**: Document verification with dynamic document types and status workflows
+  - Real-time status updates and notifications
+- **KYC Document Upload** ✅ **COMPLETE**
+  - ✅ **FileDropZone Component** - Drag-and-drop file upload
+  - ✅ **Inline Upload** - Upload documents during organization creation (Tab 7)
+  - ✅ **Real-time Upload** - Immediate file upload to backend with progress indicator
+  - ✅ **Document Management** - View, download, delete documents
+  - ✅ **Required Documents Tracker** - Visual checklist (3 required)
+  - ✅ **File Validation** - Type (PDF/JPG/PNG) and size (10MB max) validation
+  - ✅ **Admin Feedback Column** - Rejection reasons displayed with red highlighting
+  - ✅ **Rejection Alerts** - Organization and document-level rejection notifications
+  - Document types support (17+ types)
+  - Status workflow visualization
 - **Dashboard Analytics**: Comprehensive dashboard with key metrics
 - **Settings Management**: Comprehensive settings and preferences
 
