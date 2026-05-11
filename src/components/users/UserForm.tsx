@@ -226,7 +226,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, mode, onValidationC
   }, [formData, addressValidation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={2}>
       {/* Row 1: Basic Name Information */}
       <Grid item xs={12} sm={6}>
         <TextField

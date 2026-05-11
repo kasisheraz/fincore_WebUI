@@ -588,9 +588,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Basic Organization Information
           <Chip label="Required" color="error" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Legal Name - Required */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -735,9 +735,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Regulatory & Compliance Information
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* HMRC MLR Number */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -795,9 +795,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Business Structure & Key Personnel
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Number of Branches */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -890,9 +890,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Registration & Licensing Details
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Company Number */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -951,9 +951,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Remittance & Destination Information
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Primary Remittance Destination Country */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -986,9 +986,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Transaction Volume & Financial Information
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Monthly Turnover Range */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -1095,14 +1095,14 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Organization Addresses
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
         {/* Registered Address */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
             Registered Address
           </Typography>
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             <AddressForm
               address={formData.registeredAddress || null}
               onDataChange={handleAddressChange('registered')}
@@ -1131,7 +1131,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
             />
           </Box>
           {!sameAsRegisteredAddress.business && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
               <AddressForm
                 address={formData.businessAddress || null}
                 onDataChange={handleAddressChange('business')}
@@ -1161,7 +1161,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
             />
           </Box>
           {!sameAsRegisteredAddress.correspondence && (
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
               <AddressForm
                 address={formData.correspondenceAddress || null}
                 onDataChange={handleAddressChange('correspondence')}
@@ -1206,9 +1206,9 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           Additional Information
           <Chip label="Optional" color="info" size="small" sx={{ ml: 1 }} />
         </Typography>
-        <Divider sx={{ mb: 3 }} />
+        <Divider sx={{ mb: 2 }} />
         
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {/* Legacy Identifier */}
           <Grid item xs={12} sm={6}>
             <TextField
