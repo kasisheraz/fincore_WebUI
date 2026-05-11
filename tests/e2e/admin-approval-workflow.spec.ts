@@ -212,6 +212,48 @@ test.describe('Admin Approval Workflow', () => {
         await expect(page.locator('.MuiTooltip-popper')).toBeVisible();
       }
     });
+
+    test('should display rejection reason in upload dialog when re-uploading', async ({ page }) => {
+      await page.goto('/kyc-documents');
+      
+      // Find a rejected document
+      const rejectedDoc = page.locator('tr').filter({ has: page.locator('[data-testid="status-chip"]:has-text("REJECTED")') }).first();
+      
+      if (await rejectedDoc.count() > 0) {
+        // Click the error outline icon button to open edit dialog
+        const errorButton = rejectedDoc.locator('button svg[data-testid="ErrorOutlineIcon"]').first();
+        if (await errorButton.count() > 0) {
+          await errorButton.click({ timeout: 5000 });
+          
+          // Wait for upload dialog to open
+          await expect(page.locator('.MuiDialog-root:has-text("Re-upload KYC Document")')).toBeVisible();
+          
+          // Verify rejection reason alert is displayed
+          await expect(page.locator('.MuiAlert-root.MuiAlert-standardError:has-text("Previous Rejection Reason")')).toBeVisible();
+          
+          // Verify the alert contains helpful text
+          await expect(page.locator('text=/Please address the issue.*before re-uploading/i')).toBeVisible();
+          
+          // Close dialog
+          await page.locator('.MuiDialog-root button:has-text("Cancel")').click();
+        }
+      }
+    });
+
+    test('should show edit and error buttons for rejected documents', async ({ page }) => {
+      await page.goto('/kyc-documents');
+      
+      // Find a rejected document
+      const rejectedDoc = page.locator('tr').filter({ has: page.locator('[data-testid="status-chip"]:has-text("REJECTED")') }).first();
+      
+      if (await rejectedDoc.count() > 0) {
+        // Should see error outline icon button (with red border)
+        await expect(rejectedDoc.locator('button svg[data-testid="ErrorOutlineIcon"]').first()).toBeVisible();
+        
+        // Should see edit button
+        await expect(rejectedDoc.locator('button svg[data-testid="EditIcon"]').first()).toBeVisible();
+      }
+    });
   });
 
   test.describe('Resubmission Workflow', () => {

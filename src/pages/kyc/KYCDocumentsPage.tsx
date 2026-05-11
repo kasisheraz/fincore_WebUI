@@ -29,7 +29,9 @@ import {
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
   AttachFile as AttachFileIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Edit as EditIcon,
+  ErrorOutline as ErrorOutlineIcon
 } from '@mui/icons-material';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable, { Column } from '../../components/common/DataTable';
@@ -39,7 +41,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import kycDocumentService from '../../services/kycDocumentService';
 import userService from '../../services/userService';
 import organizationService from '../../services/organizationService';
-import { KYCDocument, KYCDocumentFilters } from '../../types/kycDocument.types';
+import { KYCDocument, KYCDocumentFilters, CreateKYCDocumentDTO } from '../../types/kycDocument.types';
 import { User } from '../../types/user.types';
 import { Organization } from '../../types/organization.types';
 import { formatDate, formatFileSize } from '../../utils/formatters';
@@ -63,11 +65,11 @@ const KYCDocumentsPage: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   
-  const [uploadForm, setUploadForm] = useState({
+  const [uploadForm, setUploadForm] = useState<CreateKYCDocumentDTO>({
     organisationId: 0,
-    documentType: 'PASSPORT' as const,
-    file: undefined as File | undefined,
-    verificationIdentifier: undefined as number | undefined,
+    documentType: 'PASSPORT',
+    file: undefined,
+    verificationIdentifier: undefined,
     sumsubDocumentIdentifier: ''
   });
 
@@ -218,6 +220,23 @@ const KYCDocumentsPage: React.FC = () => {
       minWidth: 150,
       format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
+          {/* Show prominent error icon for rejected documents */}
+          {row.status === 'REJECTED' && row.rejectionReason && (
+            <Tooltip title="View Rejection Details & Re-upload">
+              <IconButton 
+                size="small" 
+                color="error" 
+                onClick={() => handleEditClick(row)}
+                sx={{ 
+                  border: '1px solid', 
+                  borderColor: 'error.main',
+                  '&:hover': { bgcolor: 'error.50' }
+                }}
+              >
+                <ErrorOutlineIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Download">
             <IconButton size="small" color="primary" onClick={() => handleDownload(row)}>
               <DownloadIcon fontSize="small" />
@@ -236,6 +255,14 @@ const KYCDocumentsPage: React.FC = () => {
                 </IconButton>
               </Tooltip>
             </>
+          )}
+          {/* Allow editing rejected documents */}
+          {row.status === 'REJECTED' && (
+            <Tooltip title="Re-upload Document">
+              <IconButton size="small" color="primary" onClick={() => handleEditClick(row)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
           <Tooltip title="Delete">
             <IconButton size="small" color="error" onClick={() => handleDeleteClick(row)}>
@@ -310,11 +337,26 @@ const KYCDocumentsPage: React.FC = () => {
 
   const handleUploadClick = () => {
     console.log('🔵 BUTTON CLICKED: Upload Document button clicked!');
+    setSelectedDocument(null); // Clear selected document for new upload
+    setUploadDialogOpen(true);
+  };
+
+  const handleEditClick = (document: KYCDocument) => {
+    console.log('🔵 EDIT CLICKED: Re-uploading document:', document.id);
+    setSelectedDocument(document);
+    setUploadForm({
+      organisationId: document.userId, // Pre-fill with existing org
+      documentType: document.documentType,
+      file: undefined,
+      verificationIdentifier: undefined,
+      sumsubDocumentIdentifier: ''
+    });
     setUploadDialogOpen(true);
   };
 
   const handleUploadClose = () => {
     setUploadDialogOpen(false);
+    setSelectedDocument(null);
     setUploadForm({
       organisationId: 0,
       documentType: 'PASSPORT',
@@ -427,13 +469,28 @@ const KYCDocumentsPage: React.FC = () => {
       {/* Upload Document Dialog */}
       <Dialog open={uploadDialogOpen} onClose={handleUploadClose} maxWidth="sm" fullWidth>
         <DialogTitle>
-          Upload KYC Document
+          {selectedDocument ? 'Re-upload KYC Document' : 'Upload KYC Document'}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 'normal' }}>
-            Upload supporting documents for organization verification
+            {selectedDocument ? 'Upload a corrected version of the rejected document' : 'Upload supporting documents for organization verification'}
           </Typography>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            
+            {/* Show rejection reason alert for rejected documents */}
+            {selectedDocument?.status === 'REJECTED' && selectedDocument?.rejectionReason && (
+              <Alert severity="error" sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  ⚠️ Previous Rejection Reason:
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {selectedDocument.rejectionReason}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
+                  Please address the issue above before re-uploading the document.
+                </Typography>
+              </Alert>
+            )}
             <Autocomplete
               options={organizations}
               getOptionLabel={(option) => `${option.legalName} (ID: ${option.id})`}
