@@ -231,6 +231,64 @@ export class ApiMockHelper {
    * Mock KYC endpoints
    */
   async mockKYCEndpoints() {
+    // Mock KYC workflow start
+    await this.page.route('**/api/kyc/workflow/start**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          verificationId: Math.floor(Math.random() * 1000) + 1,
+          sumsubApplicantId: `MOCK_${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+          steps: {
+            USER_INFORMATION: false,
+            DOCUMENT_VERIFICATION: false,
+            QUESTIONNAIRE: false,
+            REVIEW: false
+          },
+          currentStep: 0,
+          status: 'IN_PROGRESS'
+        })
+      });
+    });
+
+    // Mock KYC workflow step completion
+    await this.page.route('**/api/kyc/workflow/*/step**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          steps: {
+            USER_INFORMATION: true,
+            DOCUMENT_VERIFICATION: true,
+            QUESTIONNAIRE: false,
+            REVIEW: false
+          },
+          currentStep: 1,
+          status: 'IN_PROGRESS'
+        })
+      });
+    });
+
+    // Mock KYC workflow status
+    await this.page.route('**/api/kyc/workflow/*/status**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          verificationId: 1,
+          steps: {
+            USER_INFORMATION: true,
+            DOCUMENT_VERIFICATION: true,
+            QUESTIONNAIRE: true,
+            REVIEW: true
+          },
+          currentStep: 4,
+          allStepsCompleted: true,
+          status: 'COMPLETED'
+        })
+      });
+    });
+
     await this.page.route('**/api/kyc-documents**', async (route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({
