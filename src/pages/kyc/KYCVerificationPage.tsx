@@ -254,7 +254,7 @@ const KYCVerificationPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="KYC Verification Management" />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 1.5, py: 1 }}>
       <Box sx={{ 
         mb: 3, 
         display: 'flex', 

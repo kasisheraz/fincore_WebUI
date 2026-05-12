@@ -46,6 +46,8 @@ const AppLayout: React.FC = () => {
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
+            pl: 0,
+            pr: 0,
           }}
         >
           <Header title="FinCore" />

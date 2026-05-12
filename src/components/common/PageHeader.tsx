@@ -22,7 +22,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       backgroundColor: '#ffffff', 
       borderBottom: '1px solid #E5E7EB',
       py: 2,
-      px: 0,
+      px: 1.5,
       mb: 0,
       mr: 0,
       width: '100%',
@@ -34,7 +34,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         flexWrap: 'wrap',
         gap: 2,
         maxWidth: '100%',
-        px: '2px',
+        px: 0,
       }}>
         <Typography variant="h5" sx={{ fontWeight: 700, color: '#003D2A' }}>
           {title}

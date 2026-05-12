@@ -228,7 +228,7 @@ const CustomerAnswersPage: React.FC = () => {
   return (
     <Box>
       <PageHeader title="Customer Answers Management" />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 1.5, py: 1 }}>
       
       <Box sx={{ 
         mb: 3, 

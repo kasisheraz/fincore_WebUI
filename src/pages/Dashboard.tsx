@@ -107,7 +107,7 @@ const Dashboard: React.FC = () => {
         buttonIcon={<Add />}
         onButtonClick={() => navigate('/new-application')}
       />
-      <Box sx={{ px: '2px', py: 1 }}>
+      <Box sx={{ px: 1.5, py: 1 }}>
         {/* Step Indicator */}
         <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0, 61, 42, 0.08)' }}>
           <Typography variant="h6" sx={{ mb: 2, color: '#003D2A', fontWeight: 600 }}>
