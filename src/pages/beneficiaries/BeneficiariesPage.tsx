@@ -254,7 +254,7 @@ const BeneficiariesPage: React.FC = () => {
       id: 'beneficiaryName',
       label: 'Beneficiary Name',
       minWidth: 200,
-      render: (row) => (
+      format: (_, row) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {row.beneficiaryName}
@@ -271,13 +271,13 @@ const BeneficiariesPage: React.FC = () => {
       id: 'businessName',
       label: 'Business Name',
       minWidth: 150,
-      render: (row) => row.businessName || '-'
+      format: (_, row) => row.businessName || '-'
     },
     {
       id: 'country',
       label: 'Country',
       minWidth: 120,
-      render: (row) => (
+      format: (_, row) => (
         <Chip
           icon={<LocationOnIcon />}
           label={row.country}
@@ -291,7 +291,7 @@ const BeneficiariesPage: React.FC = () => {
       label: 'C2C',
       minWidth: 80,
       align: 'center',
-      render: (row) => row.isCounterOverCounter ? (
+      format: (_, row) => row.isCounterOverCounter ? (
         <Chip
           icon={<AttachMoneyIcon />}
           label="C2C"
@@ -306,26 +306,27 @@ const BeneficiariesPage: React.FC = () => {
       id: 'status',
       label: 'Status',
       minWidth: 130,
-      render: (row) => <StatusChip status={row.status} />
+      format: (_, row) => <StatusChip status={row.status} />
     },
     ...(isAdmin ? [{
       id: 'ownerName' as keyof Beneficiary,
       label: 'Owner',
       minWidth: 150,
-      render: (row: Beneficiary) => row.ownerName || '-'
+      format: (_: any, row: Beneficiary) => row.ownerName || '-'
     }] : []),
     {
       id: 'createdDatetime',
       label: 'Created',
       minWidth: 130,
-      render: (row) => formatDate(row.createdDatetime)
+      format: (_, row) => formatDate(row.createdDatetime)
     },
     {
       id: 'actions',
       label: 'Actions',
       minWidth: 200,
       align: 'center',
-      render: (row) => (
+      sortable: false,
+      format: (_, row) => (
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
           {/* Business User Actions */}
           {!isAdmin && (
