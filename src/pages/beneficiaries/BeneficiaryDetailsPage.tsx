@@ -25,6 +25,7 @@ import StatusChip from '../../components/common/StatusChip';
 import KYCDocumentsUploadTab from '../../components/organizations/KYCDocumentsUploadTab';
 import beneficiaryService from '../../services/beneficiaryService';
 import { Beneficiary } from '../../types/beneficiary.types';
+import { Status } from '../../types/common.types';
 import { formatDate } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 
@@ -225,7 +226,7 @@ const BeneficiaryDetailsPage: React.FC = () => {
                     Status
                   </Typography>
                   <Box sx={{ mt: 0.5 }}>
-                    <StatusChip status={beneficiary.status} />
+                    <StatusChip status={beneficiary.status as Status} />
                   </Box>
                 </Grid>
 
