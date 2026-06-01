@@ -125,11 +125,8 @@ const BeneficiaryForm: React.FC = () => {
         // Update existing address
         savedAddress = await addressService.update(existingBeneficiary.registeredAddress.id, addressData);
       } else {
-        // Create new address
-        savedAddress = await addressService.create({
-          ...addressData,
-          userIdentifier: user?.id || 0
-        });
+        // Create new address (userIdentifier taken from security context on backend)
+        savedAddress = await addressService.create(addressData);
       }
 
       setFormData(prev => ({ ...prev, registeredAddressId: savedAddress.id }));
@@ -186,8 +183,9 @@ const BeneficiaryForm: React.FC = () => {
     <Box>
       <PageHeader
         title={isEditMode ? 'Edit Beneficiary' : 'Create Beneficiary'}
-        subtitle={isEditMode ? `Update beneficiary details` : 'Add a new payout beneficiary'}
-        onBack={() => navigate('/beneficiaries')}
+        showButton={true}
+        buttonText="Back to List"
+        onButtonClick={() => navigate('/beneficiaries')}
       />
 
       {error && (
@@ -303,12 +301,12 @@ const BeneficiaryForm: React.FC = () => {
 
         <AddressForm
           address={addressData}
-          onChange={(field, value) => {
-            setAddressData(prev => ({ ...prev, [field]: value }));
+          onDataChange={(data, isValid) => {
+            setAddressData(data);
             setAddressSaved(false);
           }}
           typeCode={1}
-          readonly={false}
+          required={true}
         />
 
         <Box sx={{ mt: 2 }}>

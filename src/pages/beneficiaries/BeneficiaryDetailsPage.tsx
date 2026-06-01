@@ -104,6 +104,7 @@ const BeneficiaryDetailsPage: React.FC = () => {
       <Box>
         <PageHeader 
           title="Beneficiary Details" 
+          showButton={true}
           buttonText="Back to List"
           onButtonClick={() => navigate('/beneficiaries')}
         />
@@ -125,28 +126,27 @@ const BeneficiaryDetailsPage: React.FC = () => {
           <Button variant="outlined" onClick={() => navigate('/beneficiaries')}>
             Back to List
           </Button>
-            {beneficiary.canBeEdited && !isAdmin && (
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                onClick={handleEdit}
-              >
-                Edit
-              </Button>
-            )}
-            {beneficiary.status === 'PENDING' && beneficiary.canBeSubmitted && !isAdmin && (
-              <Button
-                variant="contained"
-                startIcon={<SendIcon />}
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : 'Submit for Review'}
-              </Button>
-            )}
-          </>
-        }
-      />
+          {beneficiary.canBeEdited && !isAdmin && (
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+            >
+              Edit
+            </Button>
+          )}
+          {beneficiary.status === 'PENDING' && beneficiary.canBeSubmitted && !isAdmin && (
+            <Button
+              variant="contained"
+              startIcon={<SendIcon />}
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? 'Submitting...' : 'Submit for Review'}
+            </Button>
+          )}
+        </Box>
+      </Box>
 
       {/* Status Banner */}
       {beneficiary.status !== 'ACTIVE' && (

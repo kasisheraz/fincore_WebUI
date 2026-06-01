@@ -47,5 +47,5 @@ export interface SelectOption {
   value: string | number;
 }
 
-export type Status = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+export type Status = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED' | 'APPROVED' | 'REJECTED' | 'IN_REVIEW' | 'UNDER_REVIEW' | 'VERIFIED';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
