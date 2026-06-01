@@ -35,6 +35,8 @@ import beneficiaryService from '../../services/beneficiaryService';
 import { Beneficiary, BeneficiaryStatus } from '../../types/beneficiary.types';
 import { formatDate } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
+import { usePagination } from '../../hooks/usePagination';
+import { Status } from '../../types/common.types';
 
 /**
  * Beneficiaries Page - Main list view for managing beneficiaries.
@@ -55,8 +57,12 @@ const BeneficiariesPage: React.FC = () => {
   const navigate = useNavigate();
   const isAdmin = user?.role === 'SYSTEM_ADMINISTRATOR' || user?.role === 'COMPLIANCE_OFFICER';
 
+  // Pagination
+  const { page, rowsPerPage, setPage, setRowsPerPage } = usePagination();
+
   // State management
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<BeneficiaryStatus | ''>('');
@@ -99,10 +105,12 @@ const BeneficiariesPage: React.FC = () => {
       }
       
       setBeneficiaries(data);
+      setTotalElements(data.length);
     } catch (error: any) {
       console.error('Failed to fetch beneficiaries:', error);
       showSnackbar(error.response?.data?.message || 'Failed to load beneficiaries', 'error');
       setBeneficiaries([]);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -306,7 +314,7 @@ const BeneficiariesPage: React.FC = () => {
       id: 'status',
       label: 'Status',
       minWidth: 130,
-      format: (_, row) => <StatusChip status={row.status} />
+      format: (_, row) => <StatusChip status={row.status as Status} />
     },
     ...(isAdmin ? [{
       id: 'ownerName' as keyof Beneficiary,
@@ -414,52 +422,46 @@ const BeneficiariesPage: React.FC = () => {
     <Box>
       <PageHeader
         title="Beneficiaries"
-        subtitle={
-          !isAdmin 
-            ? `Manage your payout beneficiaries (${countInfo.count} of ${countInfo.limit})`
-            : 'Manage all beneficiaries across the system'
-        }
-        actions={
-          <>
-            {!isAdmin && (
-              <Typography variant="body2" color={countInfo.remaining <= 5 ? 'error' : 'text.secondary'} sx={{ mr: 2 }}>
-                {countInfo.remaining} remaining
-              </Typography>
-            )}
-            <Tooltip title="Refresh">
-              <IconButton onClick={() => { fetchBeneficiaries(); fetchCountInfo(); }}>
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleCreate}
-              disabled={!countInfo.canCreateMore && !isAdmin}
-            >
-              Add Beneficiary
-            </Button>
-          </>
-        }
+        showButton={!isAdmin}
+        buttonText={!isAdmin ? `Add Beneficiary (${countInfo.count}/${countInfo.limit})` : 'Add Beneficiary'}
+        buttonIcon={<AddIcon />}
+        onButtonClick={handleCreate}
       />
 
-      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+      {!isAdmin && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: countInfo.remaining <= 5 ? 'error.light' : 'info.light', borderRadius: 1 }}>
+          <Typography variant="body2" color={countInfo.remaining <= 5 ? 'error.dark' : 'info.dark'}>
+            {countInfo.remaining} of {countInfo.limit} beneficiaries remaining
+          </Typography>
+        </Box>
+      )}
+
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
         <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
           placeholder="Search by name..."
-          onClear={() => setSearchQuery('')}
+          onSearch={(query) => setSearchQuery(query)}
+          fullWidth={true}
         />
         <FilterPanel
           fields={filterFields}
-          values={{ status: statusFilter }}
-          onChange={(values) => setStatusFilter(values.status as BeneficiaryStatus | '')}
+          onFilter={(filters) => setStatusFilter(filters.status as BeneficiaryStatus | '')}
+          onClear={() => setStatusFilter('')}
         />
+        <Tooltip title="Refresh">
+          <IconButton onClick={() => { fetchBeneficiaries(); fetchCountInfo(); }}>
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <DataTable
         columns={columns}
         data={beneficiaries}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        totalElements={totalElements}
+        onPageChange={setPage}
+        onRowsPerPageChange={setRowsPerPage}
         loading={loading}
         onRowClick={handleViewDetails}
       />

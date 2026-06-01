@@ -101,7 +101,11 @@ const BeneficiaryDetailsPage: React.FC = () => {
   if (error || !beneficiary) {
     return (
       <Box>
-        <PageHeader title="Beneficiary Details" onBack={() => navigate('/beneficiaries')} />
+        <PageHeader 
+          title="Beneficiary Details" 
+          buttonText="Back to List"
+          onButtonClick={() => navigate('/beneficiaries')}
+        />
         <Alert severity="error">{error || 'Beneficiary not found'}</Alert>
       </Box>
     );
@@ -109,12 +113,17 @@ const BeneficiaryDetailsPage: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader
-        title={beneficiary.beneficiaryName}
-        subtitle={beneficiary.nickName ? `(${beneficiary.nickName})` : undefined}
-        onBack={() => navigate('/beneficiaries')}
-        actions={
-          <>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box>
+          <Typography variant="h4">{beneficiary.beneficiaryName}</Typography>
+          {beneficiary.nickName && (
+            <Typography variant="body2" color="text.secondary">({beneficiary.nickName})</Typography>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="outlined" onClick={() => navigate('/beneficiaries')}>
+            Back to List
+          </Button>
             {beneficiary.canBeEdited && !isAdmin && (
               <Button
                 variant="outlined"

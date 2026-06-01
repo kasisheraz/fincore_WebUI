@@ -136,5 +136,6 @@ export const STATUS_COLORS = {
   APPROVED: 'success',
   REJECTED: 'error',
   IN_REVIEW: 'info',
+  UNDER_REVIEW: 'info',
   VERIFIED: 'success',
 } as const;
