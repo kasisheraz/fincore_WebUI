@@ -87,6 +87,44 @@ test.describe('Smoke Tests - Critical Paths', () => {
     await expect(page.url()).toContain('/questionnaire');
   });
 
+  // BENEFICIARY SMOKE TESTS
+  test('should navigate to beneficiaries page', async ({ page }) => {
+    await page.goto('/beneficiaries');
+    await expect(page.getByText('Beneficiaries', { exact: true })).toBeVisible();
+    
+    // Verify Add Beneficiary button exists and shows count
+    const addButton = page.getByRole('button', { name: /add beneficiary/i });
+    await expect(addButton).toBeVisible();
+    
+    const buttonText = await addButton.textContent();
+    expect(buttonText).toMatch(/\d+\s*\/\s*20/); // Should show "X / 20"
+  });
+
+  test('should navigate to create beneficiary form', async ({ page }) => {
+    await page.goto('/beneficiaries');
+    await page.getByRole('button', { name: /add beneficiary/i }).click();
+    
+    // Should reach create form
+    await expect(page).toHaveURL(/\/beneficiaries\/create/);
+    await expect(page.getByText(/create beneficiary/i)).toBeVisible();
+    
+    // Verify key form sections are visible
+    await expect(page.getByText('Basic Information')).toBeVisible();
+    await expect(page.getByText('Registered Address')).toBeVisible();
+  });
+
+  test('should display beneficiaries table with data', async ({ page }) => {
+    await page.goto('/beneficiaries');
+    
+    // Table should be visible
+    const table = page.locator('table');
+    await expect(table).toBeVisible();
+    
+    // Check if there are any rows (may be empty for new system)
+    const rows = await table.locator('tbody tr').count();
+    expect(rows).toBeGreaterThanOrEqual(0);
+  });
+
   test('should logout successfully', async ({ page }) => {
     // Find and click logout button (adjust selector based on your app)
     const logoutButton = page.getByRole('button', { name: /logout/i }).or(

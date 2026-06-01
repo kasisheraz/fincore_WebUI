@@ -59,22 +59,22 @@ const AddressForm: React.FC<AddressFormProps> = ({
     }
   }, [address, typeCode]);
 
-  const validateForm = (): boolean => {
+  const validateForm = (data: CreateAddressDTO = formData): boolean => {
     const newErrors: Record<string, string> = {};
 
     // If not required and all fields are empty, consider it valid
-    if (!required && !formData.addressLine1 && !formData.country) {
+    if (!required && !data.addressLine1 && !data.country) {
       setErrors(newErrors);
       return true;
     }
 
     // If any field is filled or form is required, validate required fields
-    if (required || formData.addressLine1 || formData.country) {
-      if (!isRequired(formData.addressLine1)) {
+    if (required || data.addressLine1 || data.country) {
+      if (!isRequired(data.addressLine1)) {
         newErrors.addressLine1 = 'Address line 1 is required';
       }
 
-      if (!isRequired(formData.country)) {
+      if (!isRequired(data.country)) {
         newErrors.country = 'Country is required';
       }
     }
@@ -88,14 +88,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
     return isValid;
   };
-
-  // Notify parent of initial validation state on mount
-  useEffect(() => {
-    const isValid = validateForm();
-    if (onDataChange) {
-      onDataChange(formData, isValid);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (field: keyof CreateAddressDTO, value: any) => {
     const updated = {
@@ -112,17 +104,17 @@ const AddressForm: React.FC<AddressFormProps> = ({
       }));
     }
 
-    // Notify parent of changes
+    // Notify parent of changes with validation
     if (onDataChange) {
-      const isValid = validateForm();
+      const isValid = validateForm(updated);
       onDataChange(updated, isValid);
     }
   };
 
-  // Automatically validate when form data changes
-  useEffect(() => {
+  const handleBlur = (field: keyof CreateAddressDTO) => {
+    // Validate on blur to show errors
     validateForm();
-  }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   return (
     <>
@@ -159,6 +151,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           label="Address Line 1"
           value={formData.addressLine1}
           onChange={(e) => handleChange('addressLine1', e.target.value)}
+          onBlur={() => handleBlur('addressLine1')}
           error={!!errors.addressLine1}
           helperText={errors.addressLine1}
           required={required}
@@ -211,6 +204,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           label="Country"
           value={formData.country}
           onChange={(e) => handleChange('country', e.target.value)}
+          onBlur={() => handleBlur('country')}
           error={!!errors.country}
           helperText={errors.country}
           required={required}
