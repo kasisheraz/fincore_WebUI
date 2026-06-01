@@ -15,6 +15,9 @@ import Reports from './pages/Reports';
 import Login from './pages/auth/Login';
 import UsersPage from './pages/users/UsersPage';
 import OrganizationsPage from './pages/organizations/OrganizationsPage';
+import BeneficiariesPage from './pages/beneficiaries/BeneficiariesPage';
+import BeneficiaryForm from './pages/beneficiaries/BeneficiaryForm';
+import BeneficiaryDetailsPage from './pages/beneficiaries/BeneficiaryDetailsPage';
 import KYCVerificationPage from './pages/kyc/KYCVerificationPage';
 import QuestionnairePage from './pages/questionnaire/QuestionnairePage';
 import CustomerAnswersPage from './pages/answers/CustomerAnswersPage';
@@ -82,6 +85,10 @@ const AppContent: React.FC = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/organizations" element={<OrganizationsPage />} />
+        <Route path="/beneficiaries" element={<BeneficiariesPage />} />
+        <Route path="/beneficiaries/create" element={<BeneficiaryForm />} />
+        <Route path="/beneficiaries/edit/:id" element={<BeneficiaryForm />} />
+        <Route path="/beneficiaries/:id" element={<BeneficiaryDetailsPage />} />
         <Route path="/kyc-verification" element={<KYCVerificationPage />} />
         <Route path="/questionnaire" element={<QuestionnairePage />} />
         <Route path="/customer-answers" element={<CustomerAnswersPage />} />

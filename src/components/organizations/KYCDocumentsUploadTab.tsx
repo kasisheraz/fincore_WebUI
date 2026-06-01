@@ -34,16 +34,25 @@ import { formatDate, formatFileSize } from '../../utils/formatters';
 import StatusChip from '../common/StatusChip';
 
 interface KYCDocumentsUploadTabProps {
-  organizationId: number | null;
+  organizationId?: number | null; // Deprecated: use referenceId + referenceType
+  referenceId?: number; // Unified ID for organization or beneficiary
+  referenceType?: 'ORGANIZATION' | 'BENEFICIARY'; // Type of reference
   onDocumentsChange?: (count: number) => void;
   disabled?: boolean;
+  readonly?: boolean;
 }
 
 const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
-  organizationId,
+  organizationId, // Backward compatibility
+  referenceId,
+  referenceType = 'ORGANIZATION',
   onDocumentsChange,
-  disabled = false
+  disabled = false,
+  readonly = false
 }) => {
+  // Resolve actual ID and type (support legacy organizationId prop)
+  const actualReferenceId = referenceId || organizationId;
+  const actualReferenceType = referenceId ? referenceType : 'ORGANIZATION';
   // State
   const [uploadForm, setUploadForm] = useState<{
     documentType: DocumentType;
@@ -85,18 +94,26 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
 
   // Fetch uploaded documents
   const fetchDocuments = useCallback(async () => {
-    if (!organizationId) return;
+    if (!actualReferenceId) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const response = await kycDocumentService.getByOrganizationId(organizationId, { page: 0, size: 100 });
-      setUploadedDocuments(response.content || []);
+      let documents: KYCDocument[] = [];
+      
+      if (actualReferenceType === 'BENEFICIARY') {
+        documents = await kycDocumentService.getByBeneficiaryId(actualReferenceId, { page: 0, size: 100 });
+      } else {
+        const response = await kycDocumentService.getByOrganizationId(actualReferenceId, { page: 0, size: 100 });
+        documents = response.content || [];
+      }
+      
+      setUploadedDocuments(documents);
       
       // Notify parent component
       if (onDocumentsChange) {
-        onDocumentsChange((response.content || []).length);
+        onDocumentsChange(documents.length);
       }
     } catch (error: any) {
       console.error('Failed to fetch documents:', error);
@@ -109,11 +126,11 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [organizationId]); // Removed onDocumentsChange from dependencies to prevent re-render loops
+  }, [actualReferenceId, actualReferenceType]); // Removed onDocumentsChange from dependencies to prevent re-render loops
 
-  // Load documents on mount and when organizationId changes
+  // Load documents on mount and when reference changes
   useEffect(() => {
-    if (organizationId) {
+    if (actualReferenceId) {
       fetchDocuments();
     } else {
       setUploadedDocuments([]);
@@ -121,7 +138,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
         onDocumentsChange(0);
       }
     }
-  }, [organizationId, fetchDocuments, onDocumentsChange]);
+  }, [actualReferenceId, actualReferenceType, fetchDocuments, onDocumentsChange]);
 
   // Handle file selection
   const handleFileSelect = useCallback((file: File | null) => {
@@ -136,8 +153,9 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
 
   // Handle upload
   const handleUpload = async () => {
-    if (!organizationId) {
-      setError('Organization must be saved before uploading documents');
+    if (!actualReferenceId) {
+      const entityType = actualReferenceType === 'BENEFICIARY' ? 'Beneficiary' : 'Organization';
+      setError(`${entityType} must be saved before uploading documents`);
       return;
     }
 
@@ -162,11 +180,19 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const result = await kycDocumentService.upload({
-        organisationId: organizationId,
+      const uploadData: any = {
         documentType: uploadForm.documentType,
         file: uploadForm.file
-      });
+      };
+      
+      // Set the correct ID field based on reference type
+      if (actualReferenceType === 'BENEFICIARY') {
+        uploadData.beneficiaryId = actualReferenceId;
+      } else {
+        uploadData.organisationId = actualReferenceId;
+      }
+
+      const result = await kycDocumentService.upload(uploadData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -299,7 +325,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
               size="small"
               color="error"
               onClick={() => handleDeleteClick(row)}
-              disabled={row.status === 'VERIFIED' || row.status === 'UNDER_REVIEW'}
+              disabled={row.status === 'VERIFIED' || row.status === 'UNDER_REVIEW' || readonly || disabled}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -332,11 +358,11 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
         </Typography>
       </Alert>
 
-      {/* No Organization ID Warning */}
-      {!organizationId && (
+      {/* No Reference ID Warning */}
+      {!actualReferenceId && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           <Typography variant="body2">
-            <strong>Note:</strong> The organization will be automatically saved when you navigate to this tab,
+            <strong>Note:</strong> The {actualReferenceType === 'BENEFICIARY' ? 'beneficiary' : 'organization'} will be automatically saved when you navigate to this tab,
             enabling you to upload KYC documents immediately.
           </Typography>
         </Alert>
@@ -363,14 +389,16 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
         </Typography>
         <Divider sx={{ mb: 3 }} />
 
-        {organizationId ? (
+        {actualReferenceId ? (
           <Box>
-            {/* Organization ID Display */}
-            <Alert severity="success" sx={{ mb: 3 }}>
-              <Typography variant="body2">
-                <strong>Organization ID: {organizationId}</strong> - Ready to upload documents
-              </Typography>
-            </Alert>
+            {/* Reference ID Display */}
+            {!readonly && (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  <strong>{actualReferenceType === 'BENEFICIARY' ? 'Beneficiary' : 'Organization'} ID: {actualReferenceId}</strong> - Ready to upload documents
+                </Typography>
+              </Alert>
+            )}
 
             {/* Document Type Selector */}
             <FormControl fullWidth sx={{ mb: 3 }}>
@@ -380,7 +408,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
                 value={uploadForm.documentType}
                 label="Document Type *"
                 onChange={handleDocumentTypeChange}
-                disabled={disabled || uploading}
+                disabled={disabled || uploading || readonly}
               >
                 {documentTypeOptions.map(option => (
                   <MenuItem key={option.value} value={option.value}>
@@ -398,7 +426,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
               <FileDropZone
                 onFileSelect={handleFileSelect}
                 currentFile={uploadForm.file}
-                disabled={disabled || uploading}
+                disabled={disabled || uploading || readonly}
                 accept=".pdf,.jpg,.jpeg,.png"
                 maxSize={10 * 1024 * 1024}
               />
@@ -424,7 +452,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
               <Button
                 variant="outlined"
                 onClick={() => setUploadForm({ ...uploadForm, file: null })}
-                disabled={!uploadForm.file || uploading || disabled}
+                disabled={!uploadForm.file || uploading || disabled || readonly}
               >
                 Clear
               </Button>
@@ -432,7 +460,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
                 variant="contained"
                 startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
                 onClick={handleUpload}
-                disabled={!uploadForm.file || !uploadForm.documentType || uploading || disabled}
+                disabled={!uploadForm.file || !uploadForm.documentType || uploading || disabled || readonly}
               >
                 {uploading ? 'Uploading...' : 'Upload Document'}
               </Button>
@@ -470,7 +498,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
             )}
           </Typography>
           <Tooltip title="Refresh list">
-            <IconButton onClick={fetchDocuments} disabled={loading || !organizationId}>
+            <IconButton onClick={fetchDocuments} disabled={loading || !actualReferenceId}>
               <RefreshIcon />
             </IconButton>
           </Tooltip>

@@ -22,12 +22,14 @@ import {
   VerifiedUser,
   Quiz,
   QuestionAnswer,
+  AccountBalance,
 } from '@mui/icons-material';
 
 export const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Users', icon: <People />, path: '/users' },
   { text: 'Organizations', icon: <Business />, path: '/organizations' },
+  { text: 'Beneficiaries', icon: <AccountBalance />, path: '/beneficiaries' },
   { text: 'KYC Verification', icon: <VerifiedUser />, path: '/kyc-verification' },
   { text: 'Questionnaire', icon: <Quiz />, path: '/questionnaire' },
   { text: 'Customer Answers', icon: <QuestionAnswer />, path: '/customer-answers' },

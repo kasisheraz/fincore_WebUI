@@ -48,13 +48,30 @@ class KYCDocumentService {
   }
 
   /**
+   * Get KYC documents by beneficiary ID
+   */
+  async getByBeneficiaryId(beneficiaryId: number, params?: PaginationParams): Promise<KYCDocument[]> {
+    const response = await apiService.get<KYCDocument[]>(this.BASE_PATH, {
+      params: { beneficiaryId, ...params }
+    });
+    return response.data;
+  }
+
+  /**
    * Upload KYC document with file
    */
   async upload(data: CreateKYCDocumentDTO): Promise<KYCDocument> {
     const formData = new FormData();
     
-    // Required fields
-    formData.append('organisationId', data.organisationId.toString());
+    // Organization or Beneficiary ID (one is required)
+    if (data.organisationId) {
+      formData.append('organisationId', data.organisationId.toString());
+    }
+    if (data.beneficiaryId) {
+      formData.append('beneficiaryId', data.beneficiaryId.toString());
+    }
+    
+    // Required field
     formData.append('documentType', data.documentType);
     
     // File upload

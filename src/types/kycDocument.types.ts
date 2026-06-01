@@ -42,7 +42,8 @@ export interface KYCDocument {
 }
 
 export interface CreateKYCDocumentDTO {
-  organisationId: number; // Required
+  organisationId?: number; // Optional - for organization documents
+  beneficiaryId?: number; // Optional - for beneficiary documents (one of organisationId or beneficiaryId required)
   documentType: DocumentType; // Required
   file?: File; // File to upload
   verificationIdentifier?: number;
