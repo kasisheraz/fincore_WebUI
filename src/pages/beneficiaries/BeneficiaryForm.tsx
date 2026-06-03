@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -19,7 +19,6 @@ import beneficiaryService from '../../services/beneficiaryService';
 import addressService from '../../services/addressService';
 import { Beneficiary, CreateBeneficiaryDTO, UpdateBeneficiaryDTO } from '../../types/beneficiary.types';
 import { Address, CreateAddressDTO } from '../../types/organization.types';
-import { useAuth } from '../../context/AuthContext';
 
 /**
  * Beneficiary Form - Create or Edit a beneficiary.
@@ -36,7 +35,6 @@ import { useAuth } from '../../context/AuthContext';
 const BeneficiaryForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const isEditMode = Boolean(id);
 
   // Form state
@@ -61,7 +59,9 @@ const BeneficiaryForm: React.FC = () => {
   });
 
   const [existingBeneficiary, setExistingBeneficiary] = useState<Beneficiary | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isAddressSaving, setIsAddressSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addressSaved, setAddressSaved] = useState(false);
 
@@ -74,7 +74,7 @@ const BeneficiaryForm: React.FC = () => {
 
   const loadBeneficiary = async (beneficiaryId: number) => {
     try {
-      setLoading(true);
+      setIsPageLoading(true);
       const data = await beneficiaryService.getById(beneficiaryId);
       setExistingBeneficiary(data);
 
@@ -105,9 +105,29 @@ const BeneficiaryForm: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load beneficiary');
     } finally {
-      setLoading(false);
+      setIsPageLoading(false);
     }
   };
+
+  const handleAddressDataChange = useCallback((data: CreateAddressDTO) => {
+    setAddressData((prev) => {
+      const hasChanged =
+        prev.typeCode !== data.typeCode ||
+        prev.addressLine1 !== data.addressLine1 ||
+        prev.addressLine2 !== data.addressLine2 ||
+        prev.city !== data.city ||
+        prev.stateCode !== data.stateCode ||
+        prev.postalCode !== data.postalCode ||
+        prev.country !== data.country;
+
+      if (!hasChanged) {
+        return prev;
+      }
+
+      setAddressSaved(false);
+      return data;
+    });
+  }, []);
 
   // Handle form field changes
   const handleChange = (field: keyof CreateBeneficiaryDTO, value: any) => {
@@ -118,7 +138,7 @@ const BeneficiaryForm: React.FC = () => {
   // Handle address save
   const handleSaveAddress = async () => {
     try {
-      setLoading(true);
+      setIsAddressSaving(true);
       let savedAddress: Address;
 
       if (isEditMode && existingBeneficiary?.registeredAddress?.id) {
@@ -135,7 +155,7 @@ const BeneficiaryForm: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save address');
     } finally {
-      setLoading(false);
+      setIsAddressSaving(false);
     }
   };
 
@@ -165,7 +185,7 @@ const BeneficiaryForm: React.FC = () => {
     }
 
     try {
-      setLoading(true);
+      setIsSubmitting(true);
       if (isEditMode && id) {
         await beneficiaryService.update(parseInt(id), formData as UpdateBeneficiaryDTO);
       } else {
@@ -175,9 +195,11 @@ const BeneficiaryForm: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save beneficiary');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const isBusy = isPageLoading || isAddressSaving || isSubmitting;
 
   return (
     <Box>
@@ -301,10 +323,7 @@ const BeneficiaryForm: React.FC = () => {
 
         <AddressForm
           address={addressData}
-          onDataChange={(data, isValid) => {
-            setAddressData(data);
-            setAddressSaved(false);
-          }}
+          onDataChange={(data) => handleAddressDataChange(data)}
           typeCode={1}
           required={true}
         />
@@ -313,9 +332,9 @@ const BeneficiaryForm: React.FC = () => {
           <Button
             variant="outlined"
             onClick={handleSaveAddress}
-            disabled={loading}
+            disabled={isBusy}
           >
-            {addressSaved ? 'Update Address' : 'Save Address'}
+            {isAddressSaving ? 'Saving Address...' : addressSaved ? 'Update Address' : 'Save Address'}
           </Button>
         </Box>
       </Paper>
@@ -326,7 +345,7 @@ const BeneficiaryForm: React.FC = () => {
           <Button
             variant="outlined"
             onClick={() => navigate('/beneficiaries')}
-            disabled={loading}
+            disabled={isBusy}
           >
             Cancel
           </Button>
@@ -334,9 +353,9 @@ const BeneficiaryForm: React.FC = () => {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSubmit}
-            disabled={loading || !addressSaved}
+            disabled={isBusy || !addressSaved}
           >
-            {loading ? 'Saving...' : isEditMode ? 'Update Beneficiary' : 'Create Beneficiary'}
+            {isSubmitting ? 'Saving...' : isEditMode ? 'Update Beneficiary' : 'Create Beneficiary'}
           </Button>
         </Box>
       </Paper>
