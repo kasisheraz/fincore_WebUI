@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { setupMocks } from '../fixtures/auth.fixture';
-import { BeneficiaryDetailsPage } from '../pages/BeneficiaryDetailsPage';
-import { BeneficiariesPage } from '../pages/BeneficiariesPage';
+import { setupMocks } from './fixtures/auth.fixture';
+import { BeneficiaryDetailsPage } from './pages/BeneficiaryDetailsPage';
+import { BeneficiariesPage } from './pages/BeneficiariesPage';
 
 test.describe('Beneficiary Details Page', () => {
   let detailsPage: BeneficiaryDetailsPage;
@@ -13,6 +13,7 @@ test.describe('Beneficiary Details Page', () => {
     
     // Setup API mocks and authentication
     await setupMocks(page);
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     
     // Verify authentication
     const isAuthenticated = await page.evaluate(() => {
@@ -543,6 +544,55 @@ test.describe('Beneficiary Details Page', () => {
         // Should display name without overflow issues
         await expect(detailsPage.beneficiaryName).toBeVisible();
         expect(name.length).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  test.describe('Details Screen Stability Regression', () => {
+    test('should keep Back/Edit/Submit screen stable while submitting', async ({ page }) => {
+      let getByIdCalls = 0;
+
+      page.on('request', (request) => {
+        const url = request.url();
+        if (
+          request.method() === 'GET' &&
+          url.includes('/api/beneficiaries/101') &&
+          !url.includes('/submit')
+        ) {
+          getByIdCalls += 1;
+        }
+      });
+
+      await detailsPage.goto(101);
+
+      await expect(detailsPage.backButton).toBeVisible();
+      await expect(detailsPage.editButton).toBeVisible();
+      await expect(detailsPage.submitForReviewButton).toBeVisible();
+
+      const beforeSubmitCalls = getByIdCalls;
+
+      await detailsPage.clickSubmitForReview();
+
+      await expect(detailsPage.backButton).toBeVisible();
+      await expect(detailsPage.submitForReviewButton).toBeHidden();
+      await expect(detailsPage.editButton).toBeHidden();
+      await expect(detailsPage.beneficiaryName).toBeVisible();
+
+      await page.waitForTimeout(1500);
+
+      const callsAfterSubmit = getByIdCalls - beforeSubmitCalls;
+      expect(callsAfterSubmit).toBeLessThanOrEqual(2);
+    });
+
+    test('should not show full-page loading spinner repeatedly after submit', async ({ page }) => {
+      await detailsPage.goto(101);
+
+      await detailsPage.clickSubmitForReview();
+
+      for (let i = 0; i < 5; i++) {
+        await page.waitForTimeout(300);
+        await expect(detailsPage.backButton).toBeVisible();
+        await expect(detailsPage.beneficiaryName).toBeVisible();
       }
     });
   });

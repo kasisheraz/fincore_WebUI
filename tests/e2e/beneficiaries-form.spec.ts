@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { setupMocks } from '../fixtures/auth.fixture';
-import { BeneficiaryFormPage } from '../pages/BeneficiaryFormPage';
+import { setupMocks } from './fixtures/auth.fixture';
+import { BeneficiaryFormPage } from './pages/BeneficiaryFormPage';
 
 test.describe('Beneficiary Create/Edit Form', () => {
   let formPage: BeneficiaryFormPage;
@@ -10,6 +10,7 @@ test.describe('Beneficiary Create/Edit Form', () => {
     
     // Setup API mocks and authentication
     await setupMocks(page);
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     
     // Verify authentication
     const isAuthenticated = await page.evaluate(() => {

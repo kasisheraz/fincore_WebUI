@@ -218,41 +218,41 @@ export class ApiMockHelper {
    * Mock beneficiaries endpoints
    */
   async mockBeneficiariesEndpoints() {
-    const beneficiaries = [
-      {
-        id: 101,
-        beneficiaryName: 'Test Beneficiary Bank',
-        nickName: 'TestBank',
-        businessName: 'Test Beneficiary Business',
-        country: 'United Kingdom',
-        registeredAddress: {
-          id: 501,
-          typeCode: 1,
-          addressLine1: '123 Test Street',
-          addressLine2: 'Suite 100',
-          city: 'London',
-          stateCode: 'LDN',
-          postalCode: 'SW1A 1AA',
-          country: 'United Kingdom'
-        },
-        isCounterOverCounter: false,
-        collectorContactNumber: null,
-        status: 'PENDING',
-        canBeEdited: true,
-        canBeSubmitted: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
+    let beneficiary = {
+      id: 101,
+      beneficiaryName: 'Test Beneficiary Bank',
+      nickName: 'TestBank',
+      businessName: 'Test Beneficiary Business',
+      country: 'United Kingdom',
+      registeredAddress: {
+        id: 501,
+        typeCode: 1,
+        addressLine1: '123 Test Street',
+        addressLine2: 'Suite 100',
+        city: 'London',
+        stateCode: 'LDN',
+        postalCode: 'SW1A 1AA',
+        country: 'United Kingdom'
+      },
+      isCounterOverCounter: false,
+      collectorContactNumber: null,
+      status: 'PENDING',
+      canBeEdited: true,
+      canBeSubmitted: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const getBeneficiaries = () => [beneficiary];
 
     await this.page.route('**/api/beneficiaries/count', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          count: beneficiaries.length,
+          count: getBeneficiaries().length,
           limit: 20,
-          remaining: 20 - beneficiaries.length,
+          remaining: 20 - getBeneficiaries().length,
           canCreateMore: true
         })
       });
@@ -262,7 +262,7 @@ export class ApiMockHelper {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(beneficiaries)
+        body: JSON.stringify(getBeneficiaries())
       });
     });
 
@@ -270,20 +270,23 @@ export class ApiMockHelper {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(beneficiaries)
+        body: JSON.stringify(getBeneficiaries())
       });
     });
 
     await this.page.route('**/api/beneficiaries/*/submit', async (route) => {
+      beneficiary = {
+        ...beneficiary,
+        status: 'UNDER_REVIEW',
+        canBeEdited: false,
+        canBeSubmitted: false,
+        updatedAt: new Date().toISOString()
+      };
+
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          ...beneficiaries[0],
-          status: 'UNDER_REVIEW',
-          canBeEdited: false,
-          canBeSubmitted: false
-        })
+        body: JSON.stringify(beneficiary)
       });
     });
 
@@ -296,9 +299,9 @@ export class ApiMockHelper {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            count: beneficiaries.length,
+            count: getBeneficiaries().length,
             limit: 20,
-            remaining: 20 - beneficiaries.length,
+            remaining: 20 - getBeneficiaries().length,
             canCreateMore: true
           })
         });
@@ -309,7 +312,7 @@ export class ApiMockHelper {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(beneficiaries)
+          body: JSON.stringify(getBeneficiaries())
         });
         return;
       }
@@ -318,7 +321,7 @@ export class ApiMockHelper {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(beneficiaries)
+          body: JSON.stringify(getBeneficiaries())
         });
         return;
       }
@@ -327,21 +330,22 @@ export class ApiMockHelper {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(beneficiaries[0])
+          body: JSON.stringify(beneficiary)
         });
         return;
       }
 
       if (method === 'PUT') {
         const postData = route.request().postDataJSON() || {};
+        beneficiary = {
+          ...beneficiary,
+          ...postData,
+          updatedAt: new Date().toISOString()
+        };
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            ...beneficiaries[0],
-            ...postData,
-            updatedAt: new Date().toISOString()
-          })
+          body: JSON.stringify(beneficiary)
         });
         return;
       }
@@ -364,7 +368,7 @@ export class ApiMockHelper {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(beneficiaries)
+          body: JSON.stringify(getBeneficiaries())
         });
         return;
       }
@@ -375,7 +379,7 @@ export class ApiMockHelper {
           status: 201,
           contentType: 'application/json',
           body: JSON.stringify({
-            ...beneficiaries[0],
+            ...beneficiary,
             id: Date.now(),
             ...postData,
             createdAt: new Date().toISOString(),
@@ -395,6 +399,7 @@ export class ApiMockHelper {
   async mockAllEndpoints() {
     await this.mockAuthEndpoints();
     await this.mockDashboardEndpoints();
+    await this.mockEnumEndpoints();
     await this.mockOrganizationsEndpoints();
     await this.mockUsersEndpoints();
     await this.mockBeneficiariesEndpoints();
@@ -409,6 +414,18 @@ export class ApiMockHelper {
   async mockKYCEndpoints() {
     await this.page.route('**/api/kyc-documents**', async (route) => {
       if (route.request().method() === 'GET') {
+        const requestUrl = new URL(route.request().url());
+        const isBeneficiaryRequest = requestUrl.searchParams.has('beneficiaryId');
+
+        if (isBeneficiaryRequest) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify([])
+          });
+          return;
+        }
+
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -447,6 +464,41 @@ export class ApiMockHelper {
       } else {
         await route.continue();
       }
+    });
+  }
+
+  /**
+   * Mock enums endpoint
+   */
+  async mockEnumEndpoints() {
+    await this.page.route('**/api/enums', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          userStatus: [],
+          organizationStatus: [],
+          organizationType: [],
+          documentType: [
+            { value: 'CERTIFICATE_OF_INCORPORATION', label: 'Certificate of Incorporation' },
+            { value: 'PROOF_OF_ADDRESS', label: 'Proof of Address' },
+            { value: 'DIRECTORS_REGISTER', label: 'Directors Register' },
+            { value: 'BENEFICIARY_AGREEMENT', label: 'Beneficiary Agreement' }
+          ],
+          documentStatus: [
+            { value: 'PENDING', label: 'Pending' },
+            { value: 'UPLOADED', label: 'Uploaded' },
+            { value: 'UNDER_REVIEW', label: 'Under Review' },
+            { value: 'VERIFIED', label: 'Verified' }
+          ],
+          addressType: [],
+          verificationStatus: [],
+          verificationLevel: [],
+          screeningType: [],
+          riskLevel: [],
+          questionCategory: []
+        })
+      });
     });
   }
 

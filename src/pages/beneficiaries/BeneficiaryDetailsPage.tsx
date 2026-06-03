@@ -52,27 +52,31 @@ const BeneficiaryDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadBeneficiary = useCallback(async (beneficiaryId: number) => {
+  const loadBeneficiary = useCallback(async (beneficiaryId: number, showLoader: boolean = true) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const data = await beneficiaryService.getById(beneficiaryId);
       setBeneficiary(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load beneficiary');
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     if (id) {
-      loadBeneficiary(parseInt(id));
+      loadBeneficiary(parseInt(id), true);
     }
   }, [id, loadBeneficiary]);
 
   const handleDocumentsChange = useCallback(() => {
     if (beneficiary?.id) {
-      loadBeneficiary(beneficiary.id);
+      loadBeneficiary(beneficiary.id, false);
     }
   }, [beneficiary?.id, loadBeneficiary]);
 
@@ -89,7 +93,7 @@ const BeneficiaryDetailsPage: React.FC = () => {
       setSubmitting(true);
       await beneficiaryService.submitForReview(beneficiary.id);
       // Reload to get updated status
-      await loadBeneficiary(beneficiary.id);
+      await loadBeneficiary(beneficiary.id, false);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit beneficiary for review');
     } finally {

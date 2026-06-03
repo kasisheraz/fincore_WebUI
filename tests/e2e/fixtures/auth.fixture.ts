@@ -41,6 +41,7 @@ export async function setupMocks(page: Page) {
   const apiMock = new ApiMockHelper(page);
   await apiMock.mockAuthEndpoints(); // Mock auth endpoints to prevent token validation failures
   await apiMock.mockDashboardEndpoints();
+  await apiMock.mockEnumEndpoints();
   await apiMock.mockOrganizationsEndpoints();
   await apiMock.mockUsersEndpoints();
   await apiMock.mockBeneficiariesEndpoints();

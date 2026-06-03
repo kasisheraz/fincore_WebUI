@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Button,
@@ -73,6 +73,7 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
 
   // Enum options
   const [documentTypeOptions, setDocumentTypeOptions] = useState<EnumOption[]>([]);
+  const lastReportedDocumentCount = useRef<number | null>(null);
 
   // Fetch document types
   useEffect(() => {
@@ -103,7 +104,10 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
       let documents: KYCDocument[] = [];
       
       if (actualReferenceType === 'BENEFICIARY') {
-        documents = await kycDocumentService.getByBeneficiaryId(actualReferenceId, { page: 0, size: 100 });
+        const beneficiaryDocuments: any = await kycDocumentService.getByBeneficiaryId(actualReferenceId, { page: 0, size: 100 });
+        documents = Array.isArray(beneficiaryDocuments)
+          ? beneficiaryDocuments
+          : (beneficiaryDocuments?.content || []);
       } else {
         const response = await kycDocumentService.getByOrganizationId(actualReferenceId, { page: 0, size: 100 });
         documents = response.content || [];
@@ -112,16 +116,18 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
       setUploadedDocuments(documents);
       
       // Notify parent component
-      if (onDocumentsChange) {
+      if (onDocumentsChange && lastReportedDocumentCount.current !== documents.length) {
         onDocumentsChange(documents.length);
+        lastReportedDocumentCount.current = documents.length;
       }
     } catch (error: any) {
       console.error('Failed to fetch documents:', error);
       setError(error.message || 'Failed to load documents');
       setUploadedDocuments([]);
       
-      if (onDocumentsChange) {
+      if (onDocumentsChange && lastReportedDocumentCount.current !== 0) {
         onDocumentsChange(0);
+        lastReportedDocumentCount.current = 0;
       }
     } finally {
       setLoading(false);
@@ -134,8 +140,9 @@ const KYCDocumentsUploadTab: React.FC<KYCDocumentsUploadTabProps> = ({
       fetchDocuments();
     } else {
       setUploadedDocuments([]);
-      if (onDocumentsChange) {
+      if (onDocumentsChange && lastReportedDocumentCount.current !== 0) {
         onDocumentsChange(0);
+        lastReportedDocumentCount.current = 0;
       }
     }
   }, [actualReferenceId, actualReferenceType, fetchDocuments, onDocumentsChange]);

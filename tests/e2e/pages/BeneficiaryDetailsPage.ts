@@ -73,7 +73,8 @@ export class BeneficiaryDetailsPage {
 
   async goto(id: number) {
     await this.page.goto(`/beneficiaries/${id}`);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForURL(/\/beneficiaries\/\d+/, { timeout: 10000 });
+    await this.beneficiaryName.waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async clickBack() {

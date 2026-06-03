@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { setupMocks } from '../fixtures/auth.fixture';
-import { BeneficiariesPage } from '../pages/BeneficiariesPage';
-import { BeneficiaryFormPage } from '../pages/BeneficiaryFormPage';
-import { BeneficiaryDetailsPage } from '../pages/BeneficiaryDetailsPage';
+import { setupMocks } from './fixtures/auth.fixture';
+import { BeneficiariesPage } from './pages/BeneficiariesPage';
+import { BeneficiaryFormPage } from './pages/BeneficiaryFormPage';
+import { BeneficiaryDetailsPage } from './pages/BeneficiaryDetailsPage';
 
 /**
  * End-to-End Beneficiary Workflow Tests
@@ -26,6 +26,7 @@ test.describe('Beneficiary Workflow - End to End', () => {
     
     // Setup API mocks and authentication
     await setupMocks(page);
+    await page.goto('/dashboard', { waitUntil: 'networkidle' });
     
     // Verify authentication
     const isAuthenticated = await page.evaluate(() => {

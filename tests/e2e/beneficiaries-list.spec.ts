@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { setupMocks } from '../fixtures/auth.fixture';
-import { BeneficiariesPage } from '../pages/BeneficiariesPage';
+import { setupMocks } from './fixtures/auth.fixture';
+import { BeneficiariesPage } from './pages/BeneficiariesPage';
 
 test.describe('Beneficiaries List Page', () => {
   let beneficiariesPage: BeneficiariesPage;
