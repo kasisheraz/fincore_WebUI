@@ -43,6 +43,7 @@ export async function setupMocks(page: Page) {
   await apiMock.mockDashboardEndpoints();
   await apiMock.mockOrganizationsEndpoints();
   await apiMock.mockUsersEndpoints();
+  await apiMock.mockBeneficiariesEndpoints();
   await apiMock.mockKYCEndpoints();
   await apiMock.mockQuestionnaireEndpoints();
   await apiMock.mockCustomerAnswersEndpoints();

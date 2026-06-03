@@ -215,6 +215,181 @@ export class ApiMockHelper {
   }
 
   /**
+   * Mock beneficiaries endpoints
+   */
+  async mockBeneficiariesEndpoints() {
+    const beneficiaries = [
+      {
+        id: 101,
+        beneficiaryName: 'Test Beneficiary Bank',
+        nickName: 'TestBank',
+        businessName: 'Test Beneficiary Business',
+        country: 'United Kingdom',
+        registeredAddress: {
+          id: 501,
+          typeCode: 1,
+          addressLine1: '123 Test Street',
+          addressLine2: 'Suite 100',
+          city: 'London',
+          stateCode: 'LDN',
+          postalCode: 'SW1A 1AA',
+          country: 'United Kingdom'
+        },
+        isCounterOverCounter: false,
+        collectorContactNumber: null,
+        status: 'PENDING',
+        canBeEdited: true,
+        canBeSubmitted: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    await this.page.route('**/api/beneficiaries/count', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          count: beneficiaries.length,
+          limit: 20,
+          remaining: 20 - beneficiaries.length,
+          canCreateMore: true
+        })
+      });
+    });
+
+    await this.page.route('**/api/beneficiaries/admin/all', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(beneficiaries)
+      });
+    });
+
+    await this.page.route('**/api/beneficiaries/search**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(beneficiaries)
+      });
+    });
+
+    await this.page.route('**/api/beneficiaries/*/submit', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ...beneficiaries[0],
+          status: 'UNDER_REVIEW',
+          canBeEdited: false,
+          canBeSubmitted: false
+        })
+      });
+    });
+
+    await this.page.route('**/api/beneficiaries/*', async (route) => {
+      const method = route.request().method();
+      const url = route.request().url();
+
+      if (method === 'GET' && url.includes('/api/beneficiaries/count')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            count: beneficiaries.length,
+            limit: 20,
+            remaining: 20 - beneficiaries.length,
+            canCreateMore: true
+          })
+        });
+        return;
+      }
+
+      if (method === 'GET' && url.includes('/api/beneficiaries/admin/all')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(beneficiaries)
+        });
+        return;
+      }
+
+      if (method === 'GET' && url.includes('/api/beneficiaries/search')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(beneficiaries)
+        });
+        return;
+      }
+
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(beneficiaries[0])
+        });
+        return;
+      }
+
+      if (method === 'PUT') {
+        const postData = route.request().postDataJSON() || {};
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            ...beneficiaries[0],
+            ...postData,
+            updatedAt: new Date().toISOString()
+          })
+        });
+        return;
+      }
+
+      if (method === 'DELETE') {
+        await route.fulfill({
+          status: 204,
+          body: ''
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    await this.page.route('**/api/beneficiaries', async (route) => {
+      const method = route.request().method();
+
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(beneficiaries)
+        });
+        return;
+      }
+
+      if (method === 'POST') {
+        const postData = route.request().postDataJSON() || {};
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            ...beneficiaries[0],
+            id: Date.now(),
+            ...postData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          })
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+  }
+
+  /**
    * Mock all common endpoints
    */
   async mockAllEndpoints() {
@@ -222,6 +397,7 @@ export class ApiMockHelper {
     await this.mockDashboardEndpoints();
     await this.mockOrganizationsEndpoints();
     await this.mockUsersEndpoints();
+    await this.mockBeneficiariesEndpoints();
     await this.mockKYCEndpoints();
     await this.mockQuestionnaireEndpoints();
     await this.mockCustomerAnswersEndpoints();

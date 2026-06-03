@@ -90,7 +90,7 @@ test.describe('Smoke Tests - Critical Paths', () => {
   // BENEFICIARY SMOKE TESTS
   test('should navigate to beneficiaries page', async ({ page }) => {
     await page.goto('/beneficiaries');
-    await expect(page.getByText('Beneficiaries', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Beneficiaries' })).toBeVisible();
     
     // Verify Add Beneficiary button exists and shows count
     const addButton = page.getByRole('button', { name: /add beneficiary/i });
@@ -106,7 +106,7 @@ test.describe('Smoke Tests - Critical Paths', () => {
     
     // Should reach create form
     await expect(page).toHaveURL(/\/beneficiaries\/create/);
-    await expect(page.getByText(/create beneficiary/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /create beneficiary/i })).toBeVisible();
     
     // Verify key form sections are visible
     await expect(page.getByText('Basic Information')).toBeVisible();
