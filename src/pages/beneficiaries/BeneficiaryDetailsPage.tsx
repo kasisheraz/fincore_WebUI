@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -52,13 +52,7 @@ const BeneficiaryDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadBeneficiary(parseInt(id));
-    }
-  }, [id]);
-
-  const loadBeneficiary = async (beneficiaryId: number) => {
+  const loadBeneficiary = useCallback(async (beneficiaryId: number) => {
     try {
       setLoading(true);
       const data = await beneficiaryService.getById(beneficiaryId);
@@ -68,7 +62,19 @@ const BeneficiaryDetailsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      loadBeneficiary(parseInt(id));
+    }
+  }, [id, loadBeneficiary]);
+
+  const handleDocumentsChange = useCallback(() => {
+    if (beneficiary?.id) {
+      loadBeneficiary(beneficiary.id);
+    }
+  }, [beneficiary?.id, loadBeneficiary]);
 
   const handleEdit = () => {
     if (beneficiary && beneficiary.canBeEdited) {
@@ -362,7 +368,7 @@ const BeneficiaryDetailsPage: React.FC = () => {
         <KYCDocumentsUploadTab
           referenceId={beneficiary.id}
           referenceType="BENEFICIARY"
-          onDocumentsChange={() => loadBeneficiary(beneficiary.id)}
+          onDocumentsChange={handleDocumentsChange}
           readonly={beneficiary.status !== 'PENDING' && !isAdmin}
         />
       </Paper>
